@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: host-cross-network-policy
+  namespace: test
+spec:
+  podSelector:
+    matchLabels:
+      User: user1
+      key4: value3
+      key1: value3
+  policyTypes:
+  - Egress
+  - Ingress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          role: admin
+    - podSelector:
+        matchLabels:
+          User: user1
+          key4: value0
+          network: cross
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          User: user1
+          key4: value0
+          network: cross
+
