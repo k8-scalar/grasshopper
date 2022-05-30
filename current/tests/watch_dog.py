@@ -203,7 +203,8 @@ def on_deleted(event):
                         for va in valz:
                             for nd_nms in va['node_Name']:
                                 SG_object.detach_an_sg(nd_nms,va['SG_name'])
-                                SG_object.delete_an_sg(va['SG_name'])
+                                #SG_object.delete_an_sg(va['SG_name'])
+                                SG_object.ch_delete(va['SG_name'])
                                 print("Security group {} has been detached from node {}".format(va['SG_name'], nd_nms))
 
                     else:
@@ -211,7 +212,8 @@ def on_deleted(event):
                             if va['select_labels'] == labels:
                                 for nd_nms in va['node_Name']:
                                     SG_object.detach_an_sg(nd_nms,va['SG_name'])
-                                    SG_object.delete_an_sg(va['SG_name'])
+                                    #SG_object.delete_an_sg(va['SG_name'])
+                                    SG_object.ch_delete(va['SG_name'])
                                     print("Security group {} has been detached from node {}".format(va['SG_name'], nd_nms))
 
     else:
