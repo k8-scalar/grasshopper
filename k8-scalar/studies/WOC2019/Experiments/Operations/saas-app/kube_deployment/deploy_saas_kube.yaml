@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saas
+spec:
+  selector:
+    matchLabels:
+      run: saas
+      User: user1
+      key4: value0
+  replicas: 1
+  template:
+    metadata:
+      name: saas
+      labels:
+        run: saas 
+        User: user1
+        key4: value0
+    spec:
+      containers: 
+      - name: saas
+        image: sverreydt/saas-app
+        ports: 
+        - containerPort: 5000
+

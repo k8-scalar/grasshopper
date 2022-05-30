@@ -1,0 +1,51 @@
+apiVersion: "apps/v1"
+kind: StatefulSet
+metadata:
+  name: experiment-controller
+  namespace: test
+spec:
+  selector:
+    matchLabels:
+      app: experiment-controller
+      User: user1
+      key4: value3
+      key1: value3
+  serviceName: experiment-controller
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: experiment-controller
+        technology: scalar
+        User: user1
+        key4: value3
+        key1: value3
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - experiment-controller
+            topologyKey: "kubernetes.io/hostname" 
+      containers:
+      - name: experiment-controller
+        image:  decomads/experiment-controller-cassandra-saas  
+        volumeMounts:
+        - name: kubeconfig
+          mountPath: /root/.kube
+        - name: resultdata
+          mountPath: /exp/var
+      volumes:
+        - name: kubeconfig
+          secret:
+            secretName: kubeconfig
+        - name: resultdata
+          hostPath:
+            path: /data/results
+      #nodeSelector:
+      #controllerNode: "yes"
+
