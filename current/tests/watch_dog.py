@@ -229,7 +229,6 @@ def on_deleted(event):
     with open('rulz.py','w') as f:
         f.write("already_created_rules=[] "+ '\n')'''
     
-    #fg_map = on_deleted.map
     h_map_copy=fg_map.copy()
     for ke, va in h_map_copy.items():
         for vals in va:
