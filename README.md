@@ -2,7 +2,7 @@
 ## Instructions
 export OS environment
 ```
-export OS_VERSION=" " <!--- enter the OS version -->\
+export OS_VERSION=" "  #enter the OS version 
 export OS_USERNAME=" " <!--- your username -->\
 export OS_PASSWORD=" " <!--- enter your password here -->\
 export OS_PROJECT_ID=" " <!--- enter your project id here -->\
