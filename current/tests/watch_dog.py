@@ -44,8 +44,6 @@ def get_kind(dir_name, yaml_file):
             conf = yaml.safe_load(stream)
             print('Resource:', conf['kind'])
             return conf['kind']
-
-
         except yaml.YAMLError as exc:
             print (exc)
 
@@ -68,7 +66,7 @@ def on_created(event):
         node_name=contt[0].nodeName
         sorted_labels =str(dict(OrderedDict(sorted(labels.items(), key = lambda kv:kv[0].casefold()))))
 
-        cp = ConfigParser('src_dir/') #* To adjust
+        cp = ConfigParser('src_dir/') 
         containers, policies = cp.parse()
 
         for v in containers:
@@ -100,13 +98,15 @@ def on_created(event):
 
         cp = ConfigParser('src_dir/')
         containers, policies = cp.parse()
+        
+        #checking for offenders
         redund= policy_shadow(policies, containers)
         conf= policy_conflict(policies, containers)
         #perm_pols = over_permissive(policies, containers)
 
 
         for v in policies:
-            #if v.name not in redund and v.name not in conf and not in perm_pols:
+            #if v.name not in redund and v.name not in conf and not in perm_pols: #if not in offenders
             for items in v.allow:
                 if v.name != pol_name and v.selector.labels.items() ==labels.items() and items.labels.items()==all_labels and v.direction.direction ==trafic_dirn:
                     print("Policy {} with similar set of labels as {} is already applied".format(v.name, pol_name))
@@ -161,7 +161,6 @@ def on_deleted(event):
             if conts.name !=new_cont_name and conts.nodeName==node_name and conts.labels == labels:
                 print("Pod {} with same lables as removed {} still running on node {}".format(conts.name, obj_name, conts.nodeName))
                 break
-
         else:
             with timing_processtime("Time taken: "):
                 try:
@@ -203,8 +202,8 @@ def on_deleted(event):
                         for va in valz:
                             for nd_nms in va['node_Name']:
                                 SG_object.detach_an_sg(nd_nms,va['SG_name'])
-                                #SG_object.delete_an_sg(va['SG_name'])
-                                SG_object.ch_delete(va['SG_name'])
+                                #SG_object.delete_an_sg(va['SG_name'])#Deletes SG from the map
+                                SG_object.ch_delete(va['SG_name']) # Only removes rules from SG but leaves SG in the map
                                 print("Security group {} has been detached from node {}".format(va['SG_name'], nd_nms))
 
                     else:
@@ -212,15 +211,17 @@ def on_deleted(event):
                             if va['select_labels'] == labels:
                                 for nd_nms in va['node_Name']:
                                     SG_object.detach_an_sg(nd_nms,va['SG_name'])
-                                    #SG_object.delete_an_sg(va['SG_name'])
-                                    SG_object.ch_delete(va['SG_name'])
+                                    #SG_object.delete_an_sg(va['SG_name']) #Deletes SG from the map
+                                    SG_object.ch_delete(va['SG_name']) # Only removes rules from SG but leaves SG in the map
                                     print("Security group {} has been detached from node {}".format(va['SG_name'], nd_nms))
 
     else:
         print('Resource neither Pod nor Network policy')
 
     #Reconstruct the hashmap when a resource is deleted
-    '''cp = ConfigParser('data1/')
+    '''
+    #complete rebuild
+    cp = ConfigParser('data1/')
     containers, policies = cp.parse()
     all_map= NP_object.build_sgs(containers, policies, InterNode=False)
     fg_map = NP_object.concate(all_map)
@@ -229,6 +230,7 @@ def on_deleted(event):
     with open('rulz.py','w') as f:
         f.write("already_created_rules=[] "+ '\n')'''
     
+    #update hashmap rather than total rebuilding
     h_map_copy=fg_map.copy()
     for ke, va in h_map_copy.items():
         for vals in va:
