@@ -30,12 +30,9 @@ class ConfigParser:
                 with open(filepath) as f:
                     data = load(f, Loader=Loader)
                     self.create_object(data)
-
             except:
                 print("Error opening or reading file " + filepath)
-
         else:
-
             try:
                 time.sleep(0.001)#Time to write yaml to data evaluated to be 0.0008
                 for subdir, dirs, files in os.walk(filepath):
@@ -76,9 +73,7 @@ class ConfigParser:
                                 if 'port' in p:
                                     ports = [p['protocol'], p['port']]
 
-
                     new_policy = Policy(data['metadata']['name'], PolicySelect(select), allow, PolicyIngress, ports, cidr)
-
                     self.policies.append(new_policy)
 
 
@@ -110,7 +105,6 @@ class ConfigParser:
             labels = data['metadata']['labels']
             new_container = Container(data['metadata']['name'], labels, data['spec']['nodeName'])
             self.containers.append(new_container)
-
 
     def print_all(self):
         for c in self.containers:
