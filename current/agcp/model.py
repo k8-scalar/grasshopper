@@ -458,7 +458,7 @@ class SG_object:
         return inner_function
 
 
-    #@exception_handler
+    @exception_handler
     def SGs_and_rules(f_map_list):
         sg_traffic_map =[] # for matching traffic for the rules added to the already previously created SGs
         from rulz import already_created_rules
