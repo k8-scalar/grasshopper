@@ -167,7 +167,7 @@ class NP_object:
 
             # work as all direction being egress
             for k, v in policy.working_selector.labels.items():
-                if k in labelMap.keys(): #all keys in containers
+                if k in labelMap.keys(): 
                     select_set &= labelMap[k]
                     #If policy labels not on any container, then it does not select any container.
                 else:
@@ -358,7 +358,6 @@ class NP_object:
                         allo1.append(vals['labels'].items())
                         new_all_map.append(new_map_all)
                 else:
-                    #print(new_all_map)
                     for ite in new_all_map:
                         if ite.select_labels == vals['labels'] and ite.NetworkPolicy_name ==None:
                             print ("{} not added to Map coz similar labels already exist for SG '{}'".format(vals['labels'],ite.SG_name))
