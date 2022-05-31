@@ -53,7 +53,7 @@ def policy_shadow(policies: List[Policy], containers: List[Container]) -> List[T
 
 
 
-def policy_conflict( policies: List[Policy], containers: List[Container]) -> List[Tuple[int, int]]:
+def policy_conflict( policies: List[Policy], containers: List[Container]) -> List[Tuple[int, int]]: 
     """
     Policy conflict.
     The connections built by a policy are totally contradict the connections built by another
@@ -94,7 +94,7 @@ def policy_conflict( policies: List[Policy], containers: List[Container]) -> Lis
     return conf_pols
 
 
-def over_permissive(containers: List[Container], policies: List[Policy]) -> List[int]:
+def over_permissive(containers: List[Container], policies: List[Policy]) -> List[int]: # To be updated
     n_container = len(containers)
     labelMap: Dict[str, bitarray] = DefaultDict(lambda: bitarray('0' * n_container))
     perm_pols = []
