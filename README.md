@@ -9,5 +9,5 @@ export OS_PROJECT_ID=" " # your project id
 export OS_AUTH_URL=  # auth_url 
 ```
 2. Setup the metrics server: [Kubernetes Metrics Server](https://github.com/kubernetes-sigs/metrics-server)
-3. Run k8swatch and watch-dog scripts in own terminals on the master node\
+3. Run k8swatch and watch-dog scripts in own terminals on the master node
 4. In another terminal, run the evaluation script e.g. netperf-eval-no-tool
