@@ -596,16 +596,24 @@ class SG_object:
             if sg['name']==sgname:
                 neutron.delete_security_group(sg['id'])
 
-    @exception_handler
+    '''@exception_handler
     def ch_delete(sgname):
         #when a networkpolicy is removed, 
-        # If no remote, remove rules from SG
-        # If SG remains empty, delete SG
-        # If remote, remove rules from remote SGs as well
+        #remove rules from SG
         for sg in SG_object.SGs_and_rules.all_sgs:
             if sg['name']==sgname:
                 for r in sg['security_group_rules']:
-                    neutron.delete_security_group_rule(security_group_rule=r['id'])#To be updated
+                    neutron.delete_security_group_rule(security_group_rule=r['id'])'''
+    
+    @exception_handler
+    def ch_delete(sgname):
+        sgnameid =''
+        for sg in neutron.list_security_groups()['security_groups']:
+            if sg['name']==sgname:
+                sgnameid=sg['id']
+            for r in sg['security_group_rules']: #This search to be removed by adding to each map all sgs refering to it.
+                if r['remote_group_id'] ==sgnameid:
+                    neutron.delete_security_group_rule(security_group_rule=r['id'])
 
 
 
