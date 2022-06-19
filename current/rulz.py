@@ -1,1 +1,1 @@
-already_created_rules= ['SG_cliet-network-policySG_host-network-policy', 'SG_host-network-policySG_cliet-network-policy', 'SG_nginx-policy-1SG_cliet-network-policy', 'SG_nginx-policy-2SG_cliet-network-policy', 'SG_nginx-policy-3SG_cliet-network-policy', 'SG_nginx-policy-4SG_cliet-network-policy', 'SG_nginx-policy-5SG_cliet-network-policy']
+already_created_rules= []
