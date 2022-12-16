@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: teastore-webui
+  labels:
+    app: teastore
+    run: teastore-webui
+    release: teastore
+spec:
+  type: ExternalName
+  externalName: teastore-webui.default.svc.cluster.local
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    run: teastore-webui
