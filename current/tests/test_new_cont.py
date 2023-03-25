@@ -2,9 +2,7 @@ import time
 import pathlib
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
-from yaml import events
-from agcp.model import *
-from agcp.algo import *
+from agcp.model_svc import *
 from agcp.parser import ConfigParser
 import yaml
 from pprint import pprint
@@ -50,26 +48,25 @@ def get_kind(dir_name, yaml_file):
             print (exc)
 
 
-@exception_handler
+#@exception_handler
 def on_created(event):
     obj_name=os.path.basename(event.src_path)
     print(f"{event.src_path} has been created!")
     file = pathlib.Path(event.src_path)
-    time.sleep(0.08)#Time to write info from policy evaluated to be 0.0008
+    time.sleep(0.001)#Time to write info from policy evaluated to be 0.0008
     #Still need a more time efficient way to get info from the policy without having to use kubectl get
     kind = get_kind('data',file.name)
     if event.is_directory:
         return
     elif kind =='Pod':
-        cp1 = ConfigParser('data/')
-        contt, _ = cp1.parse('data/{}'.format(obj_name))
+        cp = ConfigParser('data/')
+        contt, _ ,_= cp.parse('data/{}'.format(obj_name))
         new_cont_name=contt[0].name
         labels=contt[0].labels
         node_name=contt[0].nodeName
         sorted_labels =str(dict(OrderedDict(sorted(labels.items(), key = lambda kv:kv[0].casefold()))))
 
-        cp = ConfigParser('src_dir/') #* To adjust
-        containers, policies = cp.parse()
+        containers, policies, services = cp.parse()
 
         for v in containers:
             if v.name != new_cont_name and  v.labels.items() >=labels.items() and v.nodeName ==node_name:
@@ -77,7 +74,17 @@ def on_created(event):
                 break
 
         else:
-            with timing_processtime("Time taken: "):
+            #matching with services
+            with timing_processtime("Time taken to match with services: "):
+                svc_map = ServiceReachability.build_svc(containers, services)
+                pprint (svc_map.all_map, sort_dicts=False)
+                if svc_map.all_map:
+                    ServiceReachability.svc_add_rules(svc_map.all_map)
+                else:
+                    print("No matching Service found for the created Pod")
+
+            #matching with policies
+            with timing_processtime("Time taken to match with policies: "):
                 all_map= NP_object.build_sgs(containers, policies, InterNode=False)
                 fg_map = NP_object.concate(all_map)
                 on_created.map =fg_map
@@ -89,8 +96,8 @@ def on_created(event):
                     print("No matching Policy found for the created Pod")
 
     elif kind == 'NetworkPolicy':
-        cp1 = ConfigParser('data/')
-        _, poll = cp1.parse('data/{}'.format(obj_name)) #Parse the added policy
+        cp = ConfigParser('data/')
+        _, poll, _ = cp.parse('data/{}'.format(obj_name)) #Parse the added policy
         pol_name=poll[0].name
         labels=poll[0].selector.labels
         for items in poll[0].allow:
@@ -98,8 +105,7 @@ def on_created(event):
         trafic_dirn = poll[0].direction.direction
         sorted_labels =str(dict(OrderedDict(sorted(labels.items(), key = lambda kv:kv[0].casefold()))))
 
-        cp = ConfigParser('src_dir/')
-        containers, policies = cp.parse()
+        containers, policies, _ = cp.parse()
         #redund= policy_shadow(policies, containers)
         #conf= policy_conflict(policies, containers)
         #perm_pols = over_permissive(policies, containers)
@@ -124,21 +130,36 @@ def on_created(event):
                 else:
                     print("No matching Container for the created Policy")
 
-    else:
-        print('Resource neither Pod nor Network policy')
 
-
-'''def on_modified(event):
-    print(f"{event.src_path} has been modified")
-     if event.is_directory:
-        return
-    else:
-        file = pathlib.Path(event.src_path)
-        new_cont_name, labels, node_name=Obj_info(file.name)
+    elif kind == 'Service':
+        cp_serv = ConfigParser('data/')
+        _, _, serv = cp_serv.parse('data/{}'.format(obj_name)) #Parse  the added  service
+        serv_name=serv[0].name
+        labels=serv[0].selector.labels
         sorted_labels =str(dict(OrderedDict(sorted(labels.items(), key = lambda kv:kv[0].casefold()))))
-        print (new_cont_name, sorted_labels)'''
 
-@exception_handler
+        containers, _, services= cp_serv.parse()
+
+
+        for v in services:
+            if v.name != serv_name and v.selector.labels.items() ==labels.items():
+                print("Service {} with similar set of labels as {} is already applied".format(v.name, serv_name))
+
+        else:
+            with timing_processtime("Time taken: "):
+                svc_map = ServiceReachability.build_svc(containers, services)
+
+                pprint (vars(svc_map), sort_dicts=False)
+                if svc_map.all_map:
+                    ServiceReachability.svc_add_rules(svc_map.all_map)
+                else:
+                    print("No matching Container for the created service")
+
+    else:
+        print('Resource is not container, policy, or service')
+
+
+#@exception_handler
 def on_deleted(event):
     obj_name=os.path.basename(event.src_path)
     print(f"Oops {event.src_path} has been deleted!")
@@ -147,15 +168,14 @@ def on_deleted(event):
     if event.is_directory:
         return
     elif kind == 'Pod':
-        cp1 = ConfigParser('src_dir/')
-        contt, _ = cp1.parse('src_dir/{}'.format(obj_name))
+        cp = ConfigParser('src_dir/')
+        contt, _,_ = cp.parse('src_dir/{}'.format(obj_name))
         new_cont_name=contt[0].name
         labels=contt[0].labels
         node_name=contt[0].nodeName
         sorted_labels =str(dict(OrderedDict(sorted(labels.items(), key = lambda kv:kv[0].casefold()))))
 
-        cp = ConfigParser('src_dir/')
-        containers, policies = cp.parse()
+        containers, policies, _ = cp.parse()
 
         for conts in containers:
             if conts.name !=new_cont_name and conts.nodeName==node_name and conts.labels == labels:
@@ -184,8 +204,8 @@ def on_deleted(event):
                                     print("Security group {} has been detached from node {}".format(va['SG_name'], node_name))
 
     elif kind == 'NetworkPolicy':
-        cp1 = ConfigParser('src_dir/')
-        _, poll = cp1.parse('src_dir/{}'.format(obj_name))
+        cp = ConfigParser('src_dir/')
+        _, poll, _ = cp.parse('src_dir/{}'.format(obj_name))
         pol_name=poll[0].name
         labels=poll[0].selector.labels
         #all_labels = poll[0].allow.labels.items()
@@ -201,10 +221,11 @@ def on_deleted(event):
                 if ast.literal_eval(sorted_labels).items() <= ast.literal_eval(ke).items():
                     if len(valz) ==1:
                         for va in valz:
-                            for nd_nms in va['node_Name']:
-                                SG_object.detach_an_sg(nd_nms,va['SG_name'])
-                                SG_object.delete_an_sg(va['SG_name'])
-                                print("Security group {} has been detached from node {}".format(va['SG_name'], nd_nms))
+                            if va['node_Name'] !=None:
+                                for nd_nms in va['node_Name']:
+                                    SG_object.detach_an_sg(nd_nms,va['SG_name'])
+                                    SG_object.delete_an_sg(va['SG_name'])
+                                    print("Security group {} has been detached from node {}".format(va['SG_name'], nd_nms))
 
                     else:
                         for va in valz:
@@ -214,15 +235,32 @@ def on_deleted(event):
                                     SG_object.delete_an_sg(va['SG_name'])
                                     print("Security group {} has been detached from node {}".format(va['SG_name'], nd_nms))
 
+    elif kind == 'Service':
+        cp_serv = ConfigParser('src_dir/')
+        _, _, serv = cp_serv.parse('src_dir/{}'.format(obj_name))
+        svc_type = serv[0].ServiceType
+        svc_node_port=serv[0].ports.nodePort
+        if svc_type == 'NodePort' or serv[0].ports.nodePort !=None:
+            containers, _, services= cp_serv.parse()
+            with timing_processtime("Time taken: "):
+                svc_map = ServiceReachability.build_svc(containers, services)
+                if svc_map.all_map:
+                    ServiceReachability.rmv_rules_from_SG (svc_map.all_map, svc_node_port)
+        else:
+            print("No rule to remove as service is not of type NodePort")
+
+
     else:
-        print('Resource neither Pod nor Network policy')
+        print('Resource is not container, policy, or service')
 
     #Reconstruct the hashmap when a resource is deleted
     cp = ConfigParser('data/')
-    containers, policies = cp.parse()
+    containers, policies, services = cp.parse()
+    #fg_map for services not added yet
     all_map= NP_object.build_sgs(containers, policies, InterNode=False)
     fg_map = NP_object.concate(all_map)
     with open('Hmap.py','w') as f:
+        f.write("from agcp.model_svc import PolTraffic" + '\n')      
         f.write("h_map= "+ repr(fg_map) + '\n')
     with open('rulz.py','w') as f:
         f.write("already_created_rules=[] "+ '\n')
@@ -232,7 +270,7 @@ my_event_handler.on_deleted = on_deleted
 #my_event_handler.on_modified = on_modified
 
 #create an observer
-path = "/home/ubuntu/excess/current/data"
+path = "/home/gerry/Workspace/GH/current/data/"
 go_recursively = True
 my_observer = Observer()
 my_observer.schedule(my_event_handler, path, recursive=go_recursively)

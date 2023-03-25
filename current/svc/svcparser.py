@@ -1,12 +1,15 @@
 import time
-from .model_svc import *
-from yaml import load
-import os
-try:
-    from yaml import CLoader as Loader
-except ImportError:
-    from yaml import Loader
+from yaml.loader import FullLoader
+from .start_svc import *
 
+from yaml import load, dump, load_all
+import os
+
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
+from svc.start_svc import *
 
 class ConfigParser:
     def __init__(self, filepath=None):
@@ -139,6 +142,7 @@ class ConfigParser:
         elif data['kind'] == 'Pod':
             labels = data['metadata']['labels']
             new_container = Container(data['metadata']['name'], labels, data['spec']['nodeName'])
+            print(new_container)
             self.containers.append(new_container)
 
 
@@ -157,3 +161,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

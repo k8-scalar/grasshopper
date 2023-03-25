@@ -2,10 +2,7 @@
 Kubernetes configuration files models
 """
 import sys
-if sys.version_info >= (3, 8):
-    from typing import *
-else:
-    from typing_extensions import *
+from typing import *
 from dataclasses import dataclass, field
 from bitarray import bitarray
 from abc import abstractmethod
@@ -16,8 +13,9 @@ creds = get_nova_creds()
 nova = novaclient.Client(**creds)
 neutron = neutclient.Client(**creds)
 import ast
-import random
-import string
+from ipaddress import IPv4Network, ip_address
+
+
 
 
 @dataclass
@@ -27,6 +25,8 @@ class Container:
     nodeName: str
     select_policies: List[int] = field(default_factory=list)
     allow_policies: List[int] = field(default_factory=list)
+    select_services: List[int] = field(default_factory=list)
+    
 
     def getValueOrDefault(self, key: str, value: str):
         if key in self.labels:
@@ -66,6 +66,19 @@ class PolicyDirection:
 PolicyIngress = PolicyDirection(True)
 PolicyEgress = PolicyDirection(False)
 
+@dataclass
+class PolTraffic:
+    labels: Dict[str,str]
+    traffic: str
+    proto: str =None
+    port: Any=None
+    cidr: Any=None
+
+@dataclass
+class sg_rule:
+    rul: PolTraffic
+    #ipProtocol: str
+    remoteSG: str=None
 
 @dataclass
 class PolicyProtocol:
@@ -81,7 +94,12 @@ class Mapping:
     target_Node: Any
     Rem_SG_role:bool
 
-
+@dataclass
+class svcMapping:
+    serviceName: str
+    selectorLabels: Dict[str, str]
+    specPorts: Any
+    targetNodes: Any
 
 T = TypeVar('T')
 class LabelRelation(Protocol[T]):
@@ -93,6 +111,267 @@ class LabelRelation(Protocol[T]):
 class DefaultEqualityLabelRelation(LabelRelation):
     def match(self, rule: Any, value: Any) -> bool:
         return rule == value
+
+##adding support for service
+
+@dataclass 
+class ServiceSelect:
+    labels: Dict[str, str]
+    is_allow_all = False
+    is_deny_all = False
+
+@dataclass
+class Svcprotocol:
+    port: Any
+    protocol: str
+    targetPort: Any = None
+
+
+@dataclass
+class ServicePorts:
+    protocol: Svcprotocol
+    nodePort: Any = None
+
+
+@dataclass
+class Service:
+    name: str
+    selector: ServiceSelect
+    ports: ServicePorts
+    ServiceType: str
+    service_select_set: bitarray = None
+    matcher: LabelRelation[str] = DefaultEqualityLabelRelation()
+    service_select_set: bitarray = None
+
+    @property
+    def service_selector(self):
+        return self.selector
+
+    def select_service(self, container: Container) -> bool:
+        cl = container.labels
+        sl = self.service_selector.labels
+        for k, v in cl.items():
+            if k in sl.keys() and \
+                not self.matcher.match(sl[k], v):
+                return False
+        return True
+
+    def store_svc_bcp(self, select_set: bitarray):
+        self.service_select_set = select_set
+
+
+class ServiceReachability:
+    def exception_handler(func):
+        def inner_function(*args, **kwargs):
+            try:
+                func(*args, **kwargs)
+            except Exception as e:
+                print(type(e).__name__ + ": " + str(e))
+        return inner_function
+    
+
+    @staticmethod
+    def build_svc(containers: List[Container], services: List[Service]):
+        n_container = len(containers)
+        n_services = len(services)
+        labelMap: Dict[str, bitarray] = DefaultDict(lambda: bitarray('0' * n_container))
+
+        all_map =[] #list of mappings
+        index_map = [] # Just to know which index to which pod
+        for i, service in enumerate(services):
+            index_map.append('{}:{}'.format(i,service.name))
+        for idx, cont_info in enumerate (containers):
+            index_map.append('{}:{}'.format(idx,cont_info.name))
+        for i, container in enumerate(containers):
+            for key, value in container.labels.items():
+                labelMap[key][i] = True
+                
+        for i, service in enumerate(services):
+            select_set = bitarray(n_container)
+            select_set.setall(True)
+
+            # work as all direction being egress
+            for k, v in service.service_selector.labels.items():
+                if k in labelMap.keys(): #all keys in containers
+                    select_set &= labelMap[k]
+
+                else:
+                    if not service.service_selector.labels:
+                        continue
+                    select_set.setall(False)
+
+            # dealing with not matched values (needs a customized predicate)
+            for idx, cont_info in enumerate (containers):
+                if select_set[idx] and not service.select_service(containers[idx]):
+                    select_set[idx] = False
+           
+            service.store_svc_bcp(select_set)
+
+            if service.service_selector.is_allow_all:
+                select_set.setall(True)
+            elif service.service_selector.is_deny_all:
+                select_set.setall(False)           
+
+            for idx in range(n_container):
+                if select_set[idx]:
+                    containers[idx].select_services.append(i)
+
+        #return ServiceReachability(n_container, n_services, index_map)
+
+            ##for creation of SG
+            svc_selected_containers=[]
+            for idx in range(n_container):
+                if select_set[idx]:
+                    svc_selected_containers.append(containers[idx].name)
+
+            SVC_name=service.name
+            allow_sec =[]           
+            sel_node=[]
+            SG_node=[]#nodes onto which pods are running. Not important here since nodeport opens the port on all nodes
+
+            for cont in range(len(containers)):
+                for item in svc_selected_containers:
+                    if containers[cont].name==item:
+                        sel_node.append(containers[cont])
+
+            for item in sel_node:
+                if item.nodeName not in SG_node:
+                    SG_node.append(item.nodeName)
+
+            for ind,  items in enumerate(all_map):
+                svc_list =[]
+                svcpot_list=[]
+                if items.serviceName != SVC_name and items.selectorLabels ==service.selector.labels:
+                    svc_list.append(service.name)
+                    svcpot_list.append(service.ports)
+                    if isinstance(items.serviceName,list):
+                        for nems in items.serviceName:
+                            if nems not in svc_list:
+                                svc_list.append(nems)
+                    else:
+                        if items.serviceName not in svc_list:
+                            svc_list.append(items.serviceName)
+                    items.serviceName = svc_list
+
+                    if isinstance(items.specPorts,list):
+                        for nem in items.specPorts:
+                            if nem not in svcpot_list:
+                                svcpot_list.append(nem)
+                    else:
+                        if items.specPorts not in svcpot_list:
+                            svcpot_list.append(items.specPorts)
+                    items.specPorts = svcpot_list
+                break
+
+
+            else:
+                #new_map = Mapping(sg_name, SVC_name, service.selector.labels, service.ports, SG_from_AllowLabels, SG_node, SG_role)
+                new_map = svcMapping(SVC_name, service.selector.labels, service.ports, SG_node )
+                if new_map not in all_map:
+                    all_map.append(new_map)
+
+      
+        return ServiceReachability(n_container, n_services, index_map, all_map)
+
+    def __init__(self, container_size: int, service_size: int, index_map, all_map) -> None:
+        self.container_size = container_size
+        self.service_size = service_size
+        self.index_map = index_map
+        self.all_map = all_map
+
+    #@exception_handler 
+    def svc_add_rules(svc_maps):
+        added_nodeports=[]
+        for svc_map in svc_maps:
+            if isinstance(svc_map.specPorts,list):
+                for item in svc_map.specPorts:
+                    if item.nodePort:
+                        if svc_map.targetNodes:
+                            added_nodeports.append(item.nodePort)
+                            sgs = neutron.list_security_groups()['security_groups'] # Reload SG list after addition of new SG
+
+                            s2 =''
+                            for sg in sgs:
+                                if sg['name']=='workerSG':
+                                    s2 = sg
+                                    break
+
+                            if s2!='':
+                                neutron.create_security_group_rule(body={"security_group_rule": {
+                                                "direction": 'ingress',
+                                                "ethertype": "IPv4",
+                                                "protocol": "tcp", # or item.protocol for item in svc_map.allow_section.protocol
+                                                "port_range_min": item.nodePort,
+                                                "port_range_max": item.nodePort,
+                                                "remote_group_id":s2['id'],
+                                                "security_group_id":s2['id'] }
+                                            })
+                                neutron.create_security_group_rule(body={"security_group_rule": {
+                                                "direction": 'egress',
+                                                "ethertype": "IPv4",
+                                                "protocol": "tcp", # or item.protocol for item in svc_map.allow_section.protocol
+                                                "port_range_min": item.nodePort,
+                                                "port_range_max": item.nodePort,
+                                                "remote_group_id":s2['id'],
+                                                "security_group_id":s2['id'] }
+                                            })
+                        else:
+                            print('No pod selected by the service')                   
+
+            elif svc_map.specPorts.nodePort !=None and \
+                svc_map.specPorts.nodePort not in added_nodeports:
+                if svc_map.targetNodes:
+                    added_nodeports.append(svc_map.specPorts.nodePort)
+                    sgs = neutron.list_security_groups()['security_groups'] # Reload SG list after addition of new SG
+
+                    s2 =''
+                    for sg in sgs:
+                        if sg['name']=='workerSG':
+                            s2 = sg
+                            break
+
+                    if s2!='':
+                        neutron.create_security_group_rule(body={"security_group_rule": {
+                                        "direction": 'ingress',
+                                        "ethertype": "IPv4",
+                                        "protocol": "tcp", # or item.protocol for item in svc_map.allow_section.protocol
+                                        "port_range_min": svc_map.specPorts.nodePort,
+                                        "port_range_max": svc_map.specPorts.nodePort,
+                                        "remote_group_id":s2['id'],
+                                        "security_group_id":s2['id'] }
+                                    })
+                        neutron.create_security_group_rule(body={"security_group_rule": {
+                                        "direction": 'egress',
+                                        "ethertype": "IPv4",
+                                        "protocol": "tcp", # or item.protocol for item in svc_map.allow_section.protocol
+                                        "port_range_min": svc_map.specPorts.nodePort,
+                                        "port_range_max": svc_map.specPorts.nodePort,
+                                        "remote_group_id":s2['id'],
+                                        "security_group_id":s2['id'] }
+                                    })
+                else:
+                    print('No pod selected by the service')
+
+            else:
+                print('service not of type nodePort')
+    #@exception_handler               
+    def rmv_rules_from_SG(svc_maps, NodePort):
+        for svc_map in svc_maps:
+            if svc_map.specPorts.nodePort ==NodePort:
+                sgs = neutron.list_security_groups()['security_groups'] # Reload SG list after addition of new SG
+                s2 =''
+                for sg in sgs:
+                    if sg['name']=='workerSG':
+                        s2 = sg
+                        break
+
+                if s2!='':
+                    for r in s2['security_group_rules']:
+                        if r['port_range_min'] == NodePort and \
+                            r['port_range_max'] == NodePort and \
+                                r['protocol'] == 'tcp' and \
+                                    r['security_group_id'] == s2['id']:
+                            neutron.delete_security_group_rule(security_group_rule=r['id'])
 
 
 @dataclass
@@ -244,6 +523,7 @@ class NP_object:
                 CIDR = policy.cidr
             else:
                 CIDR = None
+            
 
             #finding inter-node communications and nodes of selected and allowed containers
             sel_node=[]
@@ -297,10 +577,7 @@ class NP_object:
                         SG_node.append(item.nodeName)
 
                 for items in policy.allow:
-                    if policy.cidr:
-                        allow_sec.append({'labels':items.labels, 'traffic':traf_type, 'cidr':policy.cidr})
-                    else:
-                        allow_sec.append({'labels':items.labels, 'traffic':traf_type})
+                     allow_sec.append(PolTraffic(items.labels, traf_type, policy.protocol[0], policy.protocol[1], policy.cidr))
 
                 for ind,  items in enumerate(all_map):
                     pol_list =[]
@@ -337,9 +614,9 @@ class NP_object:
             for ite1 in all_map:
                 if ite1 != ite:
                     for lab in ite.allow_section:
-                        if lab['labels'] ==ite1.select_labels:
-                            if lab['labels'] not in allo1:
-                                allo1.append(lab['labels'].items())
+                        if lab.labels ==ite1.select_labels:
+                            if lab.labels not in allo1:
+                                allo1.append(lab.labels.items())
                             #ite1.SG_name = ite.SG_name+'_{}'.format(lab['traffic'])#+''.join((random.choice(string.ascii_letters + string.digits) for i in range(4)))
                             #ite1.AllowLabels_SG_name = 'all_{}'.format(ite1.SG_name)
                             if ite1.SG_name not in allo:
@@ -352,25 +629,25 @@ class NP_object:
 
         for ite in all_map:
             for lala in ite.allow_section:
-                if lala['labels'].items() not in allo1:
+                if lala.labels.items() not in allo1:
                     ite.AllowLabels_SG_name=['all_{}'.format(ite.SG_name)]
 
         #Adding key labels from the allow section of the policy in the map
 
         for ite in all_map:
             for vals in ite.allow_section:
-                if vals['labels'].items() not in allo1:
-                    all_sgname='_'.join(['{}_{}'.format(k,v) for k,v in vals['labels'].items()])
-                    new_map_all = Mapping(all_sgname, None, vals['labels'], [], None, None, None)
+                if vals.labels.items() not in allo1:
+                    all_sgname='_'.join(['{}_{}'.format(k,v) for k,v in vals.labels.items()])
+                    new_map_all = Mapping(all_sgname, None, vals.labels, [], None, None, None)
                     if new_map_all not in all_map:
                         all_map.append(new_map_all)
-                        allo1.append(vals['labels'].items())
+                        allo1.append(vals.labels.items())
                         new_all_map.append(new_map_all)
                 else:
                     #print(new_all_map)
                     for ite in new_all_map:
-                        if ite.select_labels == vals['labels'] and ite.NetworkPolicy_name ==None:
-                            print ("{} not added to Map coz similar labels already exist for SG '{}'".format(vals['labels'],ite.SG_name))
+                        if ite.select_labels == vals.labels and ite.NetworkPolicy_name ==None:
+                            print ("{} not added to Map coz similar labels already exist for SG '{}'".format(vals.labels,ite.SG_name))
 
 
         return new_all_map
@@ -380,6 +657,7 @@ class NP_object:
         f_map_list ={} # HashMap with value as a list of dictionaries
         d1 = []
         #If already in the map, just populate the empty entries
+        #h_map = Hmap.h_map
         from Hmap import h_map
         for v in new_all_map:
             sorted_sel_labels=dict(OrderedDict(sorted(v.select_labels.items(), key = lambda kv:kv[0].casefold())))
@@ -398,28 +676,11 @@ class NP_object:
 
             #If not in the map, create a new map entry
             d2 = {}
-            allow_sec = []
-            all_cidr=[]
-            for iter in v.allow_section:
-                sorted_all_labels = dict(OrderedDict(sorted(iter['labels'].items(), key = lambda kv:kv[0].casefold())))
-                if "cidr" in iter:
-                    allow_sec.append({'labels':sorted_all_labels, 'traffic':iter['traffic']})
-                    cidr_sec = {'ipBlock':{'CIDR':iter['cidr'], 'traffic':iter['traffic']}}
-                    if cidr_sec not in all_cidr:
-                        all_cidr.append(cidr_sec)
-                else:
-                    allow_sec.append({'labels':sorted_all_labels, 'traffic':iter['traffic']})
-
-            if all_cidr:
-                for ipblock in all_cidr:
-                    allow_sec.append(ipblock)
-
-
             d2['key'] = str(sorted_sel_labels)
             d2['SG_name']=v.SG_name
             d2['NetworkPolicy_name']=v.NetworkPolicy_name
             d2['select_labels'] = sorted_sel_labels
-            d2['allow_section'] = allow_sec
+            d2['allow_section'] = v.allow_section
             d2['AllowLabels_SG_name'] = v.AllowLabels_SG_name
             d2['node_Name']=v.target_Node
             d2['RemoteSG_role']=v.Rem_SG_role
@@ -445,8 +706,11 @@ class NP_object:
                         continue
                     d2[sg['key']][k] = sg[k]
                 f_map_list[sg['key']].append(d2[sg['key']])
-        with open('Hmap.py','w')as f:
+            
+        with open('Hmap.py','w') as f:
+            f.write("from agcp.model_svc import PolTraffic" + '\n')      
             f.write("h_map= "+ repr(f_map_list) + '\n')
+            
         return f_map_list
 
     def __init__(self, container_size: int, new_all_map:Any, f_map_list:Any) -> None:
@@ -467,24 +731,17 @@ class SG_object:
         return inner_function
 
 
-    #@exception_handler
+    #@exception_handler 
     def SGs_and_rules(f_map_list):
-        sg_traffic_map =[] # for matching traffic for the rules added to the already previously created SGs
         from rulz import already_created_rules
         for map_key, map_value in f_map_list.items():
             already_created_sgs = []
-            rules_added_already=[]
+            rules_added_already=already_created_rules
             insgs = neutron.list_security_groups()['security_groups']
             for sg_items in insgs:
                 already_created_sgs.append(sg_items['name'])
-            for dict_lis in map_value:
-                for valz in dict_lis['allow_section']:
-                    ##sg_traffic_map.append({'SG_name': dict_lis['SG_name'], 'traffic': valz['traffic']})
-                    try:
-                        sg_traffic_map.append({'SG_name': dict_lis['SG_name'], 'traffic': valz['traffic']})
-                    except KeyError:
-                        continue
-
+             
+            for dict_lis in map_value:               
                 if dict_lis['NetworkPolicy_name'] == None:
                     continue
                 if dict_lis['SG_name'] not in already_created_sgs:
@@ -496,18 +753,30 @@ class SG_object:
 
 
                 for sg in sgs:
-                    if sg['name']==dict_lis['SG_name'] and sg['name'] not in rules_added_already:###!!
+                    if sg['name']==dict_lis['SG_name']:
                         s2 = sg
                         break
 
                 if s2!='':
-                    s2_rules={'ingress': [], 'egress':[]}
+
                     if not dict_lis['RemoteSG_role']:
-                        continue
-
+                        for vals  in dict_lis['allow_section']:
+                            if vals.cidr !=None:
+                                if vals not in rules_added_already:
+                                    rules_added_already.append(vals) 
+                                    neutron.create_security_group_rule(body={"security_group_rule": {
+                                                    "direction": vals.traffic,
+                                                    "ethertype": "IPv4",
+                                                    "protocol": "tcp",
+                                                    "port_range_min": vals.port,
+                                                    "port_range_max": vals.port,
+                                                    "remote_ip_prefix":vals.cidr,
+                                                    "security_group_id":s2['id']}
+                                                })  
+                            elif vals.cidr ==None and dict_lis['NetworkPolicy_name'] !=None:
+                                print("No remoteIP and no remoteSG for {}".format(dict_lis['select_labels'])) 
+                                                                
                     else:
-                        #s2_rules={'ingress': [], 'egress':[]}
-
                         for r_sgs in dict_lis['AllowLabels_SG_name']:
                             s3=''
                             for sgt in sgs:
@@ -515,29 +784,45 @@ class SG_object:
                                     s3 = sgt
                                     break
                             if s3!='':
-                                for tra, va in s2_rules.items():
-                                    if s3['name'] not in [va for va in s2_rules[tra]]:
-                                        s2_rules[tra].append(s3['name'])
-                                    for val in va:
-                                        if s2['name']+val not in already_created_rules:
-                                            already_created_rules.append(s2['name']+val)
-                                            for tra, va in s2_rules.items():
 
-                                                neutron.create_security_group_rule(body={"security_group_rule": {
-                                                                "direction": tra,
-                                                                "ethertype": "IPv4",
-                                                                "protocol": "tcp",
-                                                                "port_range_min": <port_range_min>, #input min port
-                                                                "port_range_max": <port_range_max>, #input max port
-                                                                "remote_group_id":s3['id'],
-                                                                "security_group_id":s2['id'] }
-                                                            })
-        with open('rulz.py','w')as f:
-            f.write("already_created_rules= "+ repr(already_created_rules) + '\n')
+                                for valz in dict_lis['allow_section']:
+                                    if sg_rule(valz, s3['name']) not in rules_added_already:
+                                        rules_added_already.append(sg_rule(valz, s3['name']))                                          
+                                        neutron.create_security_group_rule(body={"security_group_rule": {
+                                                        "direction": valz.traffic,
+                                                        "ethertype": "IPv4",
+                                                        "protocol": "tcp",
+                                                        "port_range_min": valz.port,
+                                                        "port_range_max": valz.port,
+                                                        "remote_group_id":s3['id'],
+                                                        "security_group_id":s2['id']}
+                                                    })
 
-
-
-
+                                    if valz in rules_added_already and sg_rule(valz, s3['name']) not in rules_added_already:
+                                        rules_added_already.append(sg_rule(valz, s3['name'])) 
+                                        neutron.create_security_group_rule(body={"security_group_rule": {
+                                                        "direction": valz.traffic,
+                                                        "ethertype": "IPv4",
+                                                        "protocol": "tcp",
+                                                        "port_range_min": valz.port,
+                                                        "port_range_max": valz.port,
+                                                        "remote_group_id":s3['id'],
+                                                        "security_group_id":s2['id']}
+                                                    })
+                                    if valz not in rules_added_already and valz.cidr !=None: # without "valz.cidr !=None", remote ip of 0.0.0.0/0 will be added to the security group
+                                        rules_added_already.append(valz)
+                                        neutron.create_security_group_rule(body={"security_group_rule": {
+                                                        "direction": valz.traffic,
+                                                        "ethertype": "IPv4",
+                                                        "protocol": "tcp",
+                                                        "port_range_min": valz.port,
+                                                        "port_range_max": valz.port,
+                                                        "remote_ip_prefix":valz.cidr,
+                                                        "security_group_id":s2['id']}
+                                                    })                                                                                                           
+                with open('rulz.py','w')as f:
+                    f.write("from agcp.model_svc import sg_rule, PolTraffic" + '\n')
+                    f.write("already_created_rules= "+ repr(rules_added_already) + '\n')
 
 
     @exception_handler
@@ -558,22 +843,26 @@ class SG_object:
                 for dict_lis in map_value:
                     if ast.literal_eval(labels).items() < dict_lis['select_labels'].items():#If not all select match container, don't attach
                         continue
-                    for nd_nms in dict_lis['node_Name']:
-                        instance = nova.servers.find(name=nd_nms)
-                        instance.add_security_group(dict_lis['SG_name'])
+                    if dict_lis['node_Name']!=None:
+                        for nd_nms in dict_lis['node_Name']:
+                            instance = nova.servers.find(name=nd_nms)
+                            instance.add_security_group(dict_lis['SG_name'])
 
 
-    @exception_handler
+    #@exception_handler
     def attach_an_sgv2(f_map_list, labels, t_node):
         for map_key, map_value in f_map_list.items():
             if ast.literal_eval(map_key).items() <= ast.literal_eval(labels).items(): #looks like this slightly slower than next line
             #if map_key >= labels:
                 for dict_lis in map_value:
-                    if ast.literal_eval(labels).items() < dict_lis['select_labels'].items(): #looks slower than next line
-                    #if labels > str(dict_lis['select_labels']):
-                        continue
-                    instance = nova.servers.find(name=t_node)
-                    instance.add_security_group(dict_lis['SG_name'])
+                    if dict_lis['node_Name'] != None:
+                        if ast.literal_eval(labels).items() < dict_lis['select_labels'].items(): #looks slower than next line
+                        #if labels > str(dict_lis['select_labels']):
+                            continue
+                        instance = nova.servers.find(name=t_node)
+                        instance.add_security_group(dict_lis['SG_name'])
+                    else:
+                        print("No policy selecting labels {}".format(dict_lis['select_labels']))
 
     @exception_handler
     def detach_all_sgs(f_map_list):
