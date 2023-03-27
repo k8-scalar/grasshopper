@@ -76,8 +76,6 @@ class ConfigParser:
                                 if 'port' in p:
                                     ports = [p['protocol'], p['port']]
 
-
-
                     new_policy = Policy(data['metadata']['name'], PolicySelect(select), allow, PolicyIngress, ports, cidr)
                     self.policies.append(new_policy)
 
@@ -88,8 +86,6 @@ class ConfigParser:
                     ports = None
                     cidr = None
                     for t in eg['to']:
-                        '''if 'podSelector' in t:
-                            allow = t['podSelector']['matchLabels']'''
                         if 'podSelector' in t:
                             allow_labels=(t['podSelector']['matchLabels'])
                             allow_labels= PolicyAllow(allow_labels)
@@ -103,7 +99,8 @@ class ConfigParser:
                                     ports = [p['protocol'], p['port']]
 
                     new_policy = Policy(data['metadata']['name'], PolicySelect(select), allow, PolicyEgress, ports,cidr)
-                    self.policies.append(new_policy)
+                    if new_policy not in self.policies:
+                        self.policies.append(new_policy)
 
         elif data['kind'] == 'Service':
             protocol_list =[]
@@ -134,12 +131,14 @@ class ConfigParser:
                 svc_type= 'ClusterIP'
                 
             new_service = Service(data['metadata']['name'], ServiceSelect(select), ServicePorts(protocol_list ,nodePort), svc_type)
-            self.services.append(new_service)
+            if new_service not in self.services:
+                self.services.append(new_service)
 
         elif data['kind'] == 'Pod':
             labels = data['metadata']['labels']
             new_container = Container(data['metadata']['name'], labels, data['spec']['nodeName'])
-            self.containers.append(new_container)
+            if new_container not in self.containers:
+                self.containers.append(new_container)
 
 
     def print_all(self):
