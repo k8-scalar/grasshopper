@@ -4,16 +4,19 @@ from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 from agcp.model_svc import *
 from agcp.parser import ConfigParser
+from agcp.verify_policy import *
 import yaml
 from pprint import pprint
 from contextlib import contextmanager
 from time import process_time
 import os
 import ast
-from neutronclient.v2_0 import client as neutclient
-from credentials import get_nova_creds
-creds = get_nova_creds()
-neutron = neutclient.Client(**creds)
+from credentials import neutron, nova
+from config import file_path,singleSGPerNodeScenario
+from create_sgpernode import main
+
+if singleSGPerNodeScenario:
+    main()
 
 #create eventHandler
 if __name__ == "__main__":
@@ -59,12 +62,12 @@ def on_created(event):
     if event.is_directory:
         return
     elif kind =='Pod':
-        cp = ConfigParser('data/')
-        contt, _ ,_= cp.parse('data/{}'.format(obj_name))
+        contt, _ ,_= ConfigParser('data/{}'.format(obj_name)).parse()      
         new_cont_name=contt[0].name
         labels=contt[0].labels
         node_name=contt[0].nodeName
         sorted_labels =str(dict(OrderedDict(sorted(labels.items(), key = lambda kv:kv[0].casefold()))))
+        cp = ConfigParser('data/')
         containers, policies, services = cp.parse()
 
         for v in containers:
@@ -87,49 +90,55 @@ def on_created(event):
                 on_created.map =fg_map
                 pprint (fg_map, sort_dicts=False)
                 if fg_map:
-                    SG_object.SGs_and_rules(fg_map)
-                    SG_object.attach_an_sgv2(fg_map,sorted_labels, node_name)
-                else:
-                    print("No matching Policy found for the created Pod")
+                    SG_object.SGs_and_rules(fg_map, singleSGPerNode=singleSGPerNodeScenario)
+                    if not singleSGPerNodeScenario:
+                        SG_object.attach_an_sgv2(fg_map,sorted_labels, node_name)
+                #else:
+                    #print("No matching Policy found for the created Pod")
 
-    elif kind == 'NetworkPolicy':
-        cp = ConfigParser('data/')
-        _, poll, _ = cp.parse('data/{}'.format(obj_name)) #Parse the added policy
+    elif kind == 'NetworkPolicy':        
+        _, poll, _ = ConfigParser('data/{}'.format(obj_name)).parse() #Parse the added policy
+        print(poll)
         pol_name=poll[0].name
         labels=poll[0].selector.labels
         for items in poll[0].allow:
             all_labels = items.labels.items()
         trafic_dirn = poll[0].direction.direction
         sorted_labels =str(dict(OrderedDict(sorted(labels.items(), key = lambda kv:kv[0].casefold()))))
+        cp = ConfigParser('data/')
         containers, policies, _ = cp.parse()
-        #redund= policy_shadow(policies, containers)
-        #conf= policy_conflict(policies, containers)
-        #perm_pols = over_permissive(policies, containers)
-
-        for v in policies:
-            #if v.name not in redund and v.name not in conf and not in perm_pols:
-            for items in v.allow:
-                if v.name != pol_name and v.selector.labels.items() ==labels.items() and items.labels.items()==all_labels and v.direction.direction ==trafic_dirn:
-                    print("Policy {} with similar set of labels as {} is already applied".format(v.name, pol_name))
-                break
-        else:
-            with timing_processtime("Time taken: "):
-                all_map= NP_object.build_sgs(containers, policies, InterNode=False)
-                fg_map = NP_object.concate(all_map)
-                on_created.map =fg_map
-                pprint (fg_map, sort_dicts=False)
-                if fg_map:
-                    SG_object.SGs_and_rules(fg_map)
-                    SG_object.attach_an_sg(fg_map,sorted_labels)
-                else:
-                    print("No matching Container for the created Policy")
+        for polz in poll:
+            redund= redundant_policy(polz, policies)
+            print('redandant with: ',redund)
+            conf= conflicting_policy(polz, policies)
+            print('conflicting with: ',conf)
+            perm_pols = over_permissive(polz)
+            print(perm_pols)
+        if not redund and not conf and not perm_pols:
+            for v in policies:
+                for items in v.allow:
+                    if v.name != pol_name and v.selector.labels.items() ==labels.items() and items.labels.items()==all_labels and v.direction.direction ==trafic_dirn:
+                        print("Policy {} with similar set of labels as {} is already applied".format(v.name, pol_name))
+                    break
+            else:
+                with timing_processtime("Time taken: "):
+                    all_map= NP_object.build_sgs(containers, policies, InterNode=False)
+                    fg_map = NP_object.concate(all_map)
+                    on_created.map =fg_map
+                    pprint (fg_map, sort_dicts=False)
+                    if fg_map:
+                        SG_object.SGs_and_rules(fg_map, singleSGPerNode=singleSGPerNodeScenario)                   
+                        if not singleSGPerNodeScenario:
+                            SG_object.attach_an_sg(fg_map, sorted_labels)
+                    #else:
+                        #print("No matching Container for the created Policy")
 
     elif kind == 'Service':
-        cp_serv = ConfigParser('data/')
-        _, _, serv = cp_serv.parse('data/{}'.format(obj_name)) #Parse  the added  service
+        _, _, serv = ConfigParser('data/{}'.format(obj_name)).parse() #Parse  the added  service
         serv_name=serv[0].name
         labels=serv[0].selector.labels
         sorted_labels =str(dict(OrderedDict(sorted(labels.items(), key = lambda kv:kv[0].casefold()))))
+        cp_serv = ConfigParser('data/')
         containers, _, services= cp_serv.parse()
 
         for v in services:
@@ -148,21 +157,21 @@ def on_created(event):
         print('Resource is not container, policy, or service')
 
 
-@exception_handler
+#@exception_handler
 def on_deleted(event):
     obj_name=os.path.basename(event.src_path)
     file = pathlib.Path(event.src_path)
-    print(f"Oops {file.name} has been deleted!")   
+    #print(f"Oops {file.name} has been deleted!")   
     kind = get_kind('src_dir',file.name)
     if event.is_directory:
         return
-    elif kind == 'Pod':
-        cp = ConfigParser('src_dir/')
-        contt, _,_ = cp.parse('src_dir/{}'.format(obj_name))
+    elif kind == 'Pod':  
+        contt, _,_ = ConfigParser('src_dir/{}'.format(obj_name)).parse()
         new_cont_name=contt[0].name
         labels=contt[0].labels
         node_name=contt[0].nodeName
         sorted_labels =str(dict(OrderedDict(sorted(labels.items(), key = lambda kv:kv[0].casefold()))))
+        cp = ConfigParser('src_dir/')
         containers, policies, services = cp.parse()
 
         for conts in containers:
@@ -203,7 +212,7 @@ def on_deleted(event):
 
     elif kind == 'NetworkPolicy':
         cp = ConfigParser('src_dir/')
-        _, poll, _ = cp.parse('src_dir/{}'.format(obj_name))
+        _, poll, _ = ConfigParser('src_dir/{}'.format(obj_name)).parse()
         labels=poll[0].selector.labels
         sorted_labels =str(dict(OrderedDict(sorted(labels.items(), key = lambda kv:kv[0].casefold()))))
         try:
@@ -216,8 +225,8 @@ def on_deleted(event):
                 if ast.literal_eval(sorted_labels).items() <= ast.literal_eval(ke).items():
                     if len(valz) ==1:
                         for va in valz:
-                            if va['node_Name'] !=None:
-                                for nd_nms in va['node_Name']:
+                            if va['selected_Nodes'] !=None:
+                                for nd_nms in va['selected_Nodes']:
                                     SG_object.detach_an_sg(nd_nms,va['SG_name'])
                                     SG_object.delete_an_sg(va['SG_name'])
                                     print("Security group {} has been detached from node {}".format(va['SG_name'], nd_nms))
@@ -231,7 +240,7 @@ def on_deleted(event):
                     else:
                         for va in valz:
                             if va['select_labels'] == labels:
-                                for nd_nms in va['node_Name']:
+                                for nd_nms in va['selected_Nodes']:
                                     SG_object.detach_an_sg(nd_nms,va['SG_name'])
                                     SG_object.delete_an_sg(va['SG_name'])
                                     print("Security group {} has been detached from node {}".format(va['SG_name'], nd_nms))
@@ -244,11 +253,11 @@ def on_deleted(event):
                                             SG_object.rmv_rules_rmsg(va['SG_name'], items.traffic, items.proto, items.port, items.cidr, itemz)                                       
 
     elif kind == 'Service':
-        cp_serv = ConfigParser('src_dir/')
-        _, _, serv = cp_serv.parse('src_dir/{}'.format(obj_name))
+        _, _, serv = ConfigParser('src_dir/{}'.format(obj_name)).parse()
         svc_type = serv[0].ServiceType
         svc_node_port=serv[0].ports.nodePort
         if svc_type == 'NodePort' or svc_node_port !=None:
+            cp_serv = ConfigParser('src_dir/')
             containers, _, services= cp_serv.parse()
             with timing_processtime("Time taken: "):
                 svc_map = ServiceReachability.build_svc(containers, services)
@@ -266,7 +275,7 @@ my_event_handler.on_created = on_created
 my_event_handler.on_deleted = on_deleted
 
 #create an observer
-path = "/home/ubuntu/current_svc_port_cidr/data/"
+path = '{}/data/'.format(file_path)
 go_recursively = True
 my_observer = Observer()
 my_observer.schedule(my_event_handler, path, recursive=go_recursively)
@@ -279,9 +288,4 @@ try:
 except KeyboardInterrupt:
     my_observer.stop()
     my_observer.join()
-
-
-
-
-
 

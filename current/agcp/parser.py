@@ -2,6 +2,7 @@ import time
 from .model_svc import *
 from yaml import load
 import os
+import yaml
 try:
     from yaml import CLoader as Loader
 except ImportError:
@@ -25,12 +26,16 @@ class ConfigParser:
 
         if os.path.isfile(filepath):
             try:
-                with open(filepath) as f:
-                    data = load(f, Loader=Loader)
+                with open(filepath, 'r') as f:
+                    data = yaml.safe_load(f)
+                    # Process the loaded data or create an object
                     self.create_object(data)
-
-            except:
-                print("Error opening or reading file " + filepath)
+            except FileNotFoundError:
+                print("File not found: " + filepath)
+            except IOError:
+                print("Error reading file: " + filepath)
+            except yaml.YAMLError as e:
+                print("Error parsing YAML file: " + str(e))
 
         else:
 
@@ -70,11 +75,11 @@ class ConfigParser:
                         if 'ipBlock' in f:
                             cidr = (f['ipBlock']['cidr'])
 
-                    if ing['ports']:
+                    if 'ports' in ing:
                         for p in ing['ports']:
                             if 'protocol' in p:
                                 if 'port' in p:
-                                    ports = [p['protocol'], p['port']]
+                                    ports = [p['protocol'], p['port'], p['port']]#port_min =port_max if one port is opened in the policy
 
                     new_policy = Policy(data['metadata']['name'], PolicySelect(select), allow, PolicyIngress, ports, cidr)
                     self.policies.append(new_policy)
@@ -92,11 +97,11 @@ class ConfigParser:
                             allow.append(allow_labels)
                         if 'ipBlock' in t:
                             cidr = (t['ipBlock']['cidr'])
-                    if eg['ports']:
+                    if 'ports' in eg:
                         for p in eg['ports']:
                             if 'protocol' in p:
                                 if 'port' in p:
-                                    ports = [p['protocol'], p['port']]
+                                    ports = [p['protocol'], p['port'], p['port']]
 
                     new_policy = Policy(data['metadata']['name'], PolicySelect(select), allow, PolicyEgress, ports,cidr)
                     if new_policy not in self.policies:
@@ -156,3 +161,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
