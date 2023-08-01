@@ -14,7 +14,7 @@ try:
 except ConfigException:
    config.load_kube_config()
 
-pod_api_instance = client.CoreV1Api()
+core_api_instance = client.CoreV1Api()
 policy_api_instance = client.NetworkingV1Api()
 
 @contextmanager
@@ -28,7 +28,7 @@ def timing_processtime(description: str) -> None:
 def pods():
     w = watch.Watch()
     try:
-        for event in w.stream(pod_api_instance.list_namespaced_pod, namespace = "test"):#, timeout_seconds=0):
+        for event in w.stream(core_api_instance.list_namespaced_pod, namespace = "test"):#, timeout_seconds=0):
             updatedPod = event["object"]
             podName = updatedPod.metadata.name
             labels = updatedPod.metadata.labels
@@ -53,7 +53,7 @@ def pods():
                             #updatedPod.status.conditions = ["Initialized","ContainersReady","Ready"] in addition to "PodScheduled"
 
                             node_name=f"{updatedPod.spec.node_name}"
-                            print (f'Pod {podName} added on node {node_name}')
+                            #print (f'scheduled node: {node_name}')
 
                             u_pod = {}
 
@@ -78,7 +78,6 @@ def pods():
 
 
             elif event['type'] == "DELETED":
-                print (f'Pod {podName} has been removed from the cluster')
                 os.system('rm -f {}/data/{}.yaml'.format(file_path, podName))
 
 
@@ -96,22 +95,36 @@ def policies():
                 continue
             #with timing_processtime("Time taken: "):
             if event['type'] =="ADDED":
-                print (f'Policy {PolName} added on on the cluster')
                 filename="{}/src_dir/{}.yaml".format(file_path, PolName)
                 os.makedirs(os.path.dirname(filename), exist_ok=True)
                 with open(filename, 'w+') as f:
                     os.system("kubectl  get networkpolicy {} -n test -o yaml > {}".format(PolName, filename))
                 os.system('cp -a {} {}/data/'.format(filename,file_path))
             elif event['type'] =="DELETED":
-                print (f'Pod {PolName} has been romoved from the cluster')
-                os.system('rm -f {}/data/{}.yaml'.format(file_path, podName))
+                os.system('rm -f {}/data/{}.yaml'.format(file_path, PolName))
     except ProtocolError:
       print("watchPolicyEvents ProtocolError, continuing..")
 
-
+def services():
+    w = watch.Watch()
+    try:
+        for event in w.stream(core_api_instance.list_namespaced_service, namespace = "test", timeout_seconds=0):
+            svc = event["object"]
+            svcName = svc.metadata.name
+            #with timing_processtime("Time taken: "):
+            if event['type'] =="ADDED":
+                filename="{}/src_dir/{}.yaml".format(file_path, svcName)
+                os.makedirs(os.path.dirname(filename), exist_ok=True)
+                with open(filename, 'w+') as f:
+                    os.system("kubectl  get svc {} -n test -o yaml > {}".format(svcName, filename))
+                os.system('cp -a {} {}/data/'.format(filename,file_path))
+            elif event['type'] =="DELETED":
+                os.system('rm -f {}/data/{}.yaml'.format(file_path, svcName))
+    except ProtocolError:
+      print("watchServiceEvents ProtocolError, continuing..")
 
 if __name__ == "__main__":
     with concurrent.futures.ThreadPoolExecutor() as executor:
         p = executor.submit(pods)
         n = executor.submit(policies)
-
+        m = executor.submit(services)
