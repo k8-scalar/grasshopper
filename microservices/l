@@ -1,0 +1,92 @@
+apiVersion: v1
+items:
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"NetworkPolicy","metadata":{"annotations":{},"name":"default-deny","namespace":"test"},"spec":{"podSelector":{},"policyTypes":["Ingress","Egress"]}}
+    creationTimestamp: "2023-12-11T10:28:31Z"
+    generation: 1
+    name: default-deny
+    namespace: test
+    resourceVersion: "2816477"
+    uid: d22edb34-877c-45ba-83c1-ceca59e8d861
+  spec:
+    podSelector: {}
+    policyTypes:
+    - Ingress
+    - Egress
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"NetworkPolicy","metadata":{"annotations":{},"name":"ts-locust-policy","namespace":"test"},"spec":{"egress":[{"to":[{"namespaceSelector":{"matchLabels":{"role":"admin"}}},{"podSelector":{"matchLabels":{"app":"teastore"}}}]}],"ingress":[{"from":[{"podSelector":{"matchLabels":{"app":"teastore"}}}]}],"podSelector":{"matchLabels":{"run":"teastore-locust"}},"policyTypes":["Egress","Ingress"]}}
+    creationTimestamp: "2023-12-11T10:28:32Z"
+    generation: 1
+    name: ts-locust-policy
+    namespace: test
+    resourceVersion: "2816478"
+    uid: ff77449d-3596-4e16-abb9-a09bc013f07d
+  spec:
+    egress:
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            role: admin
+      - podSelector:
+          matchLabels:
+            app: teastore
+    ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            app: teastore
+    podSelector:
+      matchLabels:
+        run: teastore-locust
+    policyTypes:
+    - Egress
+    - Ingress
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"NetworkPolicy","metadata":{"annotations":{},"name":"ts-policy","namespace":"test"},"spec":{"egress":[{"to":[{"namespaceSelector":{"matchLabels":{"role":"admin"}}},{"podSelector":{"matchLabels":{"run":"teastore-locust"}}},{"podSelector":{"matchLabels":{"app":"teastore"}}}]}],"ingress":[{"from":[{"podSelector":{"matchLabels":{"run":"teastore-locust"}}},{"podSelector":{"matchLabels":{"app":"teastore"}}}]}],"podSelector":{"matchLabels":{"app":"teastore"}},"policyTypes":["Egress","Ingress"]}}
+    creationTimestamp: "2023-12-11T10:28:32Z"
+    generation: 1
+    name: ts-policy
+    namespace: test
+    resourceVersion: "2816479"
+    uid: f5bf5ecb-5964-40bb-a4cb-4de5c33c1dcc
+  spec:
+    egress:
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            role: admin
+      - podSelector:
+          matchLabels:
+            run: teastore-locust
+      - podSelector:
+          matchLabels:
+            app: teastore
+    ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            run: teastore-locust
+      - podSelector:
+          matchLabels:
+            app: teastore
+    podSelector:
+      matchLabels:
+        app: teastore
+    policyTypes:
+    - Egress
+    - Ingress
+kind: List
+metadata:
+  resourceVersion: ""

@@ -1,0 +1,141 @@
+\documentclass[sigplan,9pt]{acmart}
+\usepackage[latin9]{inputenc}
+%\setcounter{secnumdepth}{2}
+%\setcounter{tocdepth}{2}
+
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{natbib}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{amsthm}
+\usepackage{subfiles}
+\usepackage{float}
+\usepackage{enumitem}
+%\usepackage{hyperref}
+
+\newtheorem*{slo}{SLO}
+
+% Tenslotte wordt hyperref gebruikt voor pdf bestanden.
+% Dit mag verwijderd worden voor de af te drukken versie.
+%\usepackage[pdfusetitle,colorlinks,plainpages=false]{hyperref}
+
+
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,fill,inner sep=0.4pt] (char) {\textcolor{white}{#1}};}}
+
+
+% Rights management information. 
+% This information is sent to you when you complete the rights form.
+% These commands have SAMPLE values in them; it is your responsibility as an author to replace
+% the commands and values with those provided to you when you complete the rights form.
+%
+% These commands are for a PROCEEDINGS abstract or paper.
+\copyrightyear{2019}
+\acmYear{2019}
+\setcopyright{acmcopyright}
+\acmConference[WOC '19]{5th International Workshop on Container Technologies and Container Clouds}{December 9--13, 2019}{Davis, CA, USA}
+\acmBooktitle{5th International Workshop on Container Technologies and Container Clouds (WOC '19), December 9--13, 2019, Davis, CA, USA}
+\acmPrice{15.00}
+\acmDOI{10.1145/3366615.3368357}
+\acmISBN{978-1-4503-7033-2/19/12}
+
+%\settopmatter{printfolios=true,printacmref=false,printccs=false}
+%\renewcommand\footnotetextcopyrightpermission[1]{} % removes footnote with conference information in first column
+
+%\newwatermark[allpages,color=red!50,angle=45,scale=1,xpos=0,ypos=0]{Confidential version available to Joerg Domaschka and Daniel Seybold}
+
+% switch to key style at EOL
+%\lst@AddToHook{EveryLine}{\ifx\lst@language\language@yaml\YAMLkeystyle\fi}
+%\makeatother
+
+%\newcommand\ProcessThreeDashes{\llap{\color{cyan}\mdseries-{-}-}}
+
+
+%\urlstyle{sf} 
+%\sloppy
+
+
+
+\keywords{Auto-scaling, Adaptive resource management, Container orchestration frameworks}
+
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10011007.10010940.10011003.10011002</concept_id>
+<concept_desc>Software and its engineering~Software performance</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10011007.10010940.10010971.10011120.10003100</concept_id>
+<concept_desc>Software and its engineering~Cloud computing</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+<concept>
+<concept_id>10011007.10011006.10011066.10011068</concept_id>
+<concept_desc>Software and its engineering~Software as a service orchestration system</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Software and its engineering~Software performance}
+\ccsdesc[300]{Software and its engineering~Cloud computing}
+\ccsdesc[300]{Software and its engineering~Software as a service orchestration system}
+
+%\printccsdesc
+
+\begin{document}
+
+\title{Leveraging Kubernetes for adaptive and cost-efficient resource management}
+%\renewcommand{\shorttitle}{A framework for black-box SLO tuning in Kubernetes}
+
+\author{Stef Verreydt, Emad Heydari Beni, Eddy Truyen, Bert Lagaisse, Wouter Joosen}
+\affiliation{\textit{imec-DistriNet, KU Leuven, Belgium}}
+\email{firstname.lastname@cs.kuleuven.be}
+\renewcommand{\shortauthors}{S. Verreydt et al.}
+
+\begin{abstract}
+Software providers face the challenge of minimizing the amount of resources used while still meeting their customer's requirements. Several frameworks to manage resources and applications in a distributed environment are available, but their development is still ongoing and the state of the art is rapidly evolving, making it a challenge to use such frameworks and their features effectively in practice. The goal of this paper is to research how applications can be enhanced with adaptive performance management by relying on the capabilities of Kubernetes, a popular framework for container orchestration. In particular, horizontal as well as vertical scaling concepts of Kubernetes may prove useful to support adaptive resource allocation. Moreover, concepts for oversubscription as a way to simulate vertical scaling without having to reschedule applications, are evaluated. Through a series of experiments involving multiple applications and workloads, the effects of different configurations and combinations of horizontal and vertical scaling in Kubernetes are explored. Both the resource utilization of the nodes and the applications' performance are taken into account. In brief, the resource management concepts of Kubernetes allow to simulate vertical scaling without a negative effect on performance. The effectiveness of the default horizontal autoscaler, however, depends on the type of application and the user workload at hand.
+\end{abstract}
+
+\maketitle
+
+
+\section{Introduction}
+\label{chap:introduction}
+\input{Sections/Introduction}
+
+%\section{Background}
+%\label{chap:background}
+%\input{Sections/Background}
+
+\section{Related work}
+\label{chap:existing_research}
+\input{Sections/Related_Work}
+
+%\setlength\abovecaptionskip{0pt}
+\section{Test Environment}
+\label{chap:test_env}
+\input{Sections/Setup}
+%\setlength\abovecaptionskip{-5pt}
+
+\section{Results}
+\label{chap:results}
+\input{Sections/Results}
+
+\section{Conclusion}
+\label{chap:conclusion}
+\input{Sections/Conclusion}
+
+\section*{Acknowledgments}
+
+We thank the reviewers for their helpful comments. This research is partially funded by the Research Fund KU Leuven.
+
+\bibliographystyle{acm}
+\bibliography{references}
+
+\end{document}
+

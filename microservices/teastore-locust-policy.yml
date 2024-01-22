@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ts-locust-policy
+  namespace: test
+spec:
+  podSelector:
+    matchLabels:
+      run: teastore-locust
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+         role: admin
+    - podSelector:
+        matchLabels:
+          app: teastore
+    #ports:
+    #- protocol: TCP
+    #  port: 8080
+    #- protocol: TCP
+    #  port: 3306
+    #- protocol: TCP
+    # port: 53
+    #- protocol: UDP
+    #  port: 53
+    #- protocol: TCP
+    #  port: 9053
+

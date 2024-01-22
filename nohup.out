@@ -1,0 +1,352 @@
+
+event: CREATION
+ResourceType: Service
+ResourceName: teastore-auth
+{'container_size': 0,
+ 'service_size': 1,
+ 'svc_index': ['0:teastore-auth'],
+ 'all_map': [svcMapping(serviceName='teastore-auth',
+                        selectorLabels={'run': 'teastore-auth'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=None),
+                        targetNodes=[])]}
+service not of type nodePort
+Time taken: 0.00045949099999997856
+
+event: CREATION
+ResourceType: Service
+ResourceName: teastore-persistence
+{'container_size': 0,
+ 'service_size': 2,
+ 'svc_index': ['0:teastore-persistence', '1:teastore-auth'],
+ 'all_map': [svcMapping(serviceName='teastore-persistence',
+                        selectorLabels={'run': 'teastore-persistence'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=None),
+                        targetNodes=[]),
+             svcMapping(serviceName='teastore-auth',
+                        selectorLabels={'run': 'teastore-auth'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=None),
+                        targetNodes=[])]}
+service not of type nodePort
+service not of type nodePort
+Time taken: 0.00034829400000002675
+
+event: CREATION
+ResourceType: Pod
+ResourceName: teastore-locust-7cc5986998-tjngx
+scheduled to node: test-worker-4
+Matching with Services
+service not of type nodePort
+service not of type nodePort
+Time taken: 7.483399999996809e-05
+Matching with policies
+No matching Policy
+Time taken: 1.4575000000016658e-05
+
+event: CREATION
+ResourceType: Pod
+ResourceName: teastore-persistence-7686d8f5db-9dtxp
+scheduled to node: test-worker-4
+Matching with Services
+service not of type nodePort
+service not of type nodePort
+Time taken: 6.12679999999477e-05
+Matching with policies
+No matching Policy
+Time taken: 1.069899999994739e-05
+
+event: CREATION
+ResourceType: Pod
+ResourceName: teastore-db-89c7f5866-75rvv
+scheduled to node: test-worker-4
+Matching with Services
+service not of type nodePort
+service not of type nodePort
+Time taken: 6.617199999991996e-05
+Matching with policies
+No matching Policy
+Time taken: 1.954599999998141e-05
+
+event: CREATION
+ResourceType: Service
+ResourceName: teastore-db
+{'container_size': 3,
+ 'service_size': 3,
+ 'svc_index': ['0:teastore-db', '1:teastore-auth', '2:teastore-persistence'],
+ 'all_map': [svcMapping(serviceName='teastore-db',
+                        selectorLabels={'run': 'teastore-db'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=3306,
+                                                                     protocol='TCP',
+                                                                     targetPort=3306)],
+                                               nodePort=None),
+                        targetNodes=['test-worker-4']),
+             svcMapping(serviceName='teastore-auth',
+                        selectorLabels={'run': 'teastore-auth'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=None),
+                        targetNodes=[]),
+             svcMapping(serviceName='teastore-persistence',
+                        selectorLabels={'run': 'teastore-persistence'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=None),
+                        targetNodes=['test-worker-4'])]}
+service not of type nodePort
+service not of type nodePort
+service not of type nodePort
+Time taken: 0.00043808300000003353
+
+event: CREATION
+ResourceType: Pod
+ResourceName: teastore-webui-6c584fd9d4-hlrzh
+scheduled to node: test-worker-4
+Matching with Services
+service not of type nodePort
+service not of type nodePort
+service not of type nodePort
+Time taken: 8.956800000003984e-05
+Matching with policies
+No matching Policy
+Time taken: 1.265399999994532e-05
+
+event: CREATION
+ResourceType: Pod
+ResourceName: teastore-recommender-86d845cf95-h22l4
+scheduled to node: test-worker-4
+Matching with Services
+service not of type nodePort
+service not of type nodePort
+service not of type nodePort
+Time taken: 8.261700000000705e-05
+Matching with policies
+No matching Policy
+Time taken: 1.3407999999937026e-05
+
+event: CREATION
+ResourceType: Service
+ResourceName: teastore-recommender
+{'container_size': 5,
+ 'service_size': 4,
+ 'svc_index': ['0:teastore-recommender',
+               '1:teastore-db',
+               '2:teastore-auth',
+               '3:teastore-persistence'],
+ 'all_map': [svcMapping(serviceName='teastore-recommender',
+                        selectorLabels={'run': 'teastore-recommender'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=None),
+                        targetNodes=['test-worker-4']),
+             svcMapping(serviceName='teastore-db',
+                        selectorLabels={'run': 'teastore-db'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=3306,
+                                                                     protocol='TCP',
+                                                                     targetPort=3306)],
+                                               nodePort=None),
+                        targetNodes=['test-worker-4']),
+             svcMapping(serviceName='teastore-auth',
+                        selectorLabels={'run': 'teastore-auth'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=None),
+                        targetNodes=[]),
+             svcMapping(serviceName='teastore-persistence',
+                        selectorLabels={'run': 'teastore-persistence'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=None),
+                        targetNodes=['test-worker-4'])]}
+service not of type nodePort
+service not of type nodePort
+service not of type nodePort
+service not of type nodePort
+Time taken: 0.0007302470000000172
+
+event: CREATION
+ResourceType: Pod
+ResourceName: teastore-registry-7b7bb46b9b-gj8gc
+scheduled to node: test-worker-4
+Matching with Services
+service not of type nodePort
+service not of type nodePort
+service not of type nodePort
+service not of type nodePort
+Time taken: 0.00011181699999995853
+Matching with policies
+No matching Policy
+Time taken: 1.529600000005349e-05
+
+event: CREATION
+ResourceType: Pod
+ResourceName: teastore-auth-5c6b9c9b6-qc9rr
+scheduled to node: test-worker-1
+Matching with Services
+service not of type nodePort
+service not of type nodePort
+service not of type nodePort
+service not of type nodePort
+Time taken: 0.0001544049999999686
+Matching with policies
+No matching Policy
+Time taken: 1.614400000005123e-05
+
+event: CREATION
+ResourceType: Pod
+ResourceName: teastore-image-5bc45679c5-tjwrx
+scheduled to node: test-worker-1
+Matching with Services
+service not of type nodePort
+service not of type nodePort
+service not of type nodePort
+service not of type nodePort
+Time taken: 0.0001116509999999904
+Matching with policies
+No matching Policy
+Time taken: 1.3564999999937655e-05
+
+event: CREATION
+ResourceType: Service
+ResourceName: teastore-webui
+{'container_size': 8,
+ 'service_size': 5,
+ 'svc_index': ['0:teastore-webui',
+               '1:teastore-db',
+               '2:teastore-recommender',
+               '3:teastore-auth',
+               '4:teastore-persistence'],
+ 'all_map': [svcMapping(serviceName='teastore-webui',
+                        selectorLabels={'run': 'teastore-webui'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=30080),
+                        targetNodes=['test-worker-4']),
+             svcMapping(serviceName='teastore-db',
+                        selectorLabels={'run': 'teastore-db'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=3306,
+                                                                     protocol='TCP',
+                                                                     targetPort=3306)],
+                                               nodePort=None),
+                        targetNodes=['test-worker-4']),
+             svcMapping(serviceName='teastore-recommender',
+                        selectorLabels={'run': 'teastore-recommender'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=None),
+                        targetNodes=['test-worker-4']),
+             svcMapping(serviceName='teastore-auth',
+                        selectorLabels={'run': 'teastore-auth'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=None),
+                        targetNodes=['test-worker-1']),
+             svcMapping(serviceName='teastore-persistence',
+                        selectorLabels={'run': 'teastore-persistence'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=None),
+                        targetNodes=['test-worker-4'])]}
+Conflict: Security group rule already exists. Rule id is 29a6c9f8-37f5-40f9-87f3-34e26cb722c0.
+Neutron server returns request_ids: ['req-a48fb136-6305-48ba-9586-3e0a63a536ae']
+Time taken: 0.31451749500000004
+
+event: CREATION
+ResourceType: Service
+ResourceName: teastore-registry
+{'container_size': 8,
+ 'service_size': 7,
+ 'svc_index': ['0:teastore-registry',
+               '1:teastore-db',
+               '2:teastore-recommender',
+               '3:teastore-auth',
+               '4:teastore-persistence',
+               '5:teastore-webui',
+               '6:teastore-image'],
+ 'all_map': [svcMapping(serviceName='teastore-registry',
+                        selectorLabels={'run': 'teastore-registry'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=None),
+                        targetNodes=['test-worker-4']),
+             svcMapping(serviceName='teastore-db',
+                        selectorLabels={'run': 'teastore-db'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=3306,
+                                                                     protocol='TCP',
+                                                                     targetPort=3306)],
+                                               nodePort=None),
+                        targetNodes=['test-worker-4']),
+             svcMapping(serviceName='teastore-recommender',
+                        selectorLabels={'run': 'teastore-recommender'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=None),
+                        targetNodes=['test-worker-4']),
+             svcMapping(serviceName='teastore-auth',
+                        selectorLabels={'run': 'teastore-auth'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=None),
+                        targetNodes=['test-worker-1']),
+             svcMapping(serviceName='teastore-persistence',
+                        selectorLabels={'run': 'teastore-persistence'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=None),
+                        targetNodes=['test-worker-4']),
+             svcMapping(serviceName='teastore-webui',
+                        selectorLabels={'run': 'teastore-webui'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=30080),
+                        targetNodes=['test-worker-4']),
+             svcMapping(serviceName='teastore-image',
+                        selectorLabels={'run': 'teastore-image'},
+                        specPorts=ServicePorts(protocol=[Svcprotocol(port=8080,
+                                                                     protocol='TCP',
+                                                                     targetPort=8080)],
+                                               nodePort=None),
+                        targetNodes=['test-worker-1'])]}
+service not of type nodePort
+service not of type nodePort
+service not of type nodePort
+service not of type nodePort
+service not of type nodePort
+Conflict: Security group rule already exists. Rule id is c52d44e6-09da-48fd-9f32-9220a58e7b7e.
+Neutron server returns request_ids: ['req-ec8c3007-5f2b-42f3-b8ea-85af73fb29fa']
+Time taken: 0.2081532829999999
+
+event: CREATION
+ResourceType: Service
+ResourceName: teastore-image
+{'container_size': 8,
+ 'service_size': 7,
+ 'svc_index': ['0:teastore-image',
+               '1:teastore-db',
+               '2:teastore-recommender',
+               '3:teastore-auth',
+               '4:teastore-persistence',
+               '5:teastore-webui',
+               '6:teastore-registry'],
+ 'all_map': [svcMapping(serviceName='teastore-image'

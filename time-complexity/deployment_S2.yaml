@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pod-s2
+  namespace: test
+  labels:
+    Skey1: Svalue1
+    Skey2: Svalue2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      Skey1: Svalue1
+      Skey2: Svalue2
+  template:
+    metadata:
+      labels:
+        Skey1: Svalue1
+        Skey2: Svalue2
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: Skey1
+                    operator: In
+                    values:
+                      - Svalue1
+                  - key: Skey2
+                    operator: In
+                    values:
+                      - Svalue2
+                  - key: Skey3
+                    operator: In
+                    values:
+                      - Svalue3
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: alpine
+        image: alpine:latest
+        command:
+          - /bin/sh
+          - "-c"
+          - "sleep 60m"
+        imagePullPolicy: IfNotPresent
+        name: alpine
+

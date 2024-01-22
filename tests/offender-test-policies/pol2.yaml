@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-node-policy2
+  namespace: test
+spec:
+  podSelector:
+    matchLabels:
+      User: user1
+      key4: value0
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          User: user1
+          key4: value3
+    ports:
+    - protocol: TCP
+      port: 12865
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          User: user1
+          key4: value3
+          key1: value3
+    ports:
+    - protocol: TCP
+      port: 12865

@@ -1,12 +1,12 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: teastore-policy
-  namespace: teastore
+  name: ts-policy
+  namespace: test
 spec:
   podSelector:
     matchLabels:
-      run: teastore-locust
+      app: teastore
   policyTypes:
   - Egress
   - Ingress
@@ -17,9 +17,25 @@ spec:
           role: admin
     - podSelector:
         matchLabels:
+          run: teastore-locust
+    - podSelector:
+        matchLabels:
           app: teastore
+    #ports:
+    #- protocol: TCP
+    #  port: 8080
+    #- protocol: TCP
+    #  port: 3306
   ingress:
   - from:
     - podSelector:
         matchLabels:
+          run: teastore-locust
+    - podSelector:
+        matchLabels:
           app: teastore
+    #ports:
+    #- protocol: TCP
+    #  port: 8080
+    #- protocol: TCP
+    #  port: 3306

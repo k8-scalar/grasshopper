@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ts-locust-policy-dns
+  namespace: test
+spec:
+  podSelector:
+    matchLabels:
+      run: teastore-locust
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          role: admin
+        

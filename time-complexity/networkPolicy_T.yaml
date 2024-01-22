@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: policy-t
+  namespace: test
+spec:
+  podSelector:
+    matchLabels:
+      Tkey1: Tvalue1
+  policyTypes:
+  - Egress
+  - Ingress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          Skey1: Svalue1
+          Skey2: Svalue2
+          Skey3: Svalue3
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          Skey1: Svalue1
+          Skey2: Svalue2
+          Skey3: Svalue3
+

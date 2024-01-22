@@ -1,0 +1,44 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sctest
+  namespace: test
+spec:
+  podSelector:
+    matchLabels:
+      User: user1
+      key4: value3
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          role: admin
+    - podSelector:
+        matchLabels:
+          User45: user45
+          key45: value45         
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sctest2
+  namespace: test
+spec:
+  podSelector:
+    matchLabels:
+      User: user1
+      key1: value3
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          role: admin
+    - podSelector:
+        matchLabels:
+          key1: value3
+          key4: value3

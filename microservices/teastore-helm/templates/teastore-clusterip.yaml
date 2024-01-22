@@ -16,6 +16,7 @@ spec:
       containers:
       - name: teastore-locust
         image: decomads/teastore-locust:1.0
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         resources:
           requests:
             cpu: 1
@@ -23,8 +24,6 @@ spec:
           limits:
             cpu: 2
             memory: 2Gi
-      nodeSelector:
-        locustNode: "yes"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -51,6 +50,7 @@ spec:
       containers:
       - name: teastore-db
         image: matthijskaminski/teastore-db:{{.Values.version}}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         resources:
           requests:
             cpu: {{.Values.dbCpu}}
@@ -67,8 +67,8 @@ spec:
       - name: persistence
         hostPath:
           path: /teastore/teastore-db
-      nodeSelector:
-        dbNode: "yes"
+      #nodeSelector:
+      #  dbNode: "yes"
 ---
 apiVersion: v1
 kind: Service
@@ -105,6 +105,7 @@ spec:
       containers:
       - name: teastore-registry
         image: matthijskaminski/teastore-registry:{{.Values.version}}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         resources:
           requests:
             cpu: {{.Values.registryCpu}}
@@ -151,6 +152,7 @@ spec:
       containers:
       - name: teastore-persistence
         image: matthijskaminski/teastore-persistence:{{.Values.version}}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         resources:
           requests:
             cpu: {{.Values.persistenceCpu}}
@@ -207,6 +209,7 @@ spec:
       containers:
       - name: teastore-auth
         image: matthijskaminski/teastore-auth:{{.Values.version}}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         resources:
           requests:
             cpu: {{.Values.authCpu}}
@@ -259,6 +262,7 @@ spec:
       containers:
       - name: teastore-image
         image: matthijskaminski/teastore-image:{{.Values.version}}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         resources:
           requests:
             cpu: {{.Values.imageCpu}}
@@ -318,7 +322,7 @@ spec:
           limits:
             cpu: {{.Values.recommenderCpu}}
             memory: {{.Values.recommenderMemory}}
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: 8080
         env:
@@ -364,6 +368,7 @@ spec:
       containers:
       - name: teastore-webui
         image: matthijskaminski/teastore-webui:{{.Values.version}}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         resources:
           requests:
             cpu: {{.Values.webuiCpu}}

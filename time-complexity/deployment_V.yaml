@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pod-v
+  namespace: test
+  labels:
+    Vkey1: Vvalue1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      Vkey1: Vvalue1
+  template:
+    metadata:
+      labels:
+        Vkey1: Vvalue1
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: Skey1
+                    operator: In
+                    values:
+                      - Svalue1
+                  - key: Tkey1
+                    operator: In
+                    values:
+                      - Tvalue1
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: alpine
+        image: alpine:latest
+        command:
+          - /bin/sh
+          - "-c"
+          - "sleep 60m"
+        imagePullPolicy: IfNotPresent
+        name: alpine
+

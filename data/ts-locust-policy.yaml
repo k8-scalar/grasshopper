@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"networking.k8s.io/v1","kind":"NetworkPolicy","metadata":{"annotations":{},"name":"ts-locust-policy","namespace":"test"},"spec":{"egress":[{"to":[{"namespaceSelector":{"matchLabels":{"role":"admin"}}},{"podSelector":{"matchLabels":{"app":"teastore"}}}]}],"podSelector":{"matchLabels":{"run":"teastore-locust"}},"policyTypes":["Egress"]}}
+  creationTimestamp: "2023-12-18T12:10:39Z"
+  generation: 1
+  name: ts-locust-policy
+  namespace: test
+  resourceVersion: "4059046"
+  uid: 422ba67d-f0d2-4165-b4a6-b683ef753daf
+spec:
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          role: admin
+    - podSelector:
+        matchLabels:
+          app: teastore
+  podSelector:
+    matchLabels:
+      run: teastore-locust
+  policyTypes:
+  - Egress
