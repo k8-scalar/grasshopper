@@ -4,8 +4,8 @@ echo ==============================
 echo
 
 MORPHEUS_HOME=$HOME/
-path_variable=$MORPHEUS_HOME/common/ghv3
-helm_chart_variable=../../../teastore/teastore-helm-diktyo/
+path_variable=$MORPHEUS_HOME/ghv3
+helm_chart_variable=$MORPHEUS_HOME/eddy/solution-files/edited-files-in-diktyo-folder/teastore/teastore-helm-diktyo
 metrics_script=${path_variable}/evaluation/teastore/scheduling_metrics/get_metrics_v2.py
 
 logfile=${path_variable}/results/per-labelSet/teastore-gh
