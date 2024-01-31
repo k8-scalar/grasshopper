@@ -60,10 +60,10 @@ kubectl create secret tls opa-server --cert=server.crt --key=server.key --namesp
 ### Install the policy store
 
 ```
-deploy-policy-store.sh
+./deploy-policy-store.sh
 ```
 
-### If policies are not yet compiled
+### If policies are not yet build by OPA
 The following command assumes the docker engine is installed
 
 ```
