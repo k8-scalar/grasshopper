@@ -2,7 +2,7 @@
 (based on [OPA Kubernetes Tutorial](https://www.openpolicyagent.org/docs/latest/kubernetes-tutorial/) and [Torin Sandall's Mutating Admission Webhook example](https://gist.github.com/tsandall/f328635433acc5beeb4cb9b36295ee89))
 
 This tutorial assumes the OPA policy store is running on the master node. We assume that the master node does not allow scheduling of Pods that do not tolerate the NoSchedule taint.
-Moreeover, the master node of your K8s cluster should have the following node label: `node-role.kubernetes.io/control-plane: ""`
+Moreover, the master node of your K8s cluster should have the following node label: `node-role.kubernetes.io/control-plane: ""`
 
 First ensure this opa directory is copied outside of your local git repository to the master node and `cd` into the copied directory.
  
