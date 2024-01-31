@@ -63,7 +63,10 @@ kubectl create secret tls opa-server --cert=server.crt --key=server.key --namesp
 ./deploy-policy-store.sh
 ```
 
-### If policies are not yet build by OPA
+### Modifying policies to your need
+The  current policy will mutate any pod in the namespace 'test' with a nodeSelector field.
+If you want to modify the policy, you have to recompike it as follows.
+
 The following command assumes the docker engine is installed
 
 ```
