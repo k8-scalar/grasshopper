@@ -1,4 +1,4 @@
-##  
+## Mutating admission web hook in OPA to enforce scheduling constraints by a cluster admin  
 (based on [OPA Kubernetes Tutorial](https://www.openpolicyagent.org/docs/latest/kubernetes-tutorial/) and [Torin Sandall's Mutating Admission Webhook example](https://gist.github.com/tsandall/f328635433acc5beeb4cb9b36295ee89))
 
 This tutorial assumes the OPA policy store is running on the master node. We assume that the master node does not allow scheduling of Pods that do not tolerate the NoSchedule taint.
