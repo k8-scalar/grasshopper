@@ -93,23 +93,26 @@ Next, generate the manifest that will be used to register OPA as an admission co
 
 ```
 cat > webhook-configuration.yaml <<EOF
-kind: ValidatingWebhookConfiguration
+kind: MutatingWebhookConfiguration
 apiVersion: admissionregistration.k8s.io/v1
 metadata:
-  name: opa-validating-webhook
+  name: opa-mutating-webhook
 webhooks:
-  - name: validating-webhook.openpolicyagent.org
+  - name: mutating-webhook.openpolicyagent.org
     namespaceSelector:
       matchExpressions:
       - key: openpolicyagent.org/webhook
         operator: NotIn
         values:
         - ignore
+      - key: qos
+        operator: In
+        values: ["good"]
     rules:
       - operations: ["CREATE", "UPDATE"]
-        apiGroups: ["*"]
+        apiGroups: [""]
         apiVersions: ["*"]
-        resources: ["*"]
+        resources: ["pods"]
     clientConfig:
       caBundle: $(cat ca.crt | base64 | tr -d '\n')
       service:
