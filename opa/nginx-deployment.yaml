@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      nodeSelector: # Modify accordingly
+        node-role.kubernetes.io/control-plane: ""
+      tolerations: # Modify the toleration if needed
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Equal"
+        value: ""
+        effect: "NoSchedule"
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-policies
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: nginx-policies
+        hostPath:
+          path: opa/policies
+          type: Directory
+

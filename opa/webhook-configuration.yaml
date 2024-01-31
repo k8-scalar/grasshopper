@@ -1,0 +1,27 @@
+kind: MutatingWebhookConfiguration
+apiVersion: admissionregistration.k8s.io/v1
+metadata:
+  name: opa-mutating-webhook
+webhooks:
+  - name: mutating-webhook.openpolicyagent.org
+    namespaceSelector:
+      matchExpressions:
+      - key: openpolicyagent.org/webhook
+        operator: NotIn
+        values:
+        - ignore
+      - key: qos
+        operator: In
+        values: ["good"]
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: [""]
+        apiVersions: ["*"]
+        resources: ["pods"]
+    clientConfig:
+      caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURFVENDQWZtZ0F3SUJBZ0lVWXh0aWVsUEk3TmdVMkxiNHhYUUxYZ1R2L1dNd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0Z6RVZNQk1HQTFVRUF3d01ZV1J0YVhOemFXOXVYMk5oTUNBWERUSXpNVEl4TXpFMU1USXhOMW9ZRHpJeQpPVGN3T1RJM01UVXhNakUzV2pBWE1SVXdFd1lEVlFRRERBeGhaRzFwYzNOcGIyNWZZMkV3Z2dFaU1BMEdDU3FHClNJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUURMTGd1dlptMU1BY09ERE9UMUJmMCtVWDQ4alZWRHZTNzAKd3EyRE9HN2V3cEs3VUp5N3FQR3ZsZXJSbFJQakxYVCtYMko5bUxMbWFKYXp4ZWdhUG9HTjE1cXZMd1FZZXBWeApkQUhzQmxrTG1ibERsalRLaHhvY3c0VzB5YURzZXlKdmpkNGx0cDNqZ253L2NkQVdtNytNSEFQSk5rZkdyek1vCllnUFBGL2NXTmZYeURrWktiSDFZcE9zeDBEVzJKRk1uMC9NclA0RW9JV2VUdkdxZFljTWsvdkFKTGlSZCtFc00Ka1BqeVJqVENlYnBtWHdnOEFsT1o2UnRpZW12ZWNEVlRpOFpSSGNncFU1U3RHRk5GMk5nK0xiMm5QUy9nb2hBdgpQVHBmODZMRnoyaDR2YkEyOEdibnE1YTRkR1Rtd3BBbXJqVUlVZjJqUm9qclRQOSt4NTdQQWdNQkFBR2pVekJSCk1CMEdBMVVkRGdRV0JCVHJNWXJ6WmtXYXFMeXlCRUZEbEVnNmcvVjQzekFmQmdOVkhTTUVHREFXZ0JUck1ZcnoKWmtXYXFMeXlCRUZEbEVnNmcvVjQzekFQQmdOVkhSTUJBZjhFQlRBREFRSC9NQTBHQ1NxR1NJYjNEUUVCQ3dVQQpBNElCQVFCM3JmczNWMmtRQjlpMjJHZi9xaUNYdmdwUnRwOWZKQjlwYWJFRkc5RjNIMWRjTDdJa1phOFNkSTlECkp4YjZ1VGRrQjVIOTFDRi9kVmJYTmgxYzhhZ0J4Ry9vU2g5emcrQlVibmtkeWhrYkIrZ0NrN09KSjJ4REdyN1EKNjlaaGhlK1ptMkl6N2FYQm9Hc1ZEaWFjMnlaNjFpL1BOUW00Q0FGWUNDRzFtOFkxM3dYSFYxYWpHQ28rVGdyMgpsSzMrVEh0Zy9HOGtqQklxdC9CU2tydjdZU2NwRVJRWEw5bUpFdXlWK0llQXZ5Ulo1UFVMeTBWanE5STczZFFKClZHci9xcGxzVW9sV2FlSE9DUUlRMzVPZjZLNVZZTEFwdkQ4eThrSTQxaWxLeTlicjc3SkJqNlVCVVFXUm5qWW8KbXM1YkYwd0g0cUNTRitWcXlMenFKZEt1eFY1cwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+      service:
+        namespace: opa
+        name: opa
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
