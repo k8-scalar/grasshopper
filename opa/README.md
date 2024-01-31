@@ -13,7 +13,6 @@ Then execute the following commands on the master node:
 ```
 kubectl create namespace opa
 ```
-Configure kubectl to use this namespace:
 
 ### Create TLS credentials for OPA
 
