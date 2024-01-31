@@ -4,7 +4,7 @@
 This tutorial assumes the OPA policy store is running on the master node. We assume that the master node does not allow scheduling of Pods that do not tolerate the NoSchedule taint.
 Moreeover, the master node of your K8s cluster should have the following node label: `node-role.kubernetes.io/control-plane: ""`
 
-First ensure this opa directory is copied to your master node and cd into it.
+First ensure this opa directory is copied outside of your local git repository to the master node and `cd` into the copied directory.
  
 Then execute the following commands on the master node:
 
