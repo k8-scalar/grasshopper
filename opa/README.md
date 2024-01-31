@@ -150,5 +150,5 @@ kubectl delete -f webhook-configuration.yaml
 kubectl delete -f ac.yaml -n opa
 ./delete-policy-store.sh
 kubectl delete secret opa-server -n opa
-rm *.key *.crt *.conf
+rm *.key *.crt *.conf *.csr
 ```
