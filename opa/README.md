@@ -64,8 +64,9 @@ kubectl create secret tls opa-server --cert=server.crt --key=server.key --namesp
 ```
 
 ### Modifying policies to your need
-The  current policy will mutate any pod in the namespace 'test' with a nodeSelector field.
-If you want to modify the policy, you have to recompike it as follows.
+The policy `policies/main.rego` currently mutates any resource with a nodeSelector field that ensures that resource is scheduled to a node that is labeled with the node label `segment:good`.
+ 
+If you want to modify the policy to your own needs, you have to recompile it as follows.
 
 The following command assumes the docker engine is installed
 
@@ -92,7 +93,7 @@ Next, generate the manifest that will be used to register OPA as an admission co
 
 ### Register webhook with K8s control plane
 
-Next, generate the manifest that will be used to register OPA as an admission controller. This webhook will ignore any namespace with the label openpolicyagent.org/webhook=ignore.
+Next, generate the manifest that will be used to register OPA as an admission controller. This webhook will ignore any namespace with the label openpolicyagent.org/webhook=ignore. Furthermore it will only intercept new or updated pods of which the namespace has been labeled with the `qos:good` namespace label. 
 
 ```
 cat > webhook-configuration.yaml <<EOF
