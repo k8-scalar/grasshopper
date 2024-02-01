@@ -24,6 +24,8 @@ spec:
           limits:
             cpu: 2
             memory: 2Gi
+      nodeSelector:
+        locustNode: "yes"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -67,8 +69,8 @@ spec:
       - name: persistence
         hostPath:
           path: /teastore/teastore-db
-      #nodeSelector:
-      #  dbNode: "yes"
+      nodeSelector:
+        dbNode: "yes"
 ---
 apiVersion: v1
 kind: Service

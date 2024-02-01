@@ -1,25 +1,22 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: teastore-locust-policy
+  name: np2
   namespace: test
 spec:
   podSelector:
     matchLabels:
-      run: teastore-locust
+      keyB: valueB
   policyTypes:
   - Egress
   - Ingress
   egress:
   - to:
-    - namespaceSelector:
-        matchLabels:
-          role: admin
     - podSelector:
         matchLabels:
-          app: teastore
+          keyX: valueX
   ingress:
   - from:
     - podSelector:
         matchLabels:
-          app: teastore
+          keyX: valueX

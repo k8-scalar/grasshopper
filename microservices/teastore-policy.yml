@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: ts-policy
+  name: teastore-policy
   namespace: test
 spec:
   podSelector:
@@ -21,11 +21,6 @@ spec:
     - podSelector:
         matchLabels:
           app: teastore
-    #ports:
-    #- protocol: TCP
-    #  port: 8080
-    #- protocol: TCP
-    #  port: 3306
   ingress:
   - from:
     - podSelector:
@@ -34,8 +29,3 @@ spec:
     - podSelector:
         matchLabels:
           app: teastore
-    #ports:
-    #- protocol: TCP
-    #  port: 8080
-    #- protocol: TCP
-    #  port: 3306

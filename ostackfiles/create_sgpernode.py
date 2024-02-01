@@ -26,23 +26,7 @@ def create_security_group(neutron, node_name):
     sg_description = 'Security group for ' + node_name
 
     existing_sg = get_security_group(neutron, sg_name)
-    '''if existing_sg:
-        print(f"Security group {sg_name} already exists")
-        return existing_sg
-    else:
-        body = {
-            'security_group': {
-                'name': sg_name,
-                'description': sg_description
-            }
-        }
 
-        try:
-            security_group = neutron.create_security_group(body=body)['security_group']
-            return security_group
-        except Exception as e:
-            print("Error while creating security group:", e)
-            return None'''
     if not existing_sg:
         body = {
             'security_group': {
@@ -69,10 +53,7 @@ def attach_security_group(node_name, security_group):
     # Check if the security group is already attached to the server
     server = nova.servers.get(server_id)
     attached_security_groups = [sg['name'] for sg in server.security_groups]
-    '''if 'SG_'+node_name in attached_security_groups:  
-        print(f"Security group already attached to '{node_name}'.")
-    else:
-        nova.servers.add_security_group(server_id, security_group)'''
+
     if 'SG_'+node_name not in attached_security_groups:  
         nova.servers.add_security_group(server_id, security_group)
 
