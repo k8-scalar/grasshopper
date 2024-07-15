@@ -1,0 +1,33 @@
+ubuntu@test-master:~$ kubectl get pods -o wide -n spark-operator
+NAME                                                  READY   STATUS             RESTARTS      AGE     IP               NODE            NOMINATED NODE   READINESS GATES
+everything-allowed-exec-deployment-5b68c8d877-289t4   1/1     Running            0             54m     172.22.14.31     test-worker-1   <none>           <none>
+everything-allowed-exec-deployment-5b68c8d877-64pbw   1/1     Running            0             54m     172.22.14.33     test-master2    <none>           <none>
+everything-allowed-exec-deployment-5b68c8d877-8qc44   1/1     Running            0             54m     172.22.14.32     test-worker-2   <none>           <none>
+everything-allowed-exec-deployment-5b68c8d877-cgxp9   1/1     Running            0             54m     172.22.14.33     test-master2    <none>           <none>
+everything-allowed-exec-deployment-5b68c8d877-xn9nh   1/1     Running            0             54m     172.22.14.34     test-worker-4   <none>           <none>
+hostpath-revshell-pod                                 0/1     CrashLoopBackOff   5 (71s ago)   7m12s   192.168.101.76   test-master2    <none>           <none>
+spark-operator-69b84c8f48-l66x8                       1/1     Running            0             4h51m   192.168.101.73   test-master2    <none>           <none>
+ubuntu@test-master:~$ kubectl logs -n spark-operator hostpath-revshell-pod
+Ncat: Connection timed out.
+ubuntu@test-master:~$ kubectl logs -n spark-operator hostpath-revshell-pod
+Ncat: Connection timed out.
+ubuntu@test-master:~$ kubectl logs -n spark-operator hostpath-revshell-pod
+ubuntu@test-master:~$ kubectl logs -n spark-operator hostpath-revshell-pod
+Ncat: Connection timed out.
+ubuntu@test-master:~$ kubectl logs -n spark-operator hostpath-revshell-pod
+Ncat: Connection timed out.
+ubuntu@test-master:~$ kubectl logs -n spark-operator hostpath-revshell-pod
+Ncat: Connection timed out.
+ubuntu@test-master:~$ kubectl logs -n spark-operator hostpath-revshell-pod
+Ncat: Connection timed out.
+ubuntu@test-master:~$ kubectl logs -n spark-operator hostpath-revshell-pod
+Ncat: Connection timed out.
+ubuntu@test-master:~$ kubectl logs -n spark-operator hostpath-revshell-pod
+Ncat: Connection timed out.
+ubuntu@test-master:~$ kubectl logs -n spark-operator hostpath-revshell-pod
+Ncat: Connection timed out.
+ubuntu@test-master:~$ kubectl logs -n spark-operator hostpath-revshell-pod
+Ncat: Connection timed out.
+ubuntu@test-master:~$ kubectl logs -n spark-operator hostpath-revshell-pod
+Ncat: Connection timed out.
+
