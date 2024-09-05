@@ -1,5 +1,9 @@
 #! /bin/bash
 
+# remove old files in data
+
+rm data/*
+
 #set pernode SG scenario
 if [[ "${1,,}" == "pernodesg=true" ]]; then
     singleSGPerNodeScenario=true

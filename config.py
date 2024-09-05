@@ -1,2 +1,2 @@
-file_path = '/home/ubuntu/ghv3'
+file_path = './'
 singleSGPerNodeScenario=False
