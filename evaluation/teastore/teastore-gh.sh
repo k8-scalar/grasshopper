@@ -4,7 +4,7 @@ echo ==============================
 echo
 
 MORPHEUS_HOME=$HOME/
-path_variable=$MORPHEUS_HOME/common/ghv3
+path_variable=$MORPHEUS_HOME/ghv3
 helm_chart_variable=../../../teastore/teastore-helm-diktyo/
 metrics_script=${path_variable}/evaluation/teastore/scheduling_metrics/get_metrics_v2.py
 
