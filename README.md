@@ -7,7 +7,7 @@ export OS_APPLICATION_CREDENTIAL_ID=<your credential id>
 export OS_APPLICATION_CREDENTIAL_ID
 export OS_APPLICATION_CREDENTIAL_SECRET=<your credential secret>
 export OS_APPLICATION_CREDENTIAL_SECRET
-
+```
 2. Ensure the master node of the K8s cluster has network access to the API of the Openstack Cloud typically via port 5000
 
 
