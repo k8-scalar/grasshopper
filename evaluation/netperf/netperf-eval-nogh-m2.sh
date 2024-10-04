@@ -2,7 +2,7 @@
 
 echo ==============================
 echo
-path_variable=/home/ubuntu/ghv3
+path_variable=$GRASSHOPPER
 read -p "Do you want to use 'pernode scenario'? (y/n): " pernode_input
 if [ "$pernode_input" == "y" ] || [ "$pernode_input" == "Y" ]; then
     logfile=${path_variable}/results/per-node/netperf-nogh-m2.log
