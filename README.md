@@ -38,5 +38,7 @@ Note that by default, GH monitors resources in test namespace. It is possible to
 The experiment code can be found in the evaluation directory. E.g to run the evaluation for the teastore application, running the following command;
 
 ```
+#set GRASSHOPPER variable
+export GRASSHOPPER=$HOME/grasshopper
 . grasshopper/evaluation/teastore/teastore-gh.sh
 ```
