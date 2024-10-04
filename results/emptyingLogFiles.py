@@ -1,6 +1,6 @@
 import os
 
-directory_path = './results/'
+directory_path = './'
 files_to_empty = ['netperf-gh.log','netperf-ghfly.log', 'netperf-nogh.log', 'saas-gh.log', 'saas-nogh.log', 'saas-ghfly.log', 'teastore-gh.log', 'teastore-nogh.log', 'teastore-ghfly.log']
 
 def empty_files(directory, filenames):
