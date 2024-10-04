@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: netperf
+  namespace: test
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: netperf
+      User: user1
+      key4: value0
+  template:
+    metadata:
+      labels:
+        app: netperf
+        User: user1
+        key4: value0
+    spec:
+      containers:
+      - image: leannet/k8s-netperf:latest
+        name: netperf-host
+        ports:
+        - containerPort: 12865
+        - containerPort: 5001
