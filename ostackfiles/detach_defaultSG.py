@@ -1,6 +1,11 @@
 from credentials import neutron, nova
-import re
+from kubernetes import client, config
+config.load_kube_config()
 
+v1 = client.CoreV1Api()
+node_list = v1.list_node()
+ 
+ 
 def exception_handler(func):
     def inner_function(*args, **kwargs):
         try:
@@ -10,22 +15,19 @@ def exception_handler(func):
     return inner_function
     
 already_created_sgs = []
-all_nodes = []
+all_nodes = [node.metadata.name for node in node_list.items]
 insgs = neutron.list_security_groups()['security_groups']
 for sg_items in insgs:
     already_created_sgs.append(sg_items['name'])  
 
-for instance in nova.servers.list():
-    all_nodes.append(instance.name)
 
 @exception_handler
 def detach():
-    worker_pattern = re.compile(r'^worker-(1[0-5]|[1-9])$')
 
     for sg_name in already_created_sgs:
         if sg_name == 'default':
             for node_name in all_nodes:
-                if worker_pattern.match(node_name):
+                if node_name != 'test-master':
                     instance = nova.servers.find(name=node_name)
                     try:
                         instance.remove_security_group(sg_name)
@@ -33,5 +35,4 @@ def detach():
                         pass
 
 detach()
-
 

@@ -1,5 +1,4 @@
 from credentials import neutron, nova
-import re
 from kubernetes import client, config
 config.load_kube_config()
 
@@ -20,20 +19,16 @@ insgs = neutron.list_security_groups()['security_groups']
 for sg_items in insgs:
     already_created_sgs.append(sg_items['name'])
 
-
 @exception_handler
 def attach():
-    worker_pattern = re.compile(r'^worker-(1[0-5]|[1-9])$')
-
     for sg_name in already_created_sgs:
         if sg_name == 'default':
             for node_name in all_nodes:
-                if worker_pattern.match(node_name):
-                    instance = nova.servers.find(name=node_name)
-                    try:
-                        instance.add_security_group(sg_name)
-                    except:
-                        pass
+                instance = nova.servers.find(name=node_name)
+                try:
+                    instance.add_security_group(sg_name)
+                except:
+                    pass
 
 attach()
 
