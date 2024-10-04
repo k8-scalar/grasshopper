@@ -459,6 +459,8 @@ class NP_object:
             if policy.is_egress():
                 traf_type='egress'
 
+            NP_name = policy.name
+            sg_name = f'SG_{NP_name}'
             allow_sec, SG_from_AllowLabels, SG_role = [], [], False        
 
             #finding inter-node communications and nodes of selected and allowed containers
@@ -473,12 +475,12 @@ class NP_object:
             if InterNode and interNode_pods:
                 allow_sec.append({'labels': items.labels, 'traffic': traf_type} for items in policy.allow)
                 for items in all_map:
-                    if items.NetworkPolicy_name == policy.name:
+                    if items.NetworkPolicy_name == NP_name:
                         items.allow_section.append(iter for iter in allow_sec if iter not in items.allow_section or not items.allow_section)
                         break
 
                 else:
-                    all_map.append(Mapping(f'SG_{policy.name}', policy.name, policy.selector.labels, allow_sec, SG_from_AllowLabels, SG_node, sg_pernode_names, SG_role))
+                    all_map.append(Mapping(sg_name, NP_name, policy.selector.labels, allow_sec, SG_from_AllowLabels, SG_node, sg_pernode_names, SG_role))
 
             if not InterNode:
                 SG_node += [cont.nodeName for cont in sel_node if cont.nodeName not in SG_node]
@@ -499,14 +501,13 @@ class NP_object:
                         #allow_sec.append(PolTraffic(items.labels, traf_type, prots[0], [prots[1],prots[2]], policy.cidr, all_nodes))
                         #allow_sec.append(PolTraffic(items.labels, traf_type, policy.protocol[0], [policy.protocol[1],policy.protocol[2]], policy.cidr, all_nodes))
                 for items in all_map:
-                    if items.NetworkPolicy_name == policy.name or items.select_labels == policy.selector.labels:
-                        #items.NetworkPolicy_name = policy.name
-                        items.SG_name = f'SG_{policy.name}'
+                    if items.NetworkPolicy_name == NP_name or items.select_labels == policy.selector.labels:
+                        items.NetworkPolicy_name = policy.name
                         items.allow_section.extend(iter for iter in allow_sec if iter not in items.allow_section or not items.allow_section)
                         break
                 else:
                     if SG_node:
-                        all_map.append(Mapping(f'SG_{policy.name}', policy.name, policy.selector.labels, allow_sec, SG_from_AllowLabels, SG_node, sg_pernode_names, SG_role))
+                        all_map.append(Mapping(sg_name, NP_name, policy.selector.labels, allow_sec, SG_from_AllowLabels, SG_node, sg_pernode_names, SG_role))
         return all_map
 
 
@@ -557,8 +558,7 @@ class NP_object:
     
     def concate(new_all_map):
         f_map_list = {}
-        from Hmap import h_map
-        ini_map = h_map 
+        from Hmap import h_map 
         
         for v in new_all_map:
             if v.NetworkPolicy_name ==None: # comment out to create template for allow labels of the policy in the map
@@ -582,14 +582,12 @@ class NP_object:
                             allpolz.append(Pol(z.NetworkPolicy_name, z.select_labels)) 
             if not singleSGPerNodeScenario:
                 # Check if sorted_sel_labels is in h_map               
-                for u, h_map_entry in ini_map.items():
+                for u, h_map_entry in h_map.items():
                     h_map_dict_key = ast.literal_eval(u)
                     
                     if h_map_dict_key == sorted_sel_labels:
                         for m in h_map_entry:
-                            if m['SG_name'] !=v.SG_name and m['select_labels'] ==sorted_sel_labels:
-                                print(sorted_sel_labels, v.SG_name, m['SG_name'])
-                                #if m['NetworkPolicy_name'] is None:
+                            if m['NetworkPolicy_name'] is None:
                                 m.update({
                                     'SG_name': v.SG_name,
                                     'NetworkPolicy_name': v.NetworkPolicy_name,
@@ -599,7 +597,7 @@ class NP_object:
                                     'target_SGPerNode_Names': v.target_SGPerNode_Names,
                                     'RemoteSG_role': v.remoteSG_role
                                 })
-                            break
+                                break
 
                 #If not in the map, create a new map entry
                 key = str(sorted_sel_labels)
@@ -652,7 +650,6 @@ class NP_object:
                     'allowPols': allpolz
                 }
                 f_map_list[key] = d2
-        ini_map.update(f_map_list)
         return f_map_list
 
     def __init__(self, container_size: int, new_all_map:Any, f_map_list:Any) -> None:
@@ -1106,4 +1103,5 @@ class SG_object:
                                                 rul.cidr == cidr and \
                                                 rul.remoteSG == remoteSG['name']:
                                                     already_created_rules.remove(rul)
+
 
