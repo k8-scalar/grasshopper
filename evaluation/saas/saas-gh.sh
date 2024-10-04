@@ -5,7 +5,7 @@ echo
 
 read -p "Do you want to use 'pernode scenario'? (y/n): " pernode_input
 
-path_variable=/home/ubuntu/grasshopper
+path_variable=/home/ubuntu/ghv3
 
 
 if [ "$pernode_input" == "y" ] || [ "$pernode_input" == "Y" ]; then

@@ -2,7 +2,7 @@
 
 echo ==============================
 echo
-path_variable=/home/ubuntu/grasshopper
+path_variable=/home/ubuntu/ghv3
 read -p "Do you want to use 'pernode scenario'? (y/n): " pernode_input
 if [ "$pernode_input" == "y" ] || [ "$pernode_input" == "Y" ]; then
     logfile=${path_variable}/results/per-node/netperf-gh-v2.log
@@ -10,8 +10,7 @@ else
     logfile=${path_variable}/results/per-labelSet/netperf-gh-v2.log
 fi
 
-python3 grasshopper/ostackfiles/detach_defaultSG.py #detach default SG to workers if not detached
-
+python3 ghv3/ostackfiles/detach_defaultSG.py #detach default SG to workers if not detached
 
 find "${path_variable}/data/" -type f -delete
 

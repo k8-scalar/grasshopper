@@ -5,7 +5,7 @@ echo
 
 read -p "Do you want to use 'pernode scenario'? (y/n): " pernode_input
 
-path_variable=/home/ubuntu/grasshopper
+path_variable=/home/ubuntu/ghv3
 
 if [ "$pernode_input" == "y" ] || [ "$pernode_input" == "Y" ]; then
     logfile=${path_variable}/results/per-node/teastore-nogh
@@ -13,7 +13,7 @@ else
     logfile=${path_variable}/results/per-labelSet/teastore-nogh
 fi
 
-python3 grasshopper/ostackfiles/attach_defaultSG.py #attach default SG to workers if not attached
+python3 ghv3/ostackfiles/attach_defaultSG.py #attach default SG to workers if not attached
 
 for ((i=1; i<=20; i++)); do
     echo ======evaluation round $i==========
