@@ -1,2 +1,2 @@
 file_path = './'
-singleSGPerNodeScenario=False
+singleSGPerNodeScenario=True
