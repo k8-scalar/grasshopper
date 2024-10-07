@@ -1,2 +1,2 @@
-file_path = '/home/ubuntu/grasshopper'
+file_path = './'
 singleSGPerNodeScenario=True
