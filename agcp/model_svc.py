@@ -1037,6 +1037,7 @@ class SG_object:
                     for sg in sgs:
                         if sg['name']=='SG_'+t_node:
                             sgName=sg
+                            print("The following rules in " + sgName['name'] + " applied to multiple co-located pods:")
                     for rulz in map_value['allow_section']:
                         for nodez in rulz.allowedPodsNodes:
                             traffic=rulz.traffic
@@ -1055,7 +1056,13 @@ class SG_object:
                                                         r['remote_ip_prefix'] == cidr and \
                                                             r['security_group_id'] == sgName['id'] and\
                                                                 r['remote_group_id'] == remoteSG['id']:
-                                            neutron.delete_security_group_rule(security_group_rule=r['id'])                                              
+                                            try: 
+                                                neutron.delete_security_group_rule(security_group_rule=r['id'])  
+                                            except Exception as e:
+                                                #Rule already deleted
+                                                #print("traffic: " + traffic + " , protocol: " + protocol.lower() + ", port_min: " + port_min if not None else "*" + ", port_max: " + port_max  if not None else "*" + ", remote_cidr: " + cird  if not None else "-" + ", remote_sg: " + remoteSG['name'])
+                                                print("traffic: " + traffic + " , protocol: " + protocol.lower() + ", remote_sg: " + remoteSG['name'])
+
                                     for rul in already_created_rules:                                              
                                         if rul.SGName ==sgName['name'] and \
                                             rul.traffic == traffic and \
@@ -1074,6 +1081,7 @@ class SG_object:
                 for sg in sgs:
                     if sg['name']=='SG_'+node:
                         sgName=sg
+                print("The following rules in " + sgName['name'] + " applied to multiple co-located pods:")
                 for rulz in map_value['allow_section']:
                     for nodez in rulz.allowedPodsNodes:
                         traffic=rulz.traffic
@@ -1092,7 +1100,10 @@ class SG_object:
                                                     r['remote_ip_prefix'] == cidr and \
                                                         r['security_group_id'] == sgName['id'] and\
                                                             r['remote_group_id'] == remoteSG['id']:
-                                        neutron.delete_security_group_rule(security_group_rule=r['id']) 
+                                        try:
+                                            neutron.delete_security_group_rule(security_group_rule=r['id']) 
+                                        except Exception as e:
+                                            print("traffic: " + traffic + " , protocol: " + protocol.lower() + ", remote_sg: " + remoteSG['name'])
                                     if rmv_maprule:
                                         for rul in already_created_rules:                                              
                                             if rul.SGName ==sgName['name'] and \
