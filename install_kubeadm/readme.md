@@ -1,3 +1,8 @@
+## Prerequisites
+The provided scripts have only been tested on Ubuntu20.24 and versions of k8s, containerd, calico as listed in run.sh
+
+The script will also mount an nfs share to which you have access. To know the url, ask the system administrator of your openstack environment 
+
 ## Direct/Native routing
 
 For native routing you need to disable source destination checking by disabling port security of each node in your cluster
@@ -49,13 +54,39 @@ This is how you disable the source/destination check equivalent (port security) 
 
 execute `chmod -R 750 *.sh`
 
-edit `./run.sh` to set appropriate values for the `nfs_account` variable, and the `subnet` and `nodes` 
+Put the following line into the ~/.bashrc file, to get kubectl autocompletion: `source <(kubectl completion bash)`
 
-execute `./run.sh`. Answer 'y' to all prompts. If the installation halts, enter q or hit the enter key.
+edit `./run.sh` to set appropriate values for the `nfs_account` variable, and the `subnet` and `nodes`
+
+execute `./run.sh`. Answer 'y' or 'yes' to all prompts. If the installation halts, enter 'q' or hit
 
 wait till the tigerastatus shows only available services
 
 then copy the outputted kubeadm join command into a safe place
 
+then go to every worker node to execute the copied kubeadm join command. Execute it in sudo mode by placing `sudo` before the command
 
-then go to every worker node to execute the copied kubeadm join command. Execute it in sudo mode by placing `sudo` before the command  
+
+### Disabling/Enabling the kube-proxy
+The service load balancing is also done by the calico plugin. Therefore the kube-proxy can be removed.
+This can be done using the following command:
+
+```
+kubectl patch ds -n kube-system kube-proxy -p '{"spec":{"template":{"spec":{"nodeSelector":{"non-calico": "true"}}}}}'
+```
+When you add new worker nodes via the `kubeam join` command however. The kube-proxy should be temporarily re-enabled. 
+
+```
+kubectl patch ds -n kube-system kube-proxy -p '{"spec":{"template":{"spec":{"nodeSelector":{"non-calico": "null"}}}}}'
+   
+```
+
+### Troubleshooting
+
+1. The worker nodes remain unhealthy. 
+ * check the output of `kubectl get pods -n calico-system`. If there are non-initialized pods:
+   * execute: `kubectl patch ds -n kube-system kube-proxy -p '{"spec":{"template":{"spec":{"nodeSelector":{"non-calico": "null"}}}}}'`
+   * ssh into each worker node and execute sudo reboot
+2. The tigerastatus reports a degraded status:
+   * check the logs of the tigera-operator in the tigera-operator namespace with the command `kubect logs -n tigera-operator <tigera-operator> 
+
