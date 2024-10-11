@@ -5,50 +5,57 @@ The script will also mount an nfs share to which you have access. To know the ur
 
 ## Direct/Native routing
 
-For native routing you need to disable source destination checking by disabling port security of each node in your cluster
+For native routing you need to allow that network packets with pod ip addresses as destination are not rejected by the Openstack instance. 
 
-You do this as follows
+###openstack client
 
-To disable **port security** via the **OpenStack Dashboard (Horizon)**, follow these steps:
+First install the openstack client on one of the vm instances:
 
-### Steps to Disable Port Security in OpenStack via the Dashboard (Horizon):
+```
+sudo apt update && sudo apt install python3-openstackclient -y
+```
 
-1. **Log in to the OpenStack Dashboard (Horizon)**:
-   - Open a browser and navigate to your OpenStack Horizon dashboard.
-   - Log in using your credentials.
 
-2. **Navigate to the "Network" Tab**:
-   - On the left-hand side of the dashboard, find and click on **"Network"**.
-   - Under the "Network" section, click on **"Networks"**.
 
-3. **Select the Desired Network**:
-   - From the list of networks, click on the name of the network to which the instance is connected, or where you want to create a new port.
+### Using CIDR Range with Allowed Address Pairs
 
-4. **Manage Ports**:
-   - In the network details page, you will see a **"Ports"** tab. Click on it.
-   - Here, you'll see a list of ports that are associated with this network.
+When updating a port's `allowed_address_pairs`, you can specify a CIDR block instead of individual IP addresses. This allows the instance to accept packets for any IP address within that CIDR range.
 
-5. **Create a New Port** (or Modify an Existing One):
-   - If you want to create a new port with port security disabled, click on the **"Create Port"** button.
-   - If you want to modify an existing port, click on the **"Edit"** button next to the port you want to update.
+### Command Syntax
 
-6. **Disable Port Security**:
-   - When creating or editing a port, scroll down to the **"Port Security"** option.
-   - Uncheck the box labeled **"Enable Port Security"** to disable port security.
+Here’s how you would use the `openstack port set` command to specify a CIDR range for allowed address pairs:
 
-7. **Save**:
-   - After you’ve unchecked "Enable Port Security," click **"Create"** (for new ports) or **"Save"** (for existing ports) to apply the changes.
+```bash
+openstack port set --allowed-address ip-address=<cidr_range> <port_id>
+```
 
-8. **Attach the Port to an Instance**:
-   - If you've created a new port, you can attach it to an instance. 
-   - Go to **"Project" → "Compute" → "Instances"**, select the instance, and attach the port using the "Attach Interface" option.
+### Example Command
 
-   If you disabled port security on an existing port already attached to an instance, the changes will take effect immediately.
+For instance, if you want to allow the CIDR range `10.101.11.0/24` on the port with ID `12345678-1234-5678-1234-567812345678`, you would run the following command:
 
-### Verifying:
-After creating or editing the port, you can return to the **"Ports"** tab in the network section to verify that **Port Security** is disabled. It will show as `False` for the port security status of the selected port.
+```bash
+openstack port set --allowed-address ip-address=10.101.11.0/24 <port_id>
+```
 
-This is how you disable the source/destination check equivalent (port security) via OpenStack's Horizon dashboard.
+### Steps to Implement
+
+1. **Identify the Port**: Use the following command to find the port ID associated with your instance:
+
+   ```bash
+   openstack port list
+   ```
+
+2. **Update the Port with Allowed Address Pairs**: Use the `openstack port set` command with the CIDR range as shown in the example.
+
+3. **Verify the Changes**: After updating the port, you can verify the configuration with:
+
+   ```bash
+   openstack port show <port_id>
+   ```
+
+   Look for the `allowed_address_pairs` field in the output to confirm that your CIDR range has been applied correctly.
+
+
 
 ## Install cluster
 
@@ -77,7 +84,7 @@ kubectl patch ds -n kube-system kube-proxy -p '{"spec":{"template":{"spec":{"nod
 When you add new worker nodes via the `kubeam join` command however. The kube-proxy should be temporarily re-enabled. 
 
 ```
-kubectl patch ds -n kube-system kube-proxy -p '{"spec":{"template":{"spec":{"nodeSelector":{"non-calico": "null"}}}}}'
+kubectl patch ds -n kube-system kube-proxy -p '{"spec":{"template":{"spec":{"nodeSelector":{"non-calico": null}}}}}'
    
 ```
 
