@@ -1,19 +1,39 @@
 ## Prerequisites
 The provided scripts have only been tested on Ubuntu20.24 and versions of k8s, containerd, calico as listed in run.sh
 
-The script will also mount an nfs share to which you have access. To know the url, ask the system administrator of your openstack environment 
+### Nfs shareThe script will also mount an nfs share to which you have access. To know the url, ask the system administrator of your openstack environment 
+
+### Openstack client
+
+Install the openstack client on one of the vm instances:
+
+```
+sudo apt update && sudo apt install python3-openstackclient -y
+``` 
+
+2. Start with a default security group that is overly permissive during the installation of the K8s cluster. Set the `PROJECT` and `SG` variables in the `create_default_security_group.sh` script and execute it. This will install the following rules:
+
+```
+direction='ingress', ethertype='IPv4', normalized_cidr='0.0.0.0/0', port_range_max='22', port_range_min='22', protocol='tcp', remote_ip_prefix='0.0.0.0/0' (SSH)                                                                                                            ddi
+
+direction='ingress', ethertype='IPv4', protocol='icmp', remote_ip_prefix='0.0.0.0/0' (ICMP) 
+
+direction='ingress', ethertype='IPv6',remote_group_name='default'  (All IPv6-based protocols and ports from instances with default security group attached)
+
+direction='ingress', ethertype='IPv4', remote_group_name='default' (All IPv4-based protocols and ports from instances with default security group attached) 
+                             
+direction='egress', ethertype='IPv4',  remote_ip_prefix='0.0.0.0/0' (All IPv4-based protocols and ports to anywhere)            
+                                                         
+direction='egress', ethertype='IPv6', remote_ip_prefix='::/0'  (All IPv6-based protocols and ports to anywhere)
+
+```
+
+
 
 ## Direct/Native routing
 
 For native routing you need to allow that network packets with pod ip addresses as destination are not rejected by the Openstack instance. 
 
-###openstack client
-
-First install the openstack client on one of the vm instances:
-
-```
-sudo apt update && sudo apt install python3-openstackclient -y
-```
 
 
 
