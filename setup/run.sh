@@ -20,9 +20,10 @@ sudo apt install -y libcairo2 libcairo2-dev
 sudo apt install -y meson ninja-build
 sudo apt install -y libgirepository1.0-dev gir1.2-gtk-4.0
 pip install --upgrade pip setuptools wheel
-sudo apt-get install -y libdbus-1-dev libdbus-glib-1-dev
+sudo apt-get install -y wget libdbus-1-dev libdbus-glib-1-dev
 pip install -r requirements.txt
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
 chmod 700 get_helm.sh
+wget https://get.helm.sh/helm-v3.16.2-linux-amd64.tar.gz
 ./get_helm.sh
 echo "export PATH=\$PATH:\$HOME/.local/bin" >> ~/.bashrc
