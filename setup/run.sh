@@ -8,7 +8,6 @@ sudo apt install -y python3.10-distutils
 curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 sudo python3.10 get-pip.py
 sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
-sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 2
 sudo update-alternatives --config python3
 sudo update-alternatives --install /usr/bin/pip pip /usr/local/bin/pip3.10 1
 sudo apt update
