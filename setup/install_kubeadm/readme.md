@@ -13,6 +13,28 @@ Install the openstack client on one of the vm instances:
 sudo apt update && sudo apt install python3-openstackclient -y
 ```
 
+### Set the Openstack variables
+
+
+```
+export OS_AUTH_URL=https://hera.cs.kuleuven.be:5000
+export OS_AUTH_TYPE=v3applicationcredential
+export OS_IDENTITY_API_VERSION=3
+export OS_REGION_NAME=RegionOne
+export OS_INTERFACE=public
+```
+
+Then you need to set application crendentials that are scoped to your projecty. You do this via the Identities menu. In case you have multiple projects, first activate the relevant project, then create the application credentials. Dowload the cloud.yaml file to save yout secret.
+
+```
+export OS_APPLICATION_CREDENTIAL_ID=<your credential id>
+export OS_APPLICATION_CREDENTIAL_ID
+export OS_APPLICATION_CREDENTIAL_SECRET=<your credential secret>
+export OS_APPLICATION_CREDENTIAL_SECRET
+```
+Preferably you add these export staments to the .bashrc file in the home directory of your master node.
+
+
 ### Open default security group
 
 Adjust the default security group of your VMs to an overly permissive setting. This eases the installation of the K8s cluster. Later you can restrict the security group towards only opening those ports and protocols needed for an operational K8s cluster.
