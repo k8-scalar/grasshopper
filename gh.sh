@@ -20,7 +20,7 @@ python3 update-config.py $singleSGPerNodeScenario
 #set the hmap variable in Hmap.py
 sed -i "s/h_map = {.*/h_map = {}/" Hmap.py
 
-unset PYTHONPATH
+#unset PYTHONPATH
 #cd single_sg_per_node/
 #export PYTHONPATH="${PYTHONPATH}:/home/ubuntu/single_sg_per_node/"
 #path_variable=$(python3 -c "from config import file_path; print(file_path)")
