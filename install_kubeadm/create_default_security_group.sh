@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set variables for project and security group names
-export PROJEC="prj.dnet.u0018104"  # Set your project name here
+export PROJECT="prj.dnet.u0018104"  # Set your project name here
 export SG="default"    # Set your security group name here
 
 # Get the project ID for the given project name
