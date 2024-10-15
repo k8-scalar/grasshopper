@@ -1,5 +1,5 @@
 ## Prerequisites
-The provided scripts have only been tested on Ubuntu20.24 and versions of k8s, containerd, calico as listed in run.sh
+The provided scripts have only been tested on Ubuntu24.04 and versions of k8s, containerd, calico as listed in run.sh
 
 ### Nfs share
 
