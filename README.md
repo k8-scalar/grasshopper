@@ -1,16 +1,17 @@
 ## Install a K8s cluster on Openstack with native routing enabled
 
-See (setup/install_kubeadm/readme.md)[setup/install_kubeadm/readme.md]
+See [setup/install_kubeadm/readme.md](setup/install_kubeadm/readme.md)
 
 ## Install Grasshopper
 
 Grasshopper requires python3.10 
 
-run `./setup/run.sh`  to install all the packages and python modules that GrassHopper depends upon. We have tested this script for ubuntu20.24
+run `./setup/run.sh`  to install all the packages and python modules that GrassHopper depends upon. We have tested this script for ubuntu24.04
 
 ## Before running Grasshopper
 
-1. Ensure the master node of the K8s cluster has network access to the API of the Openstack Cloud typically via port 5000. If you have followed the instructions at (setup/install_kubeadm/readme.md)[setup/install_kubeadm/readme.md], this is the case
+1. Ensure the master node of the K8s cluster has network access to the API of the Openstack Cloud typically via port 5000. If you have followed the instructions at [setup/install_kubeadm/readme.md](setup/install_kubeadm/readme.md)
+, this is the case
 
 2. Ensure you have set your credentials for accessing the control plane API of the Openstack cloud. 
 
