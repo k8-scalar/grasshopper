@@ -107,10 +107,10 @@ execute `chmod -R 750 *.sh`
 
 Put the following line into the ~/.bashrc file, to get kubectl autocompletion: `source <(kubectl completion bash)`
 
-edit `./run.sh` to set appropriate values for the `kubernetes_master`, `subnet` and `nodes` variables. For example: if the VM subnet is 172.22.14.0/24, the master nodle runs on 172.22.14.100 and the worker nodes run on 172.22.14.89 and 172.22.14.90 then:
+edit `./run.sh` to set appropriate values for the `kubernetes_master`, `subnet` and `nodes` variables. For example: if the VM subnet is 172.22.14.0/24, the master nodle runs on 172.22.14.100 and the worker nodes run on 172.22.14.89 and 172.22.14.90, then set these variables in `run.sh` as follows:
 ```
 kubernetes_master=172.22.14.100
-subnet="172.22.14"
+subnet=172.22.14
 nodes="89 90"
 ```
 
