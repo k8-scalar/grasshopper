@@ -12,7 +12,20 @@ run `./setup/run.sh`  to install all the packages and python modules that GrassH
 
 1. Ensure the master node of the K8s cluster has network access to the API of the Openstack Cloud typically via port 5000. If you have followed the instructions at (setup/install_kubeadm/readme.md)[setup/install_kubeadm/readme.md], this is the case
 
-2. Ensure you have set your credentials for accessing the control plane API of the Openstack cloud. You do this via the Identities menu. In case you have multiple projects, first activate the relevant project, then create the application credentials. Dowload the cloud.yaml file to safe yout secret.
+2. Ensure you have set your credentials for accessing the control plane API of the Openstack cloud. 
+
+
+First you need to specify the values of your openstack service:
+
+```
+export OS_AUTH_URL=https://hera.cs.kuleuven.be:5000
+export OS_AUTH_TYPE=v3applicationcredential
+export OS_IDENTITY_API_VERSION=3
+export OS_REGION_NAME=RegionOne
+export OS_INTERFACE=public
+```
+
+Then you need to set application crendentials that are scoped to your projecty. You do this via the Identities menu. In case you have multiple projects, first activate the relevant project, then create the application credentials. Dowload the cloud.yaml file to save yout secret.
 
 ```
 export OS_APPLICATION_CREDENTIAL_ID=<your credential id>
