@@ -1,9 +1,6 @@
 ## Prerequisites
 The provided scripts have only been tested on Ubuntu24.04 and versions of k8s, containerd, calico as listed in run.sh
 
-### Nfs share
-
-The script will also mount an nfs share to which you have access. To know the url, ask the system administrator of your openstack environment
 
 ### Openstack client
 
@@ -110,7 +107,13 @@ execute `chmod -R 750 *.sh`
 
 Put the following line into the ~/.bashrc file, to get kubectl autocompletion: `source <(kubectl completion bash)`
 
-edit `./run.sh` to set appropriate values for the `nfs_account` variable, and the `subnet` and `nodes`
+edit `./run.sh` to set appropriate values for the `kubernetes_master`, `subnet` and `nodes` variables. For example: if the VM subnet is 172.22.14.0/24, the master nodle runs on 172.22.14.100 and the worker nodes run on 172.22.14.89 and 172.22.14.90 then:
+```
+kubernetes_master=172.22.14.100
+subnet="172.22.14"
+nodes="89 90"
+```
+
 
 execute `./run.sh`. Answer 'y' or 'yes' to all prompts. If the installation halts, enter 'q' or hit
 
