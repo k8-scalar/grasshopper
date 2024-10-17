@@ -1,10 +1,15 @@
 ## Prerequisites
 The provided scripts have only been tested on Ubuntu24.04 and versions of k8s, containerd, calico as listed in run.sh
 
+A number of nodes have been created as VMs (i.e. openstack instances) to take the role of a master node and multiple worker nodes.
+
+Ensure that ssh keys are installed on master and worker nodes so master can ssh to worker nodes
+Add appropriate config file to .ssh directory on master node or use ssh agent to automatically select the correct key
+
 
 ### Openstack client
 
-Install the openstack client on one of the vm instances:
+Install the openstack client on one of the master node.
 
 ```
 sudo apt update && sudo apt install python3-openstackclient -y
@@ -28,7 +33,6 @@ export OS_INTERFACE=p<interface from clouds.yaml file>
 export OS_APPLICATION_CREDENTIAL_ID=<application_credential_id from clouds.yaml file>
 export OS_APPLICATION_CREDENTIAL_SECRET=<application_credential_secret from clouds.yaml file>
 ```
-
 
 Preferably you add these export staments to the .bashrc file in the home directory of the master node of your cluster.
 
