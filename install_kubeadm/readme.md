@@ -7,6 +7,11 @@ Ensure that ssh keys are installed on master and worker nodes so master can ssh 
 Add appropriate config file to .ssh directory on master node or use ssh agent to automatically select the correct key
 
 
+### Nfs share
+
+The script will also mount an nfs share to which you have access. To know the url, ask the system administrator of your openstack environment
+
+
 ### Openstack client
 
 Install the openstack client on one of the master node.
@@ -112,12 +117,13 @@ execute `chmod -R 750 *.sh`
 
 Put the following line into the ~/.bashrc file, to get kubectl autocompletion: `source <(kubectl completion bash)`
 
-edit `./run.sh` to set appropriate values for the `kubernetes_master`, `subnet` and `nodes` variables. For example: if the VM subnet is 172.22.14.0/24, the master nodle runs on 172.22.14.100 and the worker nodes run on 172.22.14.89 and 172.22.14.90, then set these variables in `run.sh` as follows:
+edit `./run.sh` to set appropriate values for the  `nfs_account`, `kubernetes_master`, `subnet` and `nodes` variables. For example: if the VM subnet is 172.22.14.0/24, the master nodle runs on 172.22.14.100 and the worker nodes run on 172.22.14.89 and 172.22.14.90, then set these variables in `run.sh` as follows:
 ```
 kubernetes_master=172.22.14.100
 subnet=172.22.14
 nodes="89 90"
 ```
+To know the url of the `nfs_account`, ask the system administrator of your openstack environment
 
 
 execute `./run.sh`. Answer 'y' or 'yes' to all prompts. If the installation halts, enter 'q' or hit
