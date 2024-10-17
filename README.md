@@ -13,28 +13,27 @@ run `./setup/run.sh`  to install all the packages and python modules that GrassH
 1. Ensure the master node of the K8s cluster has network access to the API of the Openstack Cloud typically via port 5000. If you have followed the instructions at [setup/install_kubeadm/readme.md](setup/install_kubeadm/readme.md)
 , this is the case
 
-2. Ensure you have set your credentials for accessing the control plane API of the Openstack cloud. 
+2. Ensure you have set your openstack authentication info and application credentials for accessing the control plane API of the Openstack cloud. 
 
+First you need to set application crendentials that are scoped to your project. You do this via the Identities menu of the Horizon dashboard service of Openstack. In case you have multiple projects in your Identies > Projects submenu, first activate the relevant project, then create the application credentials. Dowload the cloud.yaml file to save your secret.
 
-First you need to specify the values of your openstack service:
+Then from the cloud yaml file, you can extract and set the values for the following environment variables: 
+
 
 ```
-export OS_AUTH_URL=https://hera.cs.kuleuven.be:5000
-export OS_AUTH_TYPE=v3applicationcredential
-export OS_IDENTITY_API_VERSION=3
-export OS_REGION_NAME=RegionOne
-export OS_INTERFACE=public
+export OS_AUTH_URL=<auth_url from clouds.yaml file>
+export OS_AUTH_TYPE=<auth type from clouds.yaml file>
+export OS_IDENTITY_API_VERSION=<identity_api_version from clouds.yaml file>
+export OS_REGION_NAME=<region_name from clouds.yaml file>
+export OS_INTERFACE=p<interface from clouds.yaml file>
+export OS_APPLICATION_CREDENTIAL_ID=<application_credential_id from clouds.yaml file>
+export OS_APPLICATION_CREDENTIAL_SECRET=<application_credential_secret from clouds.yaml file>
 ```
 
-Then you need to set application crendentials that are scoped to your projecty. You do this via the Identities menu. In case you have multiple projects, first activate the relevant project, then create the application credentials. Dowload the cloud.yaml file to save yout secret.
+Preferably you add these export staments to the .bashrc file in the home directory of the master node of your cluster.
 
-```
-export OS_APPLICATION_CREDENTIAL_ID=<your credential id>
-export OS_APPLICATION_CREDENTIAL_ID
-export OS_APPLICATION_CREDENTIAL_SECRET=<your credential secret>
-export OS_APPLICATION_CREDENTIAL_SECRET
-```
-Load the credentials in python:
+
+3. Load the credentials into GrassHopper
 
 ```
 python3 ostackfiles/credentials.py
