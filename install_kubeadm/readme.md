@@ -1,38 +1,40 @@
 ## Prerequisites
 The provided scripts have only been tested on Ubuntu24.04 and versions of k8s, containerd, calico as listed in run.sh
 
-### Nfs share
+A number of nodes have been created as VMs (i.e. openstack instances) to take the role of a master node and multiple worker nodes.
 
-The script will also mount an nfs share to which you have access. To know the url, ask the system administrator of your openstack environment
+Ensure that ssh keys are installed on master and worker nodes so master can ssh to worker nodes
+Add appropriate config file to .ssh directory on master node or use ssh agent to automatically select the correct key
+
 
 ### Openstack client
 
-Install the openstack client on one of the vm instances:
+Install the openstack client on one of the master node.
 
 ```
 sudo apt update && sudo apt install python3-openstackclient -y
 ```
+
 ### Set the Openstack variables
 
+Ensure you have set your Openstack authentication info and application credentials for accessing the control plane API of the Openstack cloud.
+
+First you need to set application crendentials that are scoped to your project. You do this via the Identities menu of the Horizon dashboard service of Openstack. In case you have multiple projects in your Identies > Projects submenu, first activate the relevant project, then create the application credentials. Dowload the cloud.yaml file to save your secret.
+
+Then from the cloud yaml file, you can extract and set the values for the following environment variables:
+
 
 ```
-export OS_AUTH_URL=https://hera.cs.kuleuven.be:5000
-export OS_AUTH_TYPE=v3applicationcredential
-export OS_IDENTITY_API_VERSION=3
-export OS_REGION_NAME=RegionOne
-export OS_INTERFACE=public
+export OS_AUTH_URL=<auth_url from clouds.yaml file>
+export OS_AUTH_TYPE=<auth type from clouds.yaml file>
+export OS_IDENTITY_API_VERSION=<identity_api_version from clouds.yaml file>
+export OS_REGION_NAME=<region_name from clouds.yaml file>
+export OS_INTERFACE=p<interface from clouds.yaml file>
+export OS_APPLICATION_CREDENTIAL_ID=<application_credential_id from clouds.yaml file>
+export OS_APPLICATION_CREDENTIAL_SECRET=<application_credential_secret from clouds.yaml file>
 ```
 
-Then you need to set application crendentials that are scoped to your projecty. You do this via the Identities menu. In case you have multiple projects, first activate the relevant project, then create the application credentials. Dowload the cloud.yaml file to save yout secret.
-
-```
-export OS_APPLICATION_CREDENTIAL_ID=<your credential id>
-export OS_APPLICATION_CREDENTIAL_ID
-export OS_APPLICATION_CREDENTIAL_SECRET=<your credential secret>
-export OS_APPLICATION_CREDENTIAL_SECRET
-```
-Preferably you add these export staments to the .bashrc file in the home directory of your master node.
-
+Preferably you add these export staments to the .bashrc file in the home directory of the master node of your cluster.
 
 
 ### Open default security group
@@ -110,7 +112,13 @@ execute `chmod -R 750 *.sh`
 
 Put the following line into the ~/.bashrc file, to get kubectl autocompletion: `source <(kubectl completion bash)`
 
-edit `./run.sh` to set appropriate values for the `nfs_account` variable, and the `subnet` and `nodes`
+edit `./run.sh` to set appropriate values for the `kubernetes_master`, `subnet` and `nodes` variables. For example: if the VM subnet is 172.22.14.0/24, the master nodle runs on 172.22.14.100 and the worker nodes run on 172.22.14.89 and 172.22.14.90, then set these variables in `run.sh` as follows:
+```
+kubernetes_master=172.22.14.100
+subnet=172.22.14
+nodes="89 90"
+```
+
 
 execute `./run.sh`. Answer 'y' or 'yes' to all prompts. If the installation halts, enter 'q' or hit
 
