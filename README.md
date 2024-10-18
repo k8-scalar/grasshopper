@@ -42,11 +42,16 @@ python3 ostackfiles/credentials.py
 
 4. Create and attack MasterSG and WorkerSG security group with appropriate rules for an operational k8s cluster 
 
+```
+python3 ostackfiles/create_master_and_workerSG.py
+```
+
 
 5. Detach the default security group from all the worker nodes of your cluster
 
-**Adjust first the `master_node_name` variable to the name of the master node of your K8s cluster in file `ostackfiles/detach_defaultSG.py`**
-Then run `python3 ostackfiles/detach_defaultSG.py`.
+```
+python3 ostackfiles/detach_defaultSG.py.
+```
 
 ## How to use GH
 
