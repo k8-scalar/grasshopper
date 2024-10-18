@@ -11,29 +11,39 @@ WORKER_SG_NAME = "workerSG"
 # Security group rules for masterSG and workerSG
 MASTER_SG_RULES = [
     # Egress rules for masterSG
-    {'direction': 'egress', 'protocol': 'tcp', 'port_range_min': 22, 'port_range_max': 22, 'remote_group_id': None, 'remote_ip_prefix': '0.0.0.0/0'},  # SSH to workerSG
+    {'direction': 'egress', 'protocol': 'tcp', 'port_range_min': 22, 'port_range_max': 22, 'remote_group_id': None, 'remote_ip_prefix': '0.0.0.0/0'},  # SSH to all
     {'direction': 'egress', 'protocol': 'tcp', 'port_range_min': 443, 'port_range_max': 443, 'remote_ip_prefix': '0.0.0.0/0'},  # HTTPS to any
-    {'direction': 'egress', 'protocol': 'tcp', 'port_range_min': 9053, 'port_range_max': 9053, 'remote_group_id': None, 'remote_ip_prefix': None},  # DNS TCP to workerSG
+    {'direction': 'egress', 'protocol': 'tcp', 'port_range_min': 9053, 'port_range_max': 9053, 'remote_group_id': None, 'remote_ip_prefix': '0.0.0.0/0'},  # DNS TCP to all
+    {'direction': 'egress', 'protocol': 'udp', 'port_range_min': 53, 'port_range_max': 53, 'remote_group_id': None, 'remote_ip_prefix': '0.0.0.0/0'},   #  DNS UDP to all
     {'direction': 'egress', 'protocol': 'tcp', 'port_range_min': 10250, 'port_range_max': 10250, 'remote_group_id': None, 'remote_ip_prefix': None},  # Kubelet API to workerSG
     {'direction': 'egress', 'protocol': 'tcp', 'port_range_min': 10259, 'port_range_max': 10259, 'remote_group_id': None, 'remote_ip_prefix': None},  # Cluster management to workerSG
     # Ingress rules for masterSG
     {'direction': 'ingress', 'protocol': 'tcp', 'port_range_min': 22, 'port_range_max': 22, 'remote_ip_prefix': '0.0.0.0/0'},  # SSH from any
     {'direction': 'ingress', 'protocol': 'tcp', 'port_range_min': 53, 'port_range_max': 53, 'remote_group_id': None},  # DNS TCP from workerSG
     {'direction': 'ingress', 'protocol': 'tcp', 'port_range_min': 443, 'port_range_max': 443, 'remote_group_id': None},  # HTTPS from workerSG
+    {'direction': 'ingress', 'protocol': 'udp', 'port_range_min': 53, 'port_range_max': 53, 'remote_group_id': None},  # DNS UDP from workerSG
     {'direction': 'ingress', 'protocol': 'tcp', 'port_range_min': 2379, 'port_range_max': 2379, 'remote_group_id': None},  # etcd from workerSG
+    {'direction': 'ingress', 'protocol': 'tcp', 'port_range_min': 10250, 'port_range_max': 10250, 'remote_group_id': None},  # Kubelet API from workerSG
+    {'direction': 'ingress', 'protocol': 'tcp', 'port_range_min': 10259, 'port_range_max': 10259, 'remote_group_id': None},  # Cluster management from workerSG
     {'direction': 'ingress', 'protocol': 'tcp', 'port_range_min': 6443, 'port_range_max': 6443, 'remote_group_id': None},  # Kubernetes API server from workerSG
 ]
 
 WORKER_SG_RULES = [
     # Egress rules for workerSG
+    {'direction': 'egress', 'protocol': 'tcp', 'port_range_min': 22, 'port_range_max': 22, 'remote_group_id': None},  # SSH to masterSG
     {'direction': 'egress', 'protocol': 'tcp', 'port_range_min': 53, 'port_range_max': 53, 'remote_group_id': None},  # DNS to masterSG
-    {'direction': 'egress', 'protocol': 'tcp', 'port_range_min': 443, 'port_range_max': 443, 'remote_ip_prefix': '0.0.0.0/0'},  # HTTPS to any
+    {'direction': 'egress', 'protocol': 'udp', 'port_range_min': 53, 'port_range_max': 53, 'remote_group_id': None},  # DNS to masterSG
+    {'direction': 'egress', 'protocol': 'tcp', 'port_range_min': 9053, 'port_range_max': 9053, 'remote_group_id': None, 'remote_ip_prefix': '0.0.0.0/0'},  # DNS TCP to all
+    {'direction': 'egress', 'protocol': 'tcp', 'port_range_min': 443, 'port_range_max': 443, 'remote_group_id': None},  # HTTPS to masterSG
     {'direction': 'egress', 'protocol': 'tcp', 'port_range_min': 2379, 'port_range_max': 2379, 'remote_group_id': None},  # etcd to masterSG
     {'direction': 'egress', 'protocol': 'tcp', 'port_range_min': 6443, 'port_range_max': 6443, 'remote_group_id': None},  # API server to masterSG
     {'direction': 'egress', 'protocol': 'tcp', 'port_range_min': 10250, 'port_range_max': 10250, 'remote_group_id': None},  # Kubelet API to masterSG
+    {'direction': 'egress', 'protocol': 'tcp', 'port_range_min': 10259, 'port_range_max': 10259, 'remote_group_id': None},  # Cluster management to masterSG
     # Ingress rules for workerSG
+    {'direction': 'ingress', 'protocol': 'tcp', 'port_range_min': 22, 'port_range_max': 22, 'remote_group_id': None},  # SSH from masterSG
     {'direction': 'ingress', 'protocol': 'tcp', 'port_range_min': 10250, 'port_range_max': 10250, 'remote_group_id': None},  # Kubelet API from masterSG
     {'direction': 'ingress', 'protocol': 'tcp', 'port_range_min': 10259, 'port_range_max': 10259, 'remote_group_id': None},  # Cluster management from masterSG
+    {'direction': 'ingress', 'protocol': 'udp', 'port_range_min': 53, 'port_range_max': 53, 'remote_group_id': None},  # DNS UDP from workerSG
 ]
 
 # Function to create a security group if it doesn't exist
@@ -53,7 +63,7 @@ def create_security_group_if_not_exists(neutron, sg_name, description):
     return sg['security_group']['id']
 
 # Function to add security group rules
-def add_rules_to_security_group(neutron, sg_id, rules):
+def add_rules_to_security_group(neutron, sg_id, rules, remote_sg_id):
     existing_rules = neutron.list_security_group_rules(security_group_id=sg_id)['security_group_rules']
     
     for rule in rules:
@@ -74,7 +84,7 @@ def add_rules_to_security_group(neutron, sg_id, rules):
                     'port_range_min': rule.get('port_range_min'),
                     'port_range_max': rule.get('port_range_max'),
                     'remote_ip_prefix': rule.get('remote_ip_prefix'),
-                    'remote_group_id': rule.get('remote_group_id'),
+                    'remote_group_id': rule.get('remote_group_id') if rule.get('remote_ip_prefix') else remote_sg_id,
                     'ethertype': 'IPv4',
                 }
             })
@@ -107,8 +117,8 @@ master_sg_id = create_security_group_if_not_exists(neutron, MASTER_SG_NAME, "Mas
 worker_sg_id = create_security_group_if_not_exists(neutron, WORKER_SG_NAME, "Worker security group")
 
 # Add rules to security groups
-add_rules_to_security_group(neutron, master_sg_id, MASTER_SG_RULES)
-add_rules_to_security_group(neutron, worker_sg_id, WORKER_SG_RULES)
+add_rules_to_security_group(neutron, master_sg_id, MASTER_SG_RULES, worker_sg_id)
+add_rules_to_security_group(neutron, worker_sg_id, WORKER_SG_RULES, master_sg_id)
 
 # Retrieve the Kubernetes node list
 node_list = v1.list_node()
