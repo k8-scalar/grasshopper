@@ -1,6 +1,9 @@
 from kubernetes import client, config
 from credentials import neutron, nova  # Importing neutron and nova from credentials.py
 
+# Master node label
+master_node_label = 'node-role.kubernetes.io/control-plane'
+
 # Security group names
 MASTER_SG_NAME = "masterSG"
 WORKER_SG_NAME = "workerSG"
@@ -115,7 +118,7 @@ for node in node_list.items:
     instance_id = get_instance_id_from_k8s_node(node)
     if instance_id:
         # Check if the node is a control-plane node
-        if 'node-role.kubernetes.io/control-plane' in node.metadata.labels:
+        if master_node_label in node.metadata.labels:
             print(f"Attaching {MASTER_SG_NAME} to control-plane node: {node.metadata.name}")
             attach_security_group_to_instance(nova, instance_id, MASTER_SG_NAME)
         else:
