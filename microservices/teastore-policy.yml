@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: teastore-policy
+  name: ts-policy
   namespace: test
 spec:
   podSelector:
@@ -15,12 +15,23 @@ spec:
     - namespaceSelector:
         matchLabels:
           role: admin
-    - podSelector:
+      podSelector:
         matchLabels:
-          run: teastore-locust
+          k8s-app: kube-dns
     - podSelector:
         matchLabels:
           app: teastore
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 3306
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 9053
   ingress:
   - from:
     - podSelector:
@@ -29,3 +40,8 @@ spec:
     - podSelector:
         matchLabels:
           app: teastore
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 3306
