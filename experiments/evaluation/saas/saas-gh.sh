@@ -9,9 +9,9 @@ path_variable=$GRASSHOPPER
 
 
 if [ "$pernode_input" == "y" ] || [ "$pernode_input" == "Y" ]; then
-    logfile=${path_variable}/results/per-node/saas-ghfly.log
+    logfile=${path_variable}/experiments/results/per-node/saas-gh.log
 else
-    logfile=${path_variable}/results/per-labelSet/saas-ghfly.log
+    logfile=${path_variable}/experiments/results/per-labelSet/saas-gh.log
 fi
 
 python3 ${path_variable}/ostackfiles/detach_defaultSG.py #detach default SG to workers if not detached
@@ -34,7 +34,7 @@ else
     echo "No Helm releases with 'experiment-controller' found."
 fi
 
-cd ${path_variable}/k8-scalar/studies/WOC2019/Experiments/Operations/saas-app/kube_deployment/
+cd ${path_variable}/experiments/k8-scalar/studies/WOC2019/Experiments/Operations/saas-app/kube_deployment/
 for sla in `ls slas` 
   do 
     if [ "$sla" == "limitrange_test" ]; then #creating only for namespace test
@@ -67,8 +67,8 @@ for sla in `ls slas`
    	#Instead of adding the above policy, a namespace selector role=admin is added to host NP. So ensure to add a label role=admin to the kube-system ns 
 
         kubectl exec -n test -it experiment-controller-0 -- java -jar lib/scalar-1.0.0.jar etc/platform.properties etc/experiment.properties
-        kubectl cp -n test experiment-controller-0:results-etc-experiment-properties.dat ${path_variable}/results/results-etc-experiment-properties.dat
-        cat ${path_variable}/results/results-etc-experiment-properties.dat >> $logfile
+        kubectl cp -n test experiment-controller-0:results-etc-experiment-properties.dat ${path_variable}/experiments/results/results-etc-experiment-properties.dat
+        cat ${path_variable}/experiments/results/results-etc-experiment-properties.dat >> $logfile
     fi
 done
   
@@ -80,7 +80,6 @@ if read -t 10 -n 1 -r reply; then
     if [[ $reply =~ ^[Yy]$ ]]; then
     	python3 ${path_variable}/ostackfiles/attach_defaultSG.py # deletion especially for ns can be problematic without communication among workers
         . delete_deployment.sh
-        python3 ${path_variable}/ostackfiles/deleteRulesManually.py
     else
         echo "=============================="
         echo "==== SaaS application and ns test not removed ===="
@@ -90,6 +89,5 @@ else
     echo "No input within 10 seconds. Deleting..."
     python3 ${path_variable}/ostackfiles/attach_defaultSG.py # deletion especially for ns can be problematic without communication among workers
     . delete_deployment.sh
-    python3 ${path_variable}/ostackfiles/deleteRulesManually.py
 fi
 done

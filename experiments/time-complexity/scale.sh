@@ -2,8 +2,8 @@
 
 echo ==============================
 echo
-path_variable=/home/ubuntu/grasshopper
-logfile=${path_variable}/time-complexity-output.txt
+path_variable=$GRASSHOPPER
+logfile=${path_variable}/experiments/time-complexity-output.txt
 
 python3 ${path_variable}/ostackfiles/attach_defaultSG.py #detach default SG to workers if not attached
 
@@ -54,8 +54,8 @@ sleep 15
 echo step13 >> $logfile
 kubectl scale deployment pod-s -n test --replicas=12
 sleep 30
-#cat ${path_variable}/time-complexity-output.txt >> $logfile
- #> ${path_variable}/time-complexity-output.txt
+#cat ${path_variable}/experiments/time-complexity-output.txt >> $logfile
+ #> ${path_variable}/experiments/time-complexity-output.txt
 
 
 kubectl delete ns test

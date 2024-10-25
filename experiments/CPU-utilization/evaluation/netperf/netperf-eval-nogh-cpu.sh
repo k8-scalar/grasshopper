@@ -2,7 +2,7 @@
 
 echo ==============================
 echo
-path_variable=/home/ubuntu/grasshopper
+path_variable=$GRASSHOPPER
 
 #python3 /home/ubuntu/grasshopper//ostackfiles/attach_defaultSG.py #attach default SG to workers if not attached
 
@@ -13,7 +13,7 @@ find "${path_variable}/data/" -type f -delete
 for ((i=1; i<=10; i++)); do
 	echo ======evaluation round $i==========
 
-	cd ${path_variable}/expt/
+	cd ${path_variable}/experiments/expt/
 	
 	echo ======NETPERF=================
 	kubectl create ns test

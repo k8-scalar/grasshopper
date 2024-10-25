@@ -6,14 +6,14 @@ echo
 read -p "Do you want to use 'pernode scenario'? (y/n): " pernode_input
 
 #path_variable=$(python3 -c "from config import file_path; print(file_path)")
-path_variable=$(python3 -c "from pathlib import Path; import sys; sys.path.append('/home/ubuntu/'); from ghv3.config import file_path; print(file_path)")
+path_variable=$(python3 -c "from pathlib import Path; import sys; sys.path.append('/home/ubuntu/'); from $path_variable.config import file_path; print(file_path)")
 
 
 if [ "$pernode_input" == "y" ] || [ "$pernode_input" == "Y" ]; then
-    logfile=${path_variable}/results/per-node/teastore-ghfly.log
+    logfile=${path_variable}/experiments/results/per-node/teastore-ghfly.log
     command="python3 ${path_variable}/ostackfiles/deleteRulesManually.py"
 else
-    logfile=${path_variable}/results/per-labelSet/teastore-ghfly.log
+    logfile=${path_variable}/experiments/results/per-labelSet/teastore-ghfly.log
     command=""
 fi
 
@@ -40,7 +40,7 @@ kubectl delete ns test &> /dev/null
 kubectl delete hpa --all -n test &> /dev/null
 $command
 
-cd ${path_variable}/microservices/
+cd ${path_variable}/experiments/microservices/
 kubectl create ns test
 sleep 5
 helm install teastore teastore-helm/ -n test

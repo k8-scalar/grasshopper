@@ -5,12 +5,12 @@ echo
 path_variable=$GRASSHOPPER
 read -p "Do you want to use 'pernode scenario'? (y/n): " pernode_input
 if [ "$pernode_input" == "y" ] || [ "$pernode_input" == "Y" ]; then
-    logfile=${path_variable}/results/per-node/netperf-gh-v2.log
+    logfile=${path_variable}/experiments/results/per-node/netperf-gh-v2.log
 else
-    logfile=${path_variable}/results/per-labelSet/netperf-gh-v2.log
+    logfile=${path_variable}/experiments/results/per-labelSet/netperf-gh-v2.log
 fi
 
-python3 ghv3/ostackfiles/detach_defaultSG.py #detach default SG to workers if not detached
+python3 ${path_variable}/ostackfiles/detach_defaultSG.py #detach default SG to workers if not detached
 
 find "${path_variable}/data/" -type f -delete
 
@@ -20,7 +20,7 @@ for ((i=1; i<=10; i++)); do
 	echo >> $logfile
 	echo ======evaluation round $i========== >> $logfile
 	echo >> $logfile
-	cd ${path_variable}/expt/
+	cd ${path_variable}/experiments/expt/
 	
 	echo ======NETPERF=================
 	kubectl create ns test

@@ -1,13 +1,13 @@
-GHV_DIR=$PYTHONPATH
-RESULTS_DIR=${GHV_DIR}/results/per-labelSet/teastore-gh
+GHV_DIR=$GRASSHOPPER
+RESULTS_DIR=${GRASSHOPPER}/experiments/results/per-labelSet/teastore-gh
 printf "\n=========================================\n"
 
 printf "\n=====Deleting earlier files if any ======\n"
-cd ${GHV_DIR}/csvdocs/
+cd ${GHV_DIR}/experiments/csvdocs/
 rm teastore*
 
 printf "\n=====Copying new files to the csvdocs directory ======\n"
-cp $RESULTS_DIR/* ${GHV_DIR}csvdocs/
+cp $RESULTS_DIR/* ${GHV_DIR}/csvdocs/
 
 printf "\n=====Converting all .csv files to .xlsx ======\n"
 python3 csvtoxlsx.py

@@ -8,12 +8,14 @@ read -p "Do you want to use 'pernode scenario'? (y/n): " pernode_input
 path_variable=$GRASSHOPPER
 
 if [ "$pernode_input" == "y" ] || [ "$pernode_input" == "Y" ]; then
-    logfile=${path_variable}/results/per-node/teastore-nogh
+    logfile=${path_variable}/experiments/results/per-node/teastore-gh
+    command="python3 ${path_variable}/ostackfiles/deleteRulesManually.py"
 else
-    logfile=${path_variable}/results/per-labelSet/teastore-nogh
+    logfile=${path_variable}/experiments/results/per-labelSet/teastore-gh
+    command=""
 fi
 
-python3 ghv3/ostackfiles/attach_defaultSG.py #attach default SG to workers if not attached
+python3 ${path_variable}/ostackfiles/detach_defaultSG.py #attach default SG to workers if not attached
 
 for ((i=1; i<=20; i++)); do
     echo ======evaluation round $i==========
@@ -31,12 +33,24 @@ for ((i=1; i<=20; i++)); do
     fi
 
     kubectl delete hpa --all -n test &> /dev/null
-    cd ${path_variable}/microservices/
+    $command
+    
+    
+    cd ${path_variable}/experiments/microservices/
     kubectl create ns test
     sleep 5
     helm install teastore teastore-helm/ -n test
     sleep 30
     kubectl get po -n test
+
+    echo ======label the locust pod=======
+    #kubectl label ns kube-system role=admin
+    kubectl -n test label po $(kubectl get pods -n test | grep teastore-locust | awk '{print $1}') app=teastore
+
+    echo =====Apply network policies ========
+    kubectl apply -f deny-all.yml
+    kubectl apply -f teastore-locust-policy.yml
+    kubectl apply -f teastore-policy.yml 
 
     echo ====creating horizontal pod autoscaler======
 
@@ -63,6 +77,7 @@ for ((i=1; i<=20; i++)); do
     if read -t 10 -n 1 -r reply; then
         echo   
         if [[ $reply =~ ^[Yy]$ ]]; then
+            python3 ${path_variable}/ostackfiles/attach_defaultSG.py # deletion especially for ns can be problematic without communication among workers
             helm delete teastore -n test;
             kubectl delete hpa --all -n test;
             kubectl delete ns test;
@@ -75,6 +90,7 @@ for ((i=1; i<=20; i++)); do
     else
         echo   
         echo "No input within 10 seconds. Deleting..."
+        python3 ${path_variable}/ostackfiles/attach_defaultSG.py # deletion especially for ns can be problematic without communication among workers
         helm delete teastore -n test;
         kubectl delete hpa --all -n test;
         kubectl delete ns test;

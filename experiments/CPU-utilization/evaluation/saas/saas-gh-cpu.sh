@@ -3,25 +3,14 @@
 echo ==============================
 echo
 
-read -p "Do you want to use 'pernode scenario'? (y/n): " pernode_input
 
 path_variable=$GRASSHOPPER
 
 
-if [ "$pernode_input" == "y" ] || [ "$pernode_input" == "Y" ]; then
-    logfile=${path_variable}/results/per-node/saas-nogh.log
-else
-    logfile=${path_variable}/results/per-labelSet/saas-nogh.log
-fi
 
-python3 ghv3/ostackfiles/attach_defaultSG.py #attach default SG to workers if not attached
-
-for ((i=1; i<=2; i++)); do
+for ((i=1; i<=1; i++)); do
 
 echo ======evaluation round $i==========
-echo >> $logfile
-echo ======evaluation round $i========== >> $logfile
-echo >> $logfile
 
 find "${path_variable}/data/" -type f -delete
 
@@ -34,7 +23,7 @@ else
     echo "No Helm releases with 'experiment-controller' found."
 fi
 
-cd ${path_variable}/k8-scalar/studies/WOC2019/Experiments/Operations/saas-app/kube_deployment/
+cd ${path_variable}/experiments/k8-scalar/studies/WOC2019/Experiments/Operations/saas-app/kube_deployment/
 for sla in `ls slas` 
   do 
     if [ "$sla" == "limitrange_test" ]; then #creating only for namespace test
@@ -60,9 +49,14 @@ for sla in `ls slas`
         kubectl cp ${path_variable}/evaluation/saas/experiment.properties -n test experiment-controller-0:etc
         sleep 5
 
+   	echo =====creating network policies=====
+   	kubectl create -f ${path_variable}/expt/expt-controller-policy.yaml
+   	kubectl create -f ${path_variable}/expt/saas-app-policy.yaml
+   	#kubectl create -f ${path_variable}/expt/coreDNS_Networkpolicy.yaml
+   	#Instead of adding the above policy, a namespace selector role=admin is added to host NP. So ensure to add a label role=admin to the kube-system ns 
+
         kubectl exec -n test -it experiment-controller-0 -- java -jar lib/scalar-1.0.0.jar etc/platform.properties etc/experiment.properties
-        kubectl cp -n test experiment-controller-0:results-etc-experiment-properties.dat ${path_variable}/results/results-etc-experiment-properties.dat
-        cat ${path_variable}/results/results-etc-experiment-properties.dat >> $logfile
+        kubectl cp -n test experiment-controller-0:results-etc-experiment-properties.dat ${path_variable}/experiments/results-etc-experiment-properties.dat
     fi
 done
   
@@ -72,6 +66,7 @@ echo "Do you wish to delete SaaS application and test ns? [y/n]"
 if read -t 10 -n 1 -r reply; then
     echo   
     if [[ $reply =~ ^[Yy]$ ]]; then
+    	python3 ${path_variable}/ostackfiles/attach_defaultSG.py # deletion especially for ns can be problematic without communication among workers
         . delete_deployment.sh
     else
         echo "=============================="
@@ -80,6 +75,7 @@ if read -t 10 -n 1 -r reply; then
 else
     echo   
     echo "No input within 10 seconds. Deleting..."
+    python3 ${path_variable}/ostackfiles/attach_defaultSG.py # deletion especially for ns can be problematic without communication among workers
     . delete_deployment.sh
 fi
 done
