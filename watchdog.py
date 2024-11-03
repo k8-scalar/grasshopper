@@ -22,18 +22,18 @@ class WatchDog:
         else:
             self.report_policy(pol)
 
-    def handle_modified_policy(pod: Pod):
+    def handle_modified_policy(self, pod: Pod):
         pass
 
-    def handle_removed_policy(pod: Pod):
+    def handle_removed_policy(self, pod: Pod):
         pass
 
     # functions to handle added / removed / modified pods.
-    def handle_new_pod(pod: Pod):
+    def handle_new_pod(self, pod: Pod):
         pass
 
-    def handle_modified_pod(pod: Pod):
+    def handle_modified_pod(self, pod: Pod):
         pass
 
-    def handle_removed_pod(pod: Pod):
+    def handle_removed_pod(self, pod: Pod):
         pass
