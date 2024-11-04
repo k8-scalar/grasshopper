@@ -1,5 +1,7 @@
 from classes import Pod, Policy
 from matcher import Matcher
+from cluster_state import ClusterState
+
 
 
 class WatchDog:
@@ -17,6 +19,7 @@ class WatchDog:
     # functions to handle added / removed / modified policies.
     def handle_new_policy(self, pol: Policy):
         if self.verify_policy(pol):
+            # Update the cluster state.
             # should call the matcher object to handle
             pass
         else:
