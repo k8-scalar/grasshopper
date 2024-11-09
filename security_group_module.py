@@ -1,5 +1,6 @@
-from classes import CIDR, LabelSet, Node, Policy, Rule, SecurityGroup, Traffic
-from globals import policies, security_groups
+from classes import CIDR, Node, Policy, Rule, SecurityGroup
+from globals import security_groups
+from credentials import neutron
 
 
 # A class to encompass all functionality of actually manipulating the SG's
@@ -12,11 +13,26 @@ class SecurityGroupModule:
         return security_groups.get("SG-" + n.name)
 
     def add_rule_to_remotes(SG: SecurityGroup, rule: Rule) -> None:
-        # TODO: use openstack to add rule
+        neutron.create_security_group_rule(
+            body={
+                "security_group_rule": {
+                    "direction": rule.traffic.direction,
+                    "ethertype": "IPv4",
+                    "protocol": rule.traffic.protocol,
+                    "port_range_min": rule.traffic.port,
+                    "port_range_max": rule.traffic.port,
+                    "remote_ip_prefix": rule.target.cidr,
+                    "security_group_id": rule.target.id,
+                }
+            }
+        )
+        rule.id = neutron.list_security_group_rules(
+            security_group_id=rule.target.id, remote_ip_prefix=rule.target.cidr
+        )["security_group_rules"][0]["id"]
         SG.remotes.append(rule)
 
     def remove_rule_from_remotes(SG: SecurityGroup, rule: Rule) -> None:
-        # TODO: use openstack to remove rule
+        neutron.delete_security_group_rule(security_group_rule=rule.id)
         SG.remotes.remove(rule)
 
     def SG_add_conn(pol: Policy, n: Node, m: Node) -> None:

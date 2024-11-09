@@ -25,7 +25,8 @@ class Policy:
 
 
 class SecurityGroup:
-    def __init__(self, name: str):
+    def __init__(self, id: str, name: str):
+        self.id = id
         self.name = name
         self.remotes: set[Rule] = set()
 
@@ -39,6 +40,9 @@ class Rule:
     def __init__(self, target: SecurityGroup | CIDR, traffic: Traffic):
         self.target = target
         self.traffic = traffic
+
+    def set_Id(self, id: str):
+        self.id = id
 
 
 class Node:
