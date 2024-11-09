@@ -3,7 +3,6 @@ from matcher import Matcher
 from cluster_state import ClusterState
 
 
-
 class WatchDog:
     def __init__(self):
         self.matcher: Matcher = Matcher()
