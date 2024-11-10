@@ -21,22 +21,23 @@ class Watcher:
             self.core_v1.list_event_for_all_namespaces
         ):
             event_object = event["object"]
-            event_kind = event_object.involved_object.kind
-            event_type = event["type"]
-            object_name = event_object.involved_object.name
-            change_reason = event_object.reason
-            change_reason_message = event_object.message
-            event_occurred_at = event_object.last_timestamp
+            involved_object = event_object.involved_object
+            event_kind = involved_object.kind or "Unknown"
+            event_type = event.get("type", "Unknown")
+            object_name = involved_object.name or "Unknown"
+            change_reason = event_object.reason or "Unknown"
+            change_reason_message = event_object.message or "No message"
+            event_occurred_at = event_object.last_timestamp or "Unknown time"
 
             print(
-                f"Event: {event_kind:>10.10} {object_name:>20.20} {event_type:>10.10} | Reason: {change_reason:>20.20}, {change_reason_message:>70.70} | Occurred at: {event_occurred_at}"
+                f"Event: {event_kind:>10.10} {object_name:>20.20} {event_type:>10.10} | Reason: {change_reason:>20.20}, {change_reason_message:>90.90} | Occurred at: {event_occurred_at}"
             )
 
             if event_kind == "Pod":
                 self.handle_pod_event(event)
-            if event_kind == "NetworkPolicy":
+            elif event_kind == "NetworkPolicy":
                 self.handle_policy_event(event)
-            if event_kind == "Service":
+            elif event_kind == "Service":
                 self.handle_service_event(event)
 
     def handle_pod_event(self, event):
