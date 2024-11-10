@@ -13,8 +13,8 @@ class SecurityGroupModule:
         return security_groups.get("SG-" + n.name)
 
     def add_rule_to_remotes(SG: SecurityGroup, rule: Rule) -> None:
-        neutron.create_security_group_rule(
-            body={
+        rule = neutron.create_security_group_rule(
+            {
                 "security_group_rule": {
                     "direction": rule.traffic.direction,
                     "ethertype": "IPv4",
@@ -26,9 +26,7 @@ class SecurityGroupModule:
                 }
             }
         )
-        rule.id = neutron.list_security_group_rules(
-            security_group_id=rule.target.id, remote_ip_prefix=rule.target.cidr
-        )["security_group_rules"][0]["id"]
+        rule.id = rule["security_group_rule"]["id"]
         SG.remotes.append(rule)
 
     def remove_rule_from_remotes(SG: SecurityGroup, rule: Rule) -> None:
