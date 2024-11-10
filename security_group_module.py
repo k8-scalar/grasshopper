@@ -1,6 +1,6 @@
 from classes import CIDR, Node, Policy, Rule, SecurityGroup
 from globals import security_groups
-from credentials import neutron
+from ostackfiles.credentials import neutron
 
 
 # A class to encompass all functionality of actually manipulating the SG's

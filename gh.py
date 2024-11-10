@@ -1,8 +1,5 @@
 import sys
 
-from kubelet_watch_server import KubeletWatchServer
-from watcher import Watcher
-
 
 def main():
     if len(sys.argv) != 3:
@@ -14,9 +11,13 @@ def main():
 
     if distributed:
         print("Running in distributed mode")
+        from kubelet_watch_server import KubeletWatchServer
+
         KubeletWatchServer().start()
     else:
         print("Running in local mode")
+        from watcher import Watcher
+
         Watcher().watch_events()
 
 
