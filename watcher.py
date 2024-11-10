@@ -5,19 +5,21 @@ from watchdog import WatchDog
 # This is a class used to watch a kubernetes-api-server.
 class Watcher:
     def __init__(self):
+        self.load_config()
         self.watchdog = WatchDog()
         self.core_v1 = client.CoreV1Api()
         self.networking_v1 = client.NetworkingV1Api()
         self.k8s_watcher: watch.Watch = watch.Watch()
-        self.load_config
 
-    def load_config():
+    def load_config(self):
         config.load_kube_config()
 
     # The main loop to watch all kubernetes events.
     def watch_events(self):
         print("Watching events now...")
-        for event in self.k8s_watcher.stream(self.core_v1.list_namespace):
+        for event in self.k8s_watcher.stream(
+            self.core_v1.list_event_for_all_namespaces
+        ):
             event_object = event["object"]
             event_kind = event_object.involved_object.kind
 
