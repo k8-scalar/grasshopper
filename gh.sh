@@ -2,13 +2,15 @@
 
 export GRASSHOPPER=${GRASSHOPPER:-`pwd`}
 
-# Set pernode SG scenario
-if [[ "${1,,}" == "pernodesg=true" ]]; then
+# Set pernode SG scenario (optional, defaults to true)
+if [[ -z "$1" ]]; then
+    singleSGPerNodeScenario=true
+elif [[ "${1,,}" == "pernodesg=true" ]]; then
     singleSGPerNodeScenario=true
 elif [[ "${1,,}" == "pernodesg=false" ]]; then
     singleSGPerNodeScenario=false
 else
-    echo "Invalid argument for pernodesg. Usage: ./gh.sh pernodesg=True|pernodesg=False [distributed=True|False]"
+    echo "Invalid argument for pernodesg. Usage: ./gh.sh [pernodesg=true|pernodesg=false] [distributed=true|false]"
     exit 1
 fi
 
@@ -20,7 +22,7 @@ elif [[ "${2,,}" == "distributed=true" ]]; then
 elif [[ "${2,,}" == "distributed=false" ]]; then
     distributed=false
 else
-    echo "Invalid argument for distributed. Usage: ./gh.sh pernodesg=True|pernodesg=False [distributed=True|False]"
+    echo "Invalid argument for distributed. Usage: ./gh.sh [pernodesg=true|pernodesg=false] [distributed=true|false]"
     exit 1
 fi
 
