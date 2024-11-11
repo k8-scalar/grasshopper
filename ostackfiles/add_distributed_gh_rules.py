@@ -24,6 +24,6 @@ WORKER_SG_RULES = [
 ]
 
 
-def add_rpc_rules_to_master_and_worker_sg(neutron, master_sg_id, worker_sg_id):
+def add_rpc_rules(neutron, master_sg_id, worker_sg_id):
     add_rules_to_security_group(neutron, master_sg_id, MASTER_SG_RULES, worker_sg_id)
     add_rules_to_security_group(neutron, worker_sg_id, WORKER_SG_RULES, master_sg_id)
