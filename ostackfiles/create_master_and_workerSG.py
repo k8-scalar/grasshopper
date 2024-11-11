@@ -1,5 +1,5 @@
 from kubernetes import client, config
-from credentials import neutron, nova  # Importing neutron and nova from credentials.py
+from .credentials import neutron, nova  # Importing neutron and nova from credentials.py
 
 # Master node label
 master_node_label = "node-role.kubernetes.io/control-plane"
