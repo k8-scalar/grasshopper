@@ -58,6 +58,7 @@ MASTER_SG_RULES = [
         "remote_group_id": None,
         "remote_ip_prefix": None,
     },  # Cluster management to workerSG
+
     # Ingress rules for masterSG
     {
         "direction": "ingress",
@@ -115,6 +116,14 @@ MASTER_SG_RULES = [
         "port_range_max": 6443,
         "remote_group_id": None,
     },  # Kubernetes API server from workerSG
+    {
+        "direction": "ingress",
+        "protocol": "tcp",
+        "port_range_min": 179,
+        "port_range_max": 179,
+        "remote_group_id": None,
+    },  # BGP protocol from workerSG
+
 ]
 
 WORKER_SG_RULES = [
@@ -183,6 +192,13 @@ WORKER_SG_RULES = [
         "port_range_max": 10259,
         "remote_group_id": None,
     },  # Cluster management to masterSG
+    {
+        "direction": "egress",
+        "protocol": "tcp",
+        "port_range_min": 179,
+        "port_range_max": 179,
+        "remote_group_id": None,
+    },  # BGP protocol to masterSG
     # Ingress rules for workerSG
     {
         "direction": "ingress",
