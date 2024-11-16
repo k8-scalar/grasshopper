@@ -2,7 +2,7 @@ from xmlrpc.server import SimpleXMLRPCServer
 
 from watchdog import WatchDog
 
-master_ip = "192.168.1.51"
+master_ip = "192.168.129.37"
 master_port = 9000
 
 
@@ -18,7 +18,7 @@ class KubeletWatchServer:
 
             @server.register_function
             def on_connect_worker(text):
-                print(text)
+                print(f"Worker connected: {text}")
                 return True
 
             # Registers all methods of the `watchdog` instance.

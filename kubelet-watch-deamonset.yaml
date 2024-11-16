@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kubelet-watch
+  namespace: kube-system
+  labels:
+    app: kubelet-watch-daemonset
+spec:
+  selector:
+    matchLabels:
+      app: kubelet-watch
+  template:
+    metadata:
+      labels:
+        app: kubelet-watch
+    spec:
+      containers:
+        - name: kubelet-watch
+          image: robbes3/gh-kubelet-watch
+          env:
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: MASTER_IP
+              value: "192.168.129.37" # Replace with your actual master IP
+            - name: MASTER_PORT
+              value: "9000" # Replace with your actual master port
