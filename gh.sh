@@ -2,29 +2,31 @@
 
 export GRASSHOPPER=${GRASSHOPPER:-`pwd`}
 
-# Set pernode SG scenario (optional, defaults to true)
-if [[ -z "$1" ]]; then
-    singleSGPerNodeScenario=true
-elif [[ "${1,,}" == "pernodesg=true" ]]; then
-    singleSGPerNodeScenario=true
-elif [[ "${1,,}" == "pernodesg=false" ]]; then
-    singleSGPerNodeScenario=false
-else
-    echo "Invalid argument for pernodesg. Usage: ./gh.sh [pernodesg=true|pernodesg=false] [distributed=true|false]"
-    exit 1
-fi
+# Set default values
+singleSGPerNodeScenario=true
+distributed=false
 
-# Set distributed scenario (optional, defaults to false)
-if [ -z "$2" ]; then
-    distributed=false
-elif [[ "${2,,}" == "distributed=true" ]]; then
-    distributed=true
-elif [[ "${2,,}" == "distributed=false" ]]; then
-    distributed=false
-else
-    echo "Invalid argument for distributed. Usage: ./gh.sh [pernodesg=true|pernodesg=false] [distributed=true|false]"
-    exit 1
-fi
+# Process arguments (optional)
+for arg in "$@"; do
+    case "${arg,,}" in
+        pernodesg=true)
+            singleSGPerNodeScenario=true
+            ;;
+        pernodesg=false)
+            singleSGPerNodeScenario=false
+            ;;
+        distributed=true)
+            distributed=true
+            ;;
+        distributed=false)
+            distributed=false
+            ;;
+        *)
+            echo "Invalid argument: $arg. Usage: ./gh.sh [pernodesg=true|pernodesg=false] [distributed=true|distributed=false]"
+            exit 1
+            ;;
+    esac
+done
 
 path_variable=$GRASSHOPPER
 export PYTHONPATH="${PYTHONPATH}:${path_variable}/"
