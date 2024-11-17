@@ -12,6 +12,15 @@ class KubeletWatchServer:
         self.watchdog: WatchDog = WatchDog()
 
     def start(self):
+        """
+        Starts the XML-RPC server to listen for connections from workers.
+
+        This method initializes and starts an instance of `SimpleXMLRPCServer`
+        that listens on the specified `master_ip` and `master_port`. It registers
+        a function to handle worker connections and registers all methods of the
+        `watchdog` instance to the server. The server runs indefinitely, handling
+        incoming XML-RPC requests.
+        """
         with SimpleXMLRPCServer(
             (master_ip, master_port), logRequests=False, allow_none=True
         ) as server:
