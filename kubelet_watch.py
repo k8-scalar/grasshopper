@@ -47,10 +47,17 @@ class KubeletWatch:
 
         while True:
             cmd = ["kubeletctl", "runningpods", "--server", node_ip]
-            response = subprocess.check_output(cmd, text=True)
-            # print(response)
+            try:
+                response = subprocess.check_output(cmd, text=True)
+                pod_list = json.loads(response)
+            except subprocess.CalledProcessError as e:
+                print(f"Command '{cmd}' returned non-zero exit status {e.returncode}.")
+                print(f"Error output: {e.output}")
+                continue
+            except json.JSONDecodeError as e:
+                print(f"Failed to decode JSON response: {response}")
+                continue
 
-            pod_list = json.loads(response)
             new_pods = set(item["metadata"]["name"] for item in pod_list["items"])
 
             # Check for added pods
