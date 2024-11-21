@@ -1,8 +1,40 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubelet-watch-sa
+  namespace: grasshopper
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubelet-watch-role
+rules:
+  - apiGroups: [""]
+    resources: ["nodes/proxy"]
+    verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubelet-watch-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubelet-watch-role
+subjects:
+  - kind: ServiceAccount
+    name: kubelet-watch-sa
+    namespace: grasshopper
+
+---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: kubelet-watch
-  namespace: kube-system
+  namespace: grasshopper
   labels:
     app: kubelet-watch-daemonset
 spec:
@@ -14,6 +46,7 @@ spec:
       labels:
         app: kubelet-watch
     spec:
+      serviceAccountName: kubelet-watch-sa
       containers:
         - name: kubelet-watch
           image: robbes3/gh-kubelet-watch
