@@ -47,6 +47,23 @@ spec:
         app: kubelet-watch
     spec:
       serviceAccountName: kubelet-watch-sa
+      initContainers:
+        - name: init-master-ip
+          image: bitnami/kubectl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              MASTER_IP=$(kubectl get nodes -l role=master -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+              echo "MASTER_IP=$MASTER_IP" > /etc/master-ip.env
+          env:
+            - name: KUBERNETES_SERVICE_HOST
+              value: "kubernetes.default.svc"
+            - name: KUBERNETES_SERVICE_PORT
+              value: "443"
+          volumeMounts:
+            - name: master-ip
+              mountPath: /etc
       containers:
         - name: kubelet-watch
           image: robbes3/gh-kubelet-watch
@@ -55,7 +72,17 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
-            - name: MASTER_IP
-              value: "192.168.129.37" # Replace with your actual master IP
             - name: MASTER_PORT
               value: "9000" # Replace with your actual master port
+          volumeMounts:
+            - name: master-ip
+              mountPath: /etc
+          command: # The following command overrides the CMD specified in the Dockerfile
+            - /bin/sh
+            - -c
+            - |
+              . /etc/master-ip.env
+              exec python kubelet_watch.py
+      volumes:
+        - name: master-ip
+          emptyDir: {}
