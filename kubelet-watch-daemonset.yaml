@@ -54,7 +54,7 @@ spec:
             - /bin/sh
             - -c
             - |
-              MASTER_IP=$(kubectl get nodes -l role=master -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+              MASTER_IP=$(kubectl get nodes -l node-role.kubernetes.io/control-plane= -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
               echo "MASTER_IP=$MASTER_IP" > /etc/master-ip.env
           env:
             - name: KUBERNETES_SERVICE_HOST
