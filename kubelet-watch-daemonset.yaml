@@ -47,28 +47,6 @@ spec:
         app: kubelet-watch
     spec:
       serviceAccountName: kubelet-watch-sa
-      initContainers:
-        - name: init-master-ip
-          image: alpine:latest
-          command:
-            - /bin/sh
-            - -c
-            - |
-              apk add --no-cache curl
-              TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-              MASTER_IP=$(curl -sSk -H "Authorization: Bearer $TOKEN" https://kubernetes.default.svc/api/v1/nodes?labelSelector=node-role.kubernetes.io/control-plane= -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
-              echo "MASTER_IP=$MASTER_IP" > /etc/master-ip.env
-          env:
-            - name: KUBERNETES_SERVICE_HOST
-              value: "kubernetes.default.svc"
-            - name: KUBERNETES_SERVICE_PORT
-              value: "443"
-          volumeMounts:
-            - name: master-ip
-              mountPath: /etc
-            - name: kube-api-access
-              mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-              readOnly: true
       containers:
         - name: kubelet-watch
           image: robbes3/gh-kubelet-watch
@@ -77,27 +55,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: MASTER_IP
+              value: "172.23.22.70" # Replace with your actual master IP
             - name: MASTER_PORT
               value: "9000" # Replace with your actual master port
-          volumeMounts:
-            - name: master-ip
-              mountPath: /etc
-          command: # The following command overrides the CMD specified in the Dockerfile
-            - /bin/sh
-            - -c
-            - |
-              . /etc/master-ip.env
-              exec python kubelet_watch.py
-      volumes:
-        - name: master-ip
-          emptyDir: {}
-        - name: kube-api-access
-          projected:
-            sources:
-              - serviceAccountToken:
-                  path: token
-              - configMap:
-                  name: kube-root-ca.crt
-                  items:
-                    - key: ca.crt
-                      path: ca.crt
