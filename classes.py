@@ -37,6 +37,14 @@ class Pod:
         self.label_set = label_set
         self.status = status
 
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        if isinstance(other, Pod):
+            return self.name == other.name
+        return False
+
 
 class Rule:
     def __init__(self, target: SecurityGroup | CIDR, traffic: Traffic):

@@ -9,7 +9,7 @@ from classes import LabelSet, Pod
 
 CHECK_PODS_INTERVAL_MS = 100  # Check pods every CHECK_PODS_INTERVAL milliseconds
 
-master_ip = os.getenv("MASTER_IP", "192.168.59.107")  # Default value if not set
+master_ip = os.getenv("MASTER_IP", "192.168.59.100")  # Default value if not set
 master_port = os.getenv("MASTER_PORT", "9000")  # Default value if not set
 
 
@@ -33,15 +33,15 @@ class KubeletWatch:
 
     # functions to handle added / removed / modified pods.
     def handle_new_pod(self, pod: Pod):
-        print(f"New pod: {pod}")
+        print(f"New pod: {pod.name}")
         self.master.handle_new_pod(pod)
 
     def handle_modified_pod(self, pod: Pod):
-        print(f"Modified pod: {pod}")
+        print(f"Modified pod: {pod.name}")
         self.master.handle_modified_pod(pod)
 
     def handle_removed_pod(self, pod: Pod):
-        print(f"Removed pod: {pod}")
+        print(f"Removed pod: {pod.name}")
         self.master.handle_removed_pod(pod)
 
     def start(self):
@@ -88,7 +88,6 @@ class KubeletWatch:
                 print("---------------------------------")
                 print(f"{len(added_pods)} new pod(s) found.")
                 for pod in added_pods:
-                    print(pod.name)
                     self.handle_new_pod(pod)
                 print("---------------------------------")
 
@@ -98,7 +97,6 @@ class KubeletWatch:
                 print("---------------------------------")
                 print(f"{len(removed_pods)} pod(s) removed.")
                 for pod in removed_pods:
-                    print(pod)
                     self.handle_removed_pod(pod)
                 print("---------------------------------")
 

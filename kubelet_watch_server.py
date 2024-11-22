@@ -1,8 +1,8 @@
 from xmlrpc.server import SimpleXMLRPCServer
-
 from watchdog import WatchDog
+from classes import Pod, LabelSet
 
-master_ip = "192.168.129.37"
+master_ip = "0.0.0.0"
 master_port = 9000
 
 
@@ -30,10 +30,29 @@ class KubeletWatchServer:
                 print(f"Worker connected: {text}")
                 return True
 
-            # Registers all methods of the `watchdog` instance.
-            server.register_instance(self.watchdog)
+            @server.register_function
+            def handle_new_pod(pod: dict):
+                pod = self.dict_to_pod(pod)
+                self.watchdog.handle_new_pod(pod)
+
+            @server.register_function
+            def handle_modified_pod(pod: dict):
+                pod = self.dict_to_pod(pod)
+                self.watchdog.handle_modified_pod(pod)
+
+            @server.register_function
+            def handle_removed_pod(pod: dict):
+                pod = self.dict_to_pod(pod)
+                self.watchdog.handle_removed_pod(pod)
 
             server.serve_forever()
+
+    def dict_to_pod(self, data: dict) -> Pod:
+        name = data.get("name")
+        labels = data.get("label_set", {}).get("labels", {})
+        label_set = LabelSet(labels=labels)
+        status = data.get("status")
+        return Pod(name=name, label_set=label_set, status=status)
 
 
 if __name__ == "__main__":

@@ -33,7 +33,6 @@ class WatchDog:
     # functions to handle added / removed / modified pods.
     def handle_new_pod(self, pod: Pod):
         print(f"New pod: {pod.name}")
-        print(f"Pod labels: {pod.labels}")
         pass
 
     def handle_modified_pod(self, pod: Pod):
