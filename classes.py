@@ -32,8 +32,10 @@ class SecurityGroup:
 
 
 class Pod:
-    def __init__(self, label_set: LabelSet):
+    def __init__(self, name: str, label_set: LabelSet, status: str):
+        self.name = name
         self.label_set = label_set
+        self.status = status
 
 
 class Rule:

@@ -4,8 +4,10 @@ import xmlrpc.client
 import json
 import time
 import os
+import re
+from classes import LabelSet, Pod
 
-from classes import Pod
+CHECK_PODS_INTERVAL_MS = 100  # Check pods every CHECK_PODS_INTERVAL milliseconds
 
 master_ip = os.getenv("MASTER_IP", "192.168.59.107")  # Default value if not set
 master_port = os.getenv("MASTER_PORT", "9000")  # Default value if not set
@@ -14,6 +16,7 @@ master_port = os.getenv("MASTER_PORT", "9000")  # Default value if not set
 class KubeletWatch:
     def __init__(self):
         try:
+            print(f"Trying to connect to master at {master_ip}:{master_port}")
             self.master = xmlrpc.client.ServerProxy(f"http://{master_ip}:{master_port}")
             node_name = platform.node()
             is_connected = self.master.on_connect_worker(node_name)
@@ -46,19 +49,38 @@ class KubeletWatch:
         node_ip = os.getenv("NODE_IP")
 
         while True:
-            cmd = ["kubeletctl", "runningpods", "--server", node_ip]
+            cmd = ["kubeletctl", "pods", "--raw", "--server", node_ip]
             try:
-                response = subprocess.check_output(cmd, text=True)
-                pod_list = json.loads(response)
+                result = subprocess.run(
+                    cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                )
+                response = result.stdout
+
+                # Use regular expression to find the JSON content
+                json_match = re.search(r"(\{.*\})", response, re.DOTALL)
+                if json_match:
+                    json_content = json_match.group(1)
+                    pod_list = json.loads(json_content)
+                else:
+                    print("No JSON content found in the response.")
+                    continue
+
             except subprocess.CalledProcessError as e:
                 print(f"Command '{cmd}' returned non-zero exit status {e.returncode}.")
-                print(f"Error output: {e.output}")
+                print(f"Error output: {e.stderr}")
                 continue
             except json.JSONDecodeError as e:
                 print(f"Failed to decode JSON response: {response}")
                 continue
 
-            new_pods = set(item["metadata"]["name"] for item in pod_list["items"])
+            new_pods = set(
+                Pod(
+                    name=item["metadata"]["name"],
+                    label_set=LabelSet(labels=item["metadata"]["labels"]),
+                    status=item["status"]["phase"],
+                )
+                for item in pod_list["items"]
+            )
 
             # Check for added pods
             added_pods = new_pods - self.pods
@@ -66,7 +88,7 @@ class KubeletWatch:
                 print("---------------------------------")
                 print(f"{len(added_pods)} new pod(s) found.")
                 for pod in added_pods:
-                    print(pod)
+                    print(pod.name)
                     self.handle_new_pod(pod)
                 print("---------------------------------")
 
@@ -82,7 +104,7 @@ class KubeletWatch:
 
             self.pods = new_pods
 
-            time.sleep(0.01)
+            time.sleep(CHECK_PODS_INTERVAL_MS / 1000)
 
 
 if __name__ == "__main__":
