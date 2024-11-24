@@ -4,8 +4,6 @@ See [setup/install_kubeadm/readme.md](setup/install_kubeadm/readme.md)
 
 ## Install Grasshopper
 
-Grasshopper requires python3.10 
-
 run `./setup/run.sh`  to install all the packages and python modules that GrassHopper depends upon. We have tested this script for ubuntu24.04
 
 ## Before running Grasshopper
@@ -17,48 +15,34 @@ run `./setup/run.sh`  to install all the packages and python modules that GrassH
 
 First you need to set application crendentials that are scoped to your project. You do this via the Identities menu of the Horizon dashboard service of Openstack. In case you have multiple projects in your Identies > Projects submenu, first activate the relevant project, then create the application credentials. Dowload the cloud.yaml file to save your secret.
 
-Then from the cloud yaml file, you can extract and set the values for the following environment variables: 
-
-
+Then from the cloud yaml file, you can extract and set the values for the following environment variables.
 ```
-export OS_AUTH_URL=<auth_url from clouds.yaml file>
-export OS_AUTH_TYPE=<auth type from clouds.yaml file>
-export OS_IDENTITY_API_VERSION=<identity_api_version from clouds.yaml file>
-export OS_REGION_NAME=<region_name from clouds.yaml file>
-export OS_INTERFACE=p<interface from clouds.yaml file>
-export OS_APPLICATION_CREDENTIAL_ID=<application_credential_id from clouds.yaml file>
-export OS_APPLICATION_CREDENTIAL_SECRET=<application_credential_secret from clouds.yaml file>
+cp .env.dist .env
 ```
-
-Preferably you add these export staments to the .bashrc file in the home directory of the master node of your cluster.
-
-
-3. Load the credentials into GrassHopper
-
 ```
-python3 ostackfiles/credentials.py
+OS_AUTH_URL=<auth_url from clouds.yaml file>
+OS_AUTH_TYPE=<auth type from clouds.yaml file>
+OS_IDENTITY_API_VERSION=<identity_api_version from clouds.yaml file>
+OS_REGION_NAME=<region_name from clouds.yaml file>
+OS_INTERFACE=p<interface from clouds.yaml file>
+OS_APPLICATION_CREDENTIAL_ID=<application_credential_id from clouds.yaml file>
+OS_APPLICATION_CREDENTIAL_SECRET=<application_credential_secret from clouds.yaml file>
 ```
 
-
-4. Create and attack MasterSG and WorkerSG security group with appropriate rules for an operational k8s cluster 
-
-```
-python3 ostackfiles/create_master_and_workerSG.py
-```
-
-
-5. Detach the default security group from all the worker nodes of your cluster
-
-```
-python3 ostackfiles/detach_defaultSG.py.
-```
+3. Run `setup_gh.py`. This creates and attaches MasterSG and WorkerSG security group with appropriate rules for an operational k8s cluster and detaches the default security group from all the worker nodes of your cluster.
 
 ## How to use GH
 
 In one terminal, run this command (This should be run before deploying applications):
 
 ```
-cd grasshopper/ && . gh.sh pernodesg=false
+.gh.sh
+```
+
+Optionally, two parameters can be supplied, pernodesg (default: true) and distributed (default: false)
+
+```
+.gh.sh pernodesg=true distributed=true
 ```
 
 In the second terminal, deploy the application.
@@ -73,7 +57,7 @@ kubectl create -f teastore-locust-policy.yml
 helm install ts teastore-helm/ -n test
 ```
 
-Note that by default, GH monitors resources in test namespace. It is possible tochange the names in grasshopper/k8s.watch.py, but this will also need changing the network policies so that they are deployed in the corresponding namespace.
+Note that by default, GH monitors resources in all namespaces.
 
 ## Evaluation scripts
 

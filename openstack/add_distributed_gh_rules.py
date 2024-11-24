@@ -1,5 +1,5 @@
 from kubelet_watch_server import master_port
-from ostackfiles.create_master_and_workerSG import add_rules_to_security_group
+from openstack.security_group_operations import add_rules_to_security_group
 
 MASTER_SG_RULES = [
     # Ingress rules for masterSG
@@ -24,6 +24,6 @@ WORKER_SG_RULES = [
 ]
 
 
-def add_rpc_rules(neutron, master_sg_id, worker_sg_id):
-    add_rules_to_security_group(neutron, master_sg_id, MASTER_SG_RULES, worker_sg_id)
-    add_rules_to_security_group(neutron, worker_sg_id, WORKER_SG_RULES, master_sg_id)
+def add_rpc_rules(master_sg_id, worker_sg_id):
+    add_rules_to_security_group(master_sg_id, MASTER_SG_RULES, worker_sg_id)
+    add_rules_to_security_group(worker_sg_id, WORKER_SG_RULES, master_sg_id)

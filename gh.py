@@ -33,8 +33,10 @@ def main():
     if distributed:
         print("Running in distributed mode")
         if is_openstack():
-            from ostackfiles.add_distributed_gh_rules import add_rpc_rules
-            from ostackfiles.credentials import neutron
+            from openstack.add_distributed_gh_rules import add_rpc_rules
+            from openstack.openstack_client import OpenStackClient
+
+            neutron = OpenStackClient.get_neutron()
 
             master_sg = neutron.list_security_groups(name="masterSG")[
                 "security_groups"
@@ -42,7 +44,7 @@ def main():
             worker_sg = neutron.list_security_groups(name="workerSG")[
                 "security_groups"
             ][0]
-            add_rpc_rules(neutron, master_sg["id"], worker_sg["id"])
+            add_rpc_rules(master_sg["id"], worker_sg["id"])
 
         ClusterState().initialize()
 

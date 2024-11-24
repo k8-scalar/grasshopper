@@ -116,8 +116,9 @@ class ClusterState:
 
         # Initialize security groups from OpenStack
         if is_openstack():
-            from ostackfiles.credentials import neutron
+            from openstack.openstack_client import OpenStackClient
 
+            neutron = OpenStackClient.get_neutron()
             security_groups = neutron.list_security_groups()["security_groups"]
             for sg in security_groups:
                 ClusterState.security_groups[sg["name"]] = SecurityGroup(
