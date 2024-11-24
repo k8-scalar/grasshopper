@@ -39,7 +39,8 @@ class Policy:
         self.allow = allow
 
     def __str__(self):
-        return f"Policy(name={self.name}, sel={self.sel}, allow={self.allow})"
+        allow_str = ", ".join(str(item) for item in self.allow)
+        return f"Policy(name={self.name}, sel={self.sel}, allow=[{allow_str}])"
 
 
 class SecurityGroup:
