@@ -59,7 +59,60 @@ class ClusterState:
         v1_network = client.NetworkingV1Api()
         policies = v1_network.list_network_policy_for_all_namespaces().items
         for policy in policies:
-            ClusterState.policies.append(Policy(name=policy.metadata.name))
+            # Extract the select set (pod selector)
+            select_labels = policy.spec.pod_selector.match_labels
+            select_set = LabelSet(labels=select_labels)
+
+            # Extract the allow set (ingress rules)
+            if policy.spec.ingress:
+                for ingress in policy.spec.ingress:
+                    if ingress._from:
+                        for from_rule in ingress._from:
+                            if from_rule.pod_selector:
+                                allow_labels = from_rule.pod_selector.match_labels
+                                for port in ingress.ports:
+                                    allow_tuple = (
+                                        LabelSet(labels=allow_labels),
+                                        Traffic(
+                                            direction="ingress",
+                                            port=port.port,
+                                            protocol=port.protocol,
+                                        ),
+                                    )
+
+                                    # Append the policy to the ClusterState
+                                    ClusterState.policies.append(
+                                        Policy(
+                                            name=policy.metadata.name,
+                                            sel=select_set,
+                                            allow=allow_tuple,
+                                        )
+                                    )
+
+            # Extract the allow set (egress rules)
+            if policy.spec.egress:
+                for egress in policy.spec.egress:
+                    for to_rule in egress.to:
+                        if to_rule.pod_selector:
+                            allow_labels = to_rule.pod_selector.match_labels
+                            for port in egress.ports:
+                                allow_tuple = (
+                                    LabelSet(labels=allow_labels),
+                                    Traffic(
+                                        direction="egress",
+                                        port=port.port,
+                                        protocol=port.protocol,
+                                    ),
+                                )
+
+                                # Append the policy to the ClusterState
+                                ClusterState.policies.append(
+                                    Policy(
+                                        name=policy.metadata.name,
+                                        sel=select_set,
+                                        allow=allow_tuple,
+                                    )
+                                )
 
         # Initialize security groups from OpenStack
         if is_openstack():
@@ -67,8 +120,8 @@ class ClusterState:
 
             security_groups = neutron.list_security_groups()["security_groups"]
             for sg in security_groups:
-                ClusterState.security_groups[sg.name] = SecurityGroup(
-                    name=sg.name, id=sg.id
+                ClusterState.security_groups[sg["name"]] = SecurityGroup(
+                    name=sg["name"], id=sg["id"]
                 )
 
     @staticmethod
@@ -134,25 +187,42 @@ class ClusterState:
     # print out a nice / clear representation of the cluster state.
     @staticmethod
     def print():
-        print("Cluster State:")
         print("--------------")
+        print("Cluster State:")
 
         print("Nodes:")
-        for node in ClusterState.nodes:
-            print(f"  - {node}")
+        if ClusterState.nodes:
+            for node in ClusterState.nodes:
+                print(f"  - {node}")
+        else:
+            print("  None")
 
         print("\nPods:")
-        for pod in ClusterState.pods:
-            print(f"  - {pod}")
+        if ClusterState.pods:
+            for pod in ClusterState.pods:
+                print(f"  - {pod}")
+        else:
+            print("  None")
 
         print("\nPolicies:")
-        for policy in ClusterState.policies:
-            print(f"  - {policy}")
+        if ClusterState.policies:
+            for policy in ClusterState.policies:
+                print(f"  - {policy}")
+        else:
+            print("  None")
 
         print("\nSecurity Groups:")
-        for name, sg in ClusterState.security_groups.items():
-            print(f"  - {name}: {sg}")
+        if ClusterState.security_groups:
+            for name, sg in ClusterState.security_groups.items():
+                print(f"  - {name}: {sg}")
+        else:
+            print("  None")
 
         print("\nLabel Sets to Map Entries:")
-        for label_set, map_entry in ClusterState.map.items():
-            print(f"  - {label_set}: {map_entry}")
+        if ClusterState.map:
+            for label_set, map_entry in ClusterState.map.items():
+                print(f"  - {label_set}: {map_entry}")
+        else:
+            print("  None")
+
+        print("--------------")
