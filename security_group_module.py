@@ -13,6 +13,7 @@ class SecurityGroupModule:
         return ClusterState.get_security_groups().get("SG-" + n.name)
 
     def add_rule_to_remotes(SG: SecurityGroup, rule: Rule) -> None:
+        print(f"Adding rule {rule.id} to {SG.name}")
         neutron = OpenStackClient.get_neutron()
         rule = neutron.create_security_group_rule(
             {
@@ -31,16 +32,19 @@ class SecurityGroupModule:
         SG.remotes.append(rule)
 
     def remove_rule_from_remotes(SG: SecurityGroup, rule: Rule) -> None:
+        print(f"Removing rule {rule.id} from {SG.name}")
         neutron = OpenStackClient.get_neutron()
         neutron.delete_security_group_rule(security_group_rule=rule.id)
         SG.remotes.remove(rule)
 
     def SG_add_conn(pol: Policy, n: Node, m: Node) -> None:
+        print(f"Adding connection from {n.name} to {m.name}")
         rule: Rule = SecurityGroupModule.rule_from(pol, m)
         if rule not in SecurityGroupModule.SGn(n).remotes:
             SecurityGroupModule.add_rule_to_remotes(SecurityGroupModule.SGn(n), rule)
 
     def SG_remove_conn(pol: Policy, n: Node, m: Node) -> None:
+        print(f"Removing connection from {n.name} to {m.name}")
         if not isinstance(pol.allow, CIDR):
             if SecurityGroupModule.traffic_pols(pol.allow, n, m) != pol:
                 return
