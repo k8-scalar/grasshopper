@@ -185,6 +185,10 @@ class ClusterState:
     def get_label_sets():
         return ClusterState.map.keys()
 
+    @staticmethod
+    def get_security_groups():
+        return ClusterState.security_groups
+
     # print out a nice / clear representation of the cluster state.
     @staticmethod
     def print():

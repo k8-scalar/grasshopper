@@ -1,6 +1,6 @@
 from classes import CIDR, LabelSet, Node, Policy
+from cluster_state import ClusterState
 from security_group_module import SecurityGroupModule
-from globals import Map
 
 
 # A class that provides all functionality to actually execute the GrassHopper Algorithm.
@@ -20,11 +20,12 @@ class Matcher:
         Returns:
             None
         """
-        for n in Map.get(pol.sel).match_nodes:
+        mapping = ClusterState.get_map()
+        for n in mapping.get(pol.sel).match_nodes:
             if isinstance(pol.allow, CIDR):
                 SecurityGroupModule.SG_add_conn(pol, n, None)
             else:
-                for m in Map.get(pol.allow).match_nodes:
+                for m in mapping.get(pol.allow).match_nodes:
                     SecurityGroupModule.SG_add_conn(pol, n, m)
 
     def SG_config_remove_pol(pol: Policy) -> None:
@@ -37,11 +38,12 @@ class Matcher:
         Returns:
             None
         """
-        for n in Map.get(pol.sel).match_nodes:
+        mapping = ClusterState.get_map()
+        for n in mapping.get(pol.sel).match_nodes:
             if isinstance(pol.allow, CIDR):
                 SecurityGroupModule.SG_remove_conn(pol, n, None)
             else:
-                for m in Map.get(pol.allow).match_nodes:
+                for m in mapping.get(pol.allow).match_nodes:
                     SecurityGroupModule.SG_remove_conn(pol, n, m)
 
     def SG_config_new_pod(L: LabelSet, n: Node) -> None:
@@ -57,15 +59,16 @@ class Matcher:
         Returns:
             None
         """
-        for pol in Map.get(L).select_pols:
+        mapping = ClusterState.get_map()
+        for pol in mapping.get(L).select_pols:
             if isinstance(pol.allow, CIDR):
                 SecurityGroupModule.SG_add_conn(pol, n, None)
             else:
-                for m in Map.get(pol.allow).match_nodes:
+                for m in mapping.get(pol.allow).match_nodes:
                     SecurityGroupModule.SG_add_conn(pol, n, m)
 
-        for pol in Map.get(L).allow_pols:
-            for m in Map.get(pol.allow).match_nodes:
+        for pol in mapping.get(L).allow_pols:
+            for m in mapping.get(pol.allow).match_nodes:
                 SecurityGroupModule.SG_add_conn(pol, n, m)
 
     def SG_config_remove_pod(L: LabelSet, n: Node) -> None:
@@ -81,13 +84,14 @@ class Matcher:
             Otherwise, it iterates through the nodes matched by the policy's `allow` attribute and removes the connection.
             - For `allow_pols`, it iterates through the nodes matched by the policy's `allow` attribute and removes the connection.
         """
-        for pol in Map.get(L).select_pols:
+        mapping = ClusterState.get_map()
+        for pol in mapping.get(L).select_pols:
             if isinstance(pol.allow, CIDR):
                 SecurityGroupModule.SG_remove_conn(pol, n, None)
             else:
-                for m in Map.get(pol.allow).match_nodes:
+                for m in mapping.get(pol.allow).match_nodes:
                     SecurityGroupModule.SG_remove_conn(pol, n, m)
 
-        for pol in Map.get(L).allow_pols:
-            for m in Map.get(pol.allow).match_nodes:
+        for pol in mapping.get(L).allow_pols:
+            for m in mapping.get(pol.allow).match_nodes:
                 SecurityGroupModule.SG_remove_conn(pol, n, m)

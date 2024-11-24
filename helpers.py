@@ -1,7 +1,5 @@
-import subprocess
 from classes import CIDR, LabelSet, Node, Pod, Policy, Rule, Traffic
 from cluster_state import ClusterState
-from globals import policies, security_groups
 from security_group_module import SecurityGroupModule
 
 
@@ -24,9 +22,12 @@ def matching(L: LabelSet, p: Pod):
 
 
 def traffic_pols(traffic: Traffic, n: Node, m: Node) -> Policy | None:
-    for pol in policies:
+    for pol in ClusterState.get_policies():
         if running(pol.sel, n) and any(
-            [pol.allow == (sg, traffic) and running(sg, m) for sg in security_groups]
+            [
+                pol.allow == (sg, traffic) and running(sg, m)
+                for sg in ClusterState.get_security_groups()
+            ]
         ):
             return pol
 

@@ -1,6 +1,6 @@
 from xmlrpc.server import SimpleXMLRPCServer
 from watchdog import WatchDog
-from classes import Pod, LabelSet
+from classes import Pod
 
 master_ip = "0.0.0.0"
 master_port = 9000

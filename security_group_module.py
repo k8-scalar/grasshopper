@@ -1,6 +1,6 @@
 from classes import CIDR, Node, Policy, Rule, SecurityGroup
-from globals import security_groups
-from ostackfiles.credentials import neutron
+from cluster_state import ClusterState
+from openstack.openstack_client import OpenStackClient
 
 
 # A class to encompass all functionality of actually manipulating the SG's
@@ -10,9 +10,10 @@ class SecurityGroupModule:
         pass
 
     def SGn(n: Node) -> SecurityGroup:
-        return security_groups.get("SG-" + n.name)
+        return ClusterState.get_security_groups().get("SG-" + n.name)
 
     def add_rule_to_remotes(SG: SecurityGroup, rule: Rule) -> None:
+        neutron = OpenStackClient.get_neutron()
         rule = neutron.create_security_group_rule(
             {
                 "security_group_rule": {
@@ -30,6 +31,7 @@ class SecurityGroupModule:
         SG.remotes.append(rule)
 
     def remove_rule_from_remotes(SG: SecurityGroup, rule: Rule) -> None:
+        neutron = OpenStackClient.get_neutron()
         neutron.delete_security_group_rule(security_group_rule=rule.id)
         SG.remotes.remove(rule)
 

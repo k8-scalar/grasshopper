@@ -47,8 +47,3 @@ class OpenStackClient:
     @staticmethod
     def get_nova() -> novaclient.Client:
         return OpenStackClient.nova
-
-
-# Usage
-neutron = OpenStackClient.get_neutron()
-nova = OpenStackClient.get_nova()
