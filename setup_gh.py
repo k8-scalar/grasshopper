@@ -1,4 +1,5 @@
-from openstack import create_master_and_workerSG, detach_defaultSG
+from openstack.create_master_and_workerSG import create_master_and_workerSG
+from openstack.detach_defaultSG import detach_defaultSG
 
 
 def setup_gh():
