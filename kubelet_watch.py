@@ -5,7 +5,7 @@ import json
 import time
 import os
 import re
-from classes import LabelSet, Pod
+from classes import LabelSet, Node, Pod
 
 CHECK_PODS_INTERVAL_MS = 100  # Check pods every CHECK_PODS_INTERVAL milliseconds
 
@@ -77,7 +77,7 @@ class KubeletWatch:
                 Pod(
                     name=item["metadata"]["name"],
                     label_set=LabelSet(labels=item["metadata"]["labels"]),
-                    status=item["status"]["phase"],
+                    node=Node(name=item["spec"]["nodeName"]),
                 )
                 for item in pod_list["items"]
             )

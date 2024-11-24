@@ -1,28 +1,8 @@
 import sys
+from cluster_state import ClusterState
+from is_openstack import is_openstack
 from watcher import Watcher
 import threading
-import subprocess
-
-
-def is_openstack():
-    """
-    Checks if the OpenStack command-line client is installed and accessible.
-
-    This function attempts to run the `openstack --version` command to determine
-    if the OpenStack CLI is available on the system. If the command executes
-    successfully, it returns True. If the command is not found or cannot be
-    executed, it returns False.
-
-    Returns:
-        bool: True if the OpenStack CLI is installed and accessible, False otherwise.
-    """
-    try:
-        result = subprocess.run(
-            ["openstack", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        return result.returncode == 0
-    except FileNotFoundError:
-        return False
 
 
 def main():
@@ -64,13 +44,16 @@ def main():
             ][0]
             add_rpc_rules(neutron, master_sg["id"], worker_sg["id"])
 
-        thread1 = threading.Thread(target=start_kubelet_watch_server)
-        thread2 = threading.Thread(target=watch_policies)
-        thread3 = threading.Thread(target=watch_services)
+        ClusterState().initialize()
 
-        thread1.start()
-        thread2.start()
-        thread3.start()
+        # thread1 = threading.Thread(target=start_kubelet_watch_server)
+        # thread2 = threading.Thread(target=watch_policies)
+        # thread3 = threading.Thread(target=watch_services)
+
+        # thread1.start()
+        # thread2.start()
+        # thread3.start()
+        start_kubelet_watch_server()
     else:
         print("Running in local mode")
         Watcher().watch_all_events()

@@ -12,6 +12,12 @@ class LabelSet:
     def __init__(self, labels: dict[str, str]):
         self.labels = labels
 
+    def issubset(self, other):
+        return all(
+            key in other.labels and other.labels[key] == value
+            for key, value in self.labels.items()
+        )
+
     def __str__(self):
         return f"LabelSet(labels={self.labels})"
 
@@ -46,11 +52,32 @@ class SecurityGroup:
         return f"SecurityGroup(id={self.id}, name={self.name}, remotes={self.remotes})"
 
 
+class Node:
+    def __init__(self, name: str):
+        self.name = name
+
+    def __str__(self):
+        return f"Node(name={self.name})"
+
+
 class Pod:
-    def __init__(self, name: str, label_set: LabelSet, status: str):
+    def __init__(self, name: str, label_set: LabelSet, node: Node):
         self.name = name
         self.label_set = label_set
-        self.status = status
+        self.node = node
+
+    @staticmethod
+    def from_dict(data: dict):
+        name = data.get("name")
+        labels = data.get("label_set", {}).get("labels", {})
+        label_set = LabelSet(labels=labels)
+        node_name = data.get("node", {}).get("name")
+        node = Node(node_name)
+        return Pod(
+            name,
+            label_set,
+            node,
+        )
 
     def __hash__(self):
         return hash(self.name)
@@ -61,9 +88,7 @@ class Pod:
         return False
 
     def __str__(self):
-        return (
-            f"Pod(name={self.name}, label_set={self.label_set}, status={self.status})"
-        )
+        return f"Pod(name={self.name}, label_set={self.label_set}, node={self.node}"
 
 
 class Rule:
@@ -76,14 +101,6 @@ class Rule:
 
     def __str__(self):
         return f"Rule(target={self.target}, traffic={self.traffic})"
-
-
-class Node:
-    def __init__(self, name: str):
-        self.name = name
-
-    def __str__(self):
-        return f"Node(name={self.name})"
 
 
 class MapEntry:

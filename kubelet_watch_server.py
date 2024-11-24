@@ -32,27 +32,20 @@ class KubeletWatchServer:
 
             @server.register_function
             def handle_new_pod(pod: dict):
-                pod = self.dict_to_pod(pod)
+                pod = Pod.from_dict(pod)
                 self.watchdog.handle_new_pod(pod)
 
             @server.register_function
             def handle_modified_pod(pod: dict):
-                pod = self.dict_to_pod(pod)
+                pod = Pod.from_dict(pod)
                 self.watchdog.handle_modified_pod(pod)
 
             @server.register_function
             def handle_removed_pod(pod: dict):
-                pod = self.dict_to_pod(pod)
+                pod = Pod.from_dict(pod)
                 self.watchdog.handle_removed_pod(pod)
 
             server.serve_forever()
-
-    def dict_to_pod(self, data: dict) -> Pod:
-        name = data.get("name")
-        labels = data.get("label_set", {}).get("labels", {})
-        label_set = LabelSet(labels=labels)
-        status = data.get("status")
-        return Pod(name=name, label_set=label_set, status=status)
 
 
 if __name__ == "__main__":

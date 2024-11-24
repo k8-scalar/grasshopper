@@ -1,51 +1,158 @@
+from kubernetes import client, config
 from classes import *
+from is_openstack import is_openstack
 
 
 # Implements Singleton Pattern.
 class ClusterState:
 
+    # Mapping of label sets to their corresponding map entries
     map: dict[LabelSet, MapEntry] = {}
-    nodes: list[Node] = []
-    pods: list[Pod] = []
-    policies: list[Policy] = []
+
+    # Set of all nodes in the cluster
+    nodes: set[Node] = []
+
+    # Set of all pods in the cluster
+    pods: set[Pod] = []
+
+    # Set of all policies in the cluster
+    policies: set[Policy] = []
+
+    # Mapping of security group names to their corresponding security group objects
     security_groups: dict[str, SecurityGroup] = {}
 
-    def __init__(self):
-        pass
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(ClusterState, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
 
     @staticmethod
-    def getMap():
-        return map
+    def initialize():
+        # Load the Kubernetes configuration
+        config.load_kube_config()
+
+        # Create a Kubernetes API client
+        v1 = client.CoreV1Api()
+
+        # Get all nodes
+        nodes = v1.list_node().items
+        for node in nodes:
+            ClusterState.nodes.append(Node(name=node.metadata.name))
+
+        # Get all pods
+        pods = v1.list_pod_for_all_namespaces().items
+        for pod in pods:
+            node_name = pod.spec.node_name
+            node = next((n for n in ClusterState.nodes if n.name == node_name), None)
+            if node:
+                ClusterState.pods.append(
+                    Pod(
+                        name=pod.metadata.name,
+                        label_set=LabelSet(labels=pod.metadata.labels),
+                        node=node,
+                    )
+                )
+
+        # Get all policies (assuming policies are represented as NetworkPolicies)
+        v1_network = client.NetworkingV1Api()
+        policies = v1_network.list_network_policy_for_all_namespaces().items
+        for policy in policies:
+            ClusterState.policies.append(Policy(name=policy.metadata.name))
+
+        # Initialize security groups from OpenStack
+        if is_openstack():
+            from ostackfiles.credentials import neutron
+
+            security_groups = neutron.list_security_groups()["security_groups"]
+            for sg in security_groups:
+                ClusterState.security_groups[sg.name] = SecurityGroup(
+                    name=sg.name, id=sg.id
+                )
 
     @staticmethod
-    def addMapEntry(labelSet: LabelSet, mapEntry: MapEntry):
-        map.update(labelSet, mapEntry)
+    def get_map():
+        return ClusterState.map
 
     @staticmethod
-    def getNodes():
+    def add_map_entry(label_set: LabelSet, map_entry: MapEntry):
+        ClusterState.map.update({label_set: map_entry})
+
+    @staticmethod
+    def get_nodes():
         return ClusterState.nodes
 
     @staticmethod
-    def addNode(node: Node):
+    def add_node(node: Node):
         ClusterState.nodes.append(node)
 
     @staticmethod
-    def getPods():
+    def get_pods():
         return ClusterState.pods
 
     @staticmethod
-    def addPod(pod: Pod):
+    def get_pods_by_node(node: Node):
+        return set(filter(lambda pod: pod.node == node, ClusterState.pods))
+
+    @staticmethod
+    def add_pod(pod: Pod):
         ClusterState.pods.append(pod)
 
     @staticmethod
-    def getPolicies():
+    def get_policies():
         return ClusterState.policies
 
     @staticmethod
-    def addPolicy(pol: Policy):
+    def add_policy(pol: Policy):
         ClusterState.policies.append(pol)
+
+    @staticmethod
+    def get_map_entry(label_set: LabelSet):
+        return ClusterState.map.get(label_set)
+
+    @staticmethod
+    def add_match_node_to_map_entry(label_set: LabelSet, node: Node):
+        if label_set in ClusterState.map:
+            ClusterState.map[label_set].matchNodes.add(node)
+        else:
+            # Handle the case where the label_set is not in the map
+            ClusterState.map[label_set] = MapEntry(matchNodes={node})
+
+    @staticmethod
+    def remove_match_node_from_map_entry(label_set: LabelSet, node: Node):
+        if label_set in ClusterState.map:
+            ClusterState.map[label_set].matchNodes.remove(node)
+        else:
+            # Handle the case where the label_set is not in the map
+            raise Exception("LabelSet not found in the map")
+
+    @staticmethod
+    def get_label_sets():
+        return ClusterState.map.keys()
 
     # print out a nice / clear representation of the cluster state.
     @staticmethod
     def print():
-        pass
+        print("Cluster State:")
+        print("--------------")
+
+        print("Nodes:")
+        for node in ClusterState.nodes:
+            print(f"  - {node}")
+
+        print("\nPods:")
+        for pod in ClusterState.pods:
+            print(f"  - {pod}")
+
+        print("\nPolicies:")
+        for policy in ClusterState.policies:
+            print(f"  - {policy}")
+
+        print("\nSecurity Groups:")
+        for name, sg in ClusterState.security_groups.items():
+            print(f"  - {name}: {sg}")
+
+        print("\nLabel Sets to Map Entries:")
+        for label_set, map_entry in ClusterState.map.items():
+            print(f"  - {label_set}: {map_entry}")
