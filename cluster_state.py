@@ -154,6 +154,10 @@ class ClusterState:
         ClusterState.pods.append(pod)
 
     @staticmethod
+    def remove_pod(pod: Pod):
+        ClusterState.pods.remove(pod)
+
+    @staticmethod
     def get_policies():
         return ClusterState.policies
 

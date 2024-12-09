@@ -18,22 +18,30 @@ class WatchDog:
 
     # functions to handle added / removed / modified policies.
     def handle_new_policy(self, pol: Policy):
-        if self.verify_policy(pol):
-            # Update the cluster state.
-            # should call the matcher object to handle
-            pass
-        else:
-            self.report_policy(pol)
+        print(pol)
 
-    def handle_modified_policy(self, pod: Pod):
-        pass
+        # if self.verify_policy(pol):
+        #     # Update the cluster state.
+        #     # should call the matcher object to handle
+        #     pass
+        # else:
+        #     self.report_policy(pol)
+    
+    def handle_removed_policy(self, pol: Policy):
+        print(pol)
 
-    def handle_removed_policy(self, pod: Pod):
+    def handle_modified_policy(self, pol: Policy):
         pass
 
     # functions to handle added / removed / modified pods.
     def handle_new_pod(self, pod: Pod):
+        #Only handle the new pod once.
+        # if pod in ClusterState.get_pods():
+        #     return
+
         print(f"New pod: {pod.name}, on node: {pod.node.name}")
+        # ClusterState.add_pod(pod)
+        # ClusterState.print()
 
         for label_set in filter(
             lambda L: matching(L, pod), ClusterState.get_label_sets()
@@ -49,7 +57,13 @@ class WatchDog:
         pass
 
     def handle_removed_pod(self, pod: Pod):
+        #Only handle removed pod event once.
+        # if pod not in ClusterState.get_pods():
+        #     return
+        
         print(f"Removed pod: {pod.name}, on node: {pod.node.name}")
+        # ClusterState.remove_pod(pod)
+        # ClusterState.print()
 
         n = pod.node
         pod.node = None

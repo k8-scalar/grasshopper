@@ -1,5 +1,6 @@
 from kubernetes import watch, client, config
 from watchdog import WatchDog
+from classes import *
 
 
 class Watcher:
@@ -78,6 +79,9 @@ class Watcher:
             print(
                 f"Event: {event_kind:>10.10} {object_name:>20.20} {event_type:>10.10} | Reason: {change_reason:>20.20}, {change_reason_message:>90.90} | Occurred at: {event_occurred_at}"
             )
+            
+            if "spec" in event.keys():
+                print(event["spec"])
 
             if event_kind == "Pod":
                 self.handle_pod_event(event)
@@ -89,11 +93,12 @@ class Watcher:
     def watch_policies(self):
         print("Watching policies now...")
         for event in self.k8s_watcher.stream(
-            self.networking_api.list_network_policy_for_all_namespaces
+            self.networking_api.list_network_policy_for_all_namespaces,
         ):
             event_object = event["object"]
             name = event_object.metadata.name
             print(f"Policy: {name}")
+
             # involved_object = event_object.involved_object
             # event_kind = involved_object.kind or "Unknown"
             # event_type = event.get("type", "Unknown")
@@ -132,22 +137,66 @@ class Watcher:
             # if event_kind == "Service":
             #     self.handle_service_event(event)
 
+    def custom_watch(self):
+        # #Watching pod-events and converting them to Pod-objects.
+        # for event in self.k8s_watcher.stream(
+        #     self.core_api.list_pod_for_all_namespaces,
+        #     # timeout_seconds=100
+        # ):
+        #     self.handle_pod_event(event)
+
+        # Watch policies.
+        for event in self.k8s_watcher.stream(
+            self.networking_api.list_network_policy_for_all_namespaces,
+            # timeout_seconds=1
+        ):
+            self.handle_policy_event(event)
+
+        # for event in self.k8s_watcher.stream(
+        #     self.core_api.list_service_for_all_namespaces,
+        #     timeout_seconds=1
+        # ):
+        #     print("Watching services")
+        #     print(event)
+
     def handle_pod_event(self, event):
+        #Get the event type.
         event_type = event["type"]
-        if event_type == "ADDED":
-            self.watchdog.handle_new_pod(event)
-            pass
+        pod = event["object"]
+
+        # #Irrelevant, since the pod hasn't been assigned a node yet.
+        # if event_type == "ADDED":
+        #     #Create the corresponding Pod-object from k8s-event.
+        #     pod = Watcher.create_pod_from_pod_event(event)
+        #     print(pod)
+
+        #     #Handle the new pod, only if it's already assigned a Node.
+        #     if pod.is_assigned_to_node():
+        #         self.watchdog.handle_new_pod(pod)
+               
+        #Here, the pod will be assigned to a node. (So we're handling this as a new-pod-event)
+        if event_type == "MODIFIED" and pod.spec.node_name:
+            pod = Watcher.create_pod_from_pod_event(event)
+            self.watchdog.handle_new_pod(pod)
+            print(pod)
+            
         elif event_type == "DELETED":
-            pass
-        elif event_type == "MODIFIED":
-            pass
+            #Create the corresponding Pod-object from k8s-event.
+            pod = Watcher.create_pod_from_pod_event(event)
+            print(pod)
+
+            #Handle the removed Pod.
+            self.watchdog.handle_removed_pod(pod)
+            
 
     def handle_policy_event(self, event):
         event_type = event["type"]
+        policy = Watcher.create_policy_from_policy_event(event)
+
         if event_type == "ADDED":
-            pass
+            self.watchdog.handle_new_policy(policy)
         elif event_type == "DELETED":
-            pass
+            self.watchdog.handle_removed_policy(policy)
         elif event_type == "MODIFIED":
             pass
 
@@ -160,7 +209,158 @@ class Watcher:
         elif event_type == "MODIFIED":
             pass
 
+    @staticmethod
+    def create_pod_from_pod_event(event) -> Pod:
+        """
+        This method creates a Pod-object from a pod-event.
+
+        Args:
+         - event: Assumed to be a pod event.
+
+        Returns:
+         - pod : Pod | A pod object from the grasshopper model.
+
+        """
+        #Parse the event.
+        event_object = event["object"]
+        metadata = event_object.metadata
+        spec = event_object.spec
+
+        #Get relevant information.
+        name = metadata.name
+        labels = metadata.labels
+        node_name = spec.node_name
+
+        #Create pod-attributes.
+        label_set = LabelSet(labels)
+
+        if node_name:
+            node = Node(node_name)
+        else:
+            node = None
+
+        return Pod(name, LabelSet(labels), node)
+
+    @staticmethod
+    def create_policy_from_policy_event(event) -> Policy:
+        #Get relevant information from event.
+        event_object = event["object"]
+        metadata = event_object.metadata
+        spec = event_object.spec
+
+        #Get relevant information.
+        name = metadata.name
+        egress = spec.egress
+        ingress = spec.ingress
+        pod_selector = spec.pod_selector 
+
+        #Construct the selected-attribute.
+        selected = None
+        if pod_selector.match_labels:
+            selected = Watcher.create_selected(pod_selector.match_labels)
+  
+        #Construct allow-set.
+        allow_set = set()
+        if ingress:
+            allow_set_ingress = Watcher.create_allow_set_ingress(ingress)
+            allow_set = allow_set | allow_set_ingress
+        
+        if egress:
+            allow_set_egress = Watcher.create_allow_set_egress(egress)
+            allow_set = allow_set | allow_set_egress
+
+        return Policy(name, selected, allow_set)
+
+    @staticmethod
+    def create_allow_set_ingress(ingress_list) -> set[tuple[str, Traffic]]: 
+        allow_tuples = set()
+        for ingress in ingress_list:
+            if ingress._from:
+                for entry in ingress._from:
+                    label_set_string = ""
+                    if entry.ip_block:
+                        label_set_string = str(entry.ip_block.cidr)
+                    else:
+                        label_set_string = Watcher.create_labelset_string_from_selectors(entry)
+
+                    #If there is a selector and ports
+                    if label_set_string and ingress.ports:
+                        #Combine labelset strings and ports, to create all pairs.
+                        for port in ingress.ports: 
+                            traffic = Traffic("Ing", port.port, port.protocol)
+                            tupple = (label_set_string, str(traffic))    
+                            
+                            allow_tuples.add(tupple)                   
+
+        return allow_tuples
+    
+    @staticmethod
+    def create_allow_set_egress(egress_list): 
+        allow_tuples = set()
+        for egress in egress_list:
+            if egress.to:
+                for entry in egress.to:
+                    label_set_string = ""
+                    if entry.ip_block:
+                        label_set_string = str(entry.ip_block.cidr)
+                    else:
+                        label_set_string = Watcher.create_labelset_string_from_selectors(entry)
+                            
+                    if label_set_string and egress.ports:
+                        for port in egress.ports: 
+                            traffic = Traffic("Eg", port.port, port.protocol)
+                            tupple = (label_set_string, str(traffic))    
+                            
+                            allow_tuples.add(tupple)                   
+
+        return allow_tuples
+
+    @staticmethod
+    def create_labelset_string_from_selectors(entry) -> str:
+        """
+        This method creates the labelset-string from a given entry of selectors.
+
+        * Arg:
+            - entry: list[sources | destinations] | This is a list of sources from either
+                                                    the _from-field of an ingress-rule or 
+                                                    a list of destinations from the _to- 
+                                                    field of an egress-rule.
+        * Returns: 
+            - label_set_string: str | This is the constructed string of a given labelset.
+        """
+        keys = []
+        values = []
+        label_set_string = ""
+
+        #if there is a namespace-selector.
+        if entry.namespace_selector and entry.namespace_selector.match_labels:
+                keys.extend(sorted(entry.namespace_selector.match_labels.keys()))
+                values.extend(sorted(entry.namespace_selector.match_labels.values()))
+
+        #if there is a pod-selector.
+        if entry.pod_selector and entry.pod_selector.match_labels:
+            keys.extend(sorted(entry.pod_selector.match_labels.keys()))
+            values.extend(sorted(entry.pod_selector.match_labels.values()))
+
+        #if there is a selector and ports
+        if keys or values:
+            keys_concatenated = ''.join(keys)
+            values_concatenated = ''.join(values)
+            label_set_string = keys_concatenated + ":" + values_concatenated
+        
+        return label_set_string
+
+
+    @staticmethod
+    def create_selected(label_set: dict[str, str]):
+        """
+        This method creates the selected-attribute from a given podSelector-field.
+        """
+        keys_concatenated = ''.join(key for key in label_set.keys())
+        values_concatenated = ''.join(value for value in label_set.values())
+        return keys_concatenated + ":" + values_concatenated
+
 
 if __name__ == "__main__":
     watcher = Watcher()
-    watcher.watch_all_events()
+    watcher.watch_policies()
