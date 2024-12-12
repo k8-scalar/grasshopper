@@ -26,7 +26,7 @@ class WatchDog:
         #     pass
         # else:
         #     self.report_policy(pol)
-    
+
     def handle_removed_policy(self, pol: Policy):
         print(pol)
 
@@ -52,15 +52,11 @@ class WatchDog:
                 ClusterState.add_match_node_to_map_entry(label_set, pod.node)
                 self.matcher.SG_config_new_pod(label_set, pod.node)
 
-    def handle_modified_pod(self, pod: Pod):
-        print(f"Modified pod: {pod.name}, on node: {pod.node.name}")
-        pass
-
     def handle_removed_pod(self, pod: Pod):
-        #Only handle removed pod event once.
+        # Only handle removed pod event once.
         # if pod not in ClusterState.get_pods():
         #     return
-        
+
         print(f"Removed pod: {pod.name}, on node: {pod.node.name}")
         # ClusterState.remove_pod(pod)
         # ClusterState.print()

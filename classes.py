@@ -1,5 +1,3 @@
-import json
-
 class Traffic:
     def __init__(self, direction: str, port: int, protocol: str):
         self.direction = direction
@@ -36,8 +34,8 @@ class Policy:
     def __init__(
         self, name: str, sel: LabelSet, allow: list[tuple[LabelSet | CIDR, Traffic]]
     ):
-        self.name:  str = name
-        self.sel:   LabelSet = sel
+        self.name: str = name
+        self.sel: LabelSet = sel
         self.allow: set[tuple[LabelSet | CIDR, Traffic]] = allow
 
     def __str__(self):
@@ -69,7 +67,7 @@ class Pod:
         self.label_set = label_set
         self.node = node
 
-    def is_assigned_to_node(self) -> bool: 
+    def is_assigned_to_node(self) -> bool:
         return self.node is not None
 
     @staticmethod
@@ -97,6 +95,7 @@ class Pod:
         return f"Pod(name={self.name}, label_set={self.label_set}, node={self.node}"
         # return "------ POD: " + self.name + "-----------\n" + " - Running on node: " + (self.node.name or "None")+ "\n - labels: " + str(json.dumps(self.label_set.labels, indent=4)) + "\n"
 
+
 class Rule:
     def __init__(self, target: SecurityGroup | CIDR, traffic: Traffic):
         self.target = target
@@ -120,6 +119,7 @@ class MapEntry:
             f"MapEntry(match_nodes={self.match_nodes}, "
             f"select_pols={self.select_pols}, allow_pols={self.allow_pols})"
         )
+
 
 class PodEvent:
     def __init__(self):

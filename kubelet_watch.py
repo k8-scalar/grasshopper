@@ -31,14 +31,10 @@ class KubeletWatch:
         self.pods = set()
         print("Created KubeletWatch instance.")
 
-    # functions to handle added / removed / modified pods.
+    # functions to handle added / removed pods.
     def handle_new_pod(self, pod: Pod):
         print(f"New pod: {pod.name}")
         self.master.handle_new_pod(pod)
-
-    def handle_modified_pod(self, pod: Pod):
-        print(f"Modified pod: {pod.name}")
-        self.master.handle_modified_pod(pod)
 
     def handle_removed_pod(self, pod: Pod):
         print(f"Removed pod: {pod.name}")
