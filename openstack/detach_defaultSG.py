@@ -35,3 +35,7 @@ def detach_defaultSG():
                 instance.remove_security_group(default_SG_name)
             except:
                 pass
+
+
+if __name__ == "__main__":
+    detach_defaultSG()
