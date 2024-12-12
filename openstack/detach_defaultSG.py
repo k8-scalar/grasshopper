@@ -10,8 +10,8 @@ def detach_defaultSG():
     v1 = client.CoreV1Api()
     node_list = v1.list_node()
 
-    neutron = OpenStackClient.get_neutron()
-    nova = OpenStackClient.get_nova()
+    neutron = OpenStackClient().get_neutron()
+    nova = OpenStackClient().get_nova()
 
     # Master node label
     master_node_label = "node-role.kubernetes.io/control-plane"
