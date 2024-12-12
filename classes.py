@@ -50,7 +50,8 @@ class SecurityGroup:
         self.remotes: set[Rule] = set()
 
     def __str__(self):
-        return f"SecurityGroup(id={self.id}, name={self.name}, remotes={self.remotes})"
+        remotes_str = ", ".join(str(item) for item in self.remotes)
+        return f"SecurityGroup(id={self.id}, name={self.name}, remotes={remotes_str})"
 
 
 class Node:
@@ -105,7 +106,11 @@ class Rule:
         self.id = id
 
     def __str__(self):
-        return f"Rule(target={self.target}, traffic={self.traffic})"
+        if isinstance(self.target, SecurityGroup):
+            target_str = self.target.name
+        else:
+            target_str = str(self.target)
+        return f"Rule(target={target_str}, traffic={self.traffic})"
 
 
 class MapEntry:

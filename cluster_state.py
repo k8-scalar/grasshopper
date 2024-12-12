@@ -121,9 +121,21 @@ class ClusterState:
             neutron = OpenStackClient().get_neutron()
             security_groups = neutron.list_security_groups()["security_groups"]
             for sg in security_groups:
-                ClusterState().security_groups[sg["name"]] = SecurityGroup(
-                    name=sg["name"], id=sg["id"]
-                )
+                security_group = SecurityGroup(name=sg["name"], id=sg["id"])
+                rules_json = sg["security_group_rules"]
+                rules = [
+                    Rule(
+                        target=security_group,
+                        traffic=Traffic(
+                            direction=rule["direction"],
+                            port=rule["port_range_min"],  # TODO: handle port_range_max
+                            protocol=rule["protocol"],
+                        ),
+                    )
+                    for rule in rules_json
+                ]
+                security_group.remotes = set(rules)
+                ClusterState().security_groups[sg["name"]] = security_group
 
     @staticmethod
     def get_map():

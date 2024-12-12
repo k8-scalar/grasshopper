@@ -30,9 +30,14 @@ def main():
     singleSGPerNodeScenario = sys.argv[1].lower() == "true"
     distributed = sys.argv[2].lower() == "true"
 
+    if not singleSGPerNodeScenario:
+        print("Single security group per node scenario is not supported")
+        sys.exit(1)
+
     if distributed:
         print("Running in distributed mode")
         if is_openstack():
+            print("Running on OpenStack")
             from openstackfiles.add_distributed_gh_rules import add_rpc_rules
             from openstackfiles.openstack_client import OpenStackClient
 
@@ -45,6 +50,8 @@ def main():
                 "security_groups"
             ][0]
             add_rpc_rules(master_sg["id"], worker_sg["id"])
+        else:
+            print("Not running on OpenStack")
 
         ClusterState().initialize()
 
