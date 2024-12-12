@@ -20,7 +20,7 @@ class Matcher:
         Returns:
             None
         """
-        mapping = ClusterState.get_map()
+        mapping = ClusterState().get_map()
         for n in mapping.get(pol.sel).match_nodes:
             if isinstance(pol.allow, CIDR):
                 SecurityGroupModule.SG_add_conn(pol, n, None)
@@ -38,7 +38,7 @@ class Matcher:
         Returns:
             None
         """
-        mapping = ClusterState.get_map()
+        mapping = ClusterState().get_map()
         for n in mapping.get(pol.sel).match_nodes:
             if isinstance(pol.allow, CIDR):
                 SecurityGroupModule.SG_remove_conn(pol, n, None)
@@ -59,7 +59,7 @@ class Matcher:
         Returns:
             None
         """
-        mapping = ClusterState.get_map()
+        mapping = ClusterState().get_map()
         for pol in mapping.get(L).select_pols:
             if isinstance(pol.allow, CIDR):
                 SecurityGroupModule.SG_add_conn(pol, n, None)
@@ -84,7 +84,7 @@ class Matcher:
             Otherwise, it iterates through the nodes matched by the policy's `allow` attribute and removes the connection.
             - For `allow_pols`, it iterates through the nodes matched by the policy's `allow` attribute and removes the connection.
         """
-        mapping = ClusterState.get_map()
+        mapping = ClusterState().get_map()
         for pol in mapping.get(L).select_pols:
             if isinstance(pol.allow, CIDR):
                 SecurityGroupModule.SG_remove_conn(pol, n, None)

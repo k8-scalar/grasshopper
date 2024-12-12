@@ -36,7 +36,7 @@ def main():
             from openstackfiles.add_distributed_gh_rules import add_rpc_rules
             from openstackfiles.openstack_client import OpenStackClient
 
-            neutron = OpenStackClient.get_neutron()
+            neutron = OpenStackClient().get_neutron()
 
             master_sg = neutron.list_security_groups(name="masterSG")[
                 "security_groups"

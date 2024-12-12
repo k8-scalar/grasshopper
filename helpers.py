@@ -7,7 +7,7 @@ def running(L: LabelSet, n: Node):
     """
     True if a Pod with label set L is running on Node n
     """
-    for pod in ClusterState.get_pods_by_node(n):
+    for pod in ClusterState().get_pods_by_node(n):
         if matching(L, pod):
             return True
     return False
@@ -22,11 +22,11 @@ def matching(L: LabelSet, p: Pod):
 
 
 def traffic_pols(traffic: Traffic, n: Node, m: Node) -> Policy | None:
-    for pol in ClusterState.get_policies():
+    for pol in ClusterState().get_policies():
         if running(pol.sel, n) and any(
             [
                 pol.allow == (sg, traffic) and running(sg, m)
-                for sg in ClusterState.get_security_groups()
+                for sg in ClusterState().get_security_groups()
             ]
         ):
             return pol

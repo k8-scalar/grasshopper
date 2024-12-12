@@ -2,7 +2,7 @@ from openstackfiles.openstack_client import OpenStackClient
 
 
 def create_security_group_if_not_exists(sg_name, description):
-    neutron = OpenStackClient.get_neutron()
+    neutron = OpenStackClient().get_neutron()
 
     existing_sgs = neutron.list_security_groups(name=sg_name)
     if existing_sgs["security_groups"]:
@@ -17,7 +17,7 @@ def create_security_group_if_not_exists(sg_name, description):
 
 
 def add_rules_to_security_group(sg_id, rules, remote_sg_id):
-    neutron = OpenStackClient.get_neutron()
+    neutron = OpenStackClient().get_neutron()
 
     existing_rules = neutron.list_security_group_rules(security_group_id=sg_id)[
         "security_group_rules"
@@ -59,7 +59,7 @@ def add_rules_to_security_group(sg_id, rules, remote_sg_id):
 
 
 def attach_security_group_to_instance(instance_id, security_group_name):
-    nova = OpenStackClient.get_nova()
+    nova = OpenStackClient().get_nova()
 
     server = nova.servers.find(name=instance_id)
     security_groups = server.list_security_group()

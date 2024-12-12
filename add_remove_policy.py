@@ -3,8 +3,8 @@ from cluster_state import ClusterState
 
 
 def add_policy(pol: Policy) -> None:
-    mapping = ClusterState.get_map()
-    if pol.sel not in ClusterState.get_map():
+    mapping = ClusterState().get_map()
+    if pol.sel not in ClusterState().get_map():
         mapping[pol.sel] = MapEntry()
     mapping[pol.sel].select_pols.append(pol)
     if not isinstance(pol.allow, CIDR):
@@ -14,7 +14,7 @@ def add_policy(pol: Policy) -> None:
 
 
 def remove_policy(pol: Policy) -> None:
-    mapping = ClusterState.get_map()
+    mapping = ClusterState().get_map()
     s = mapping[pol.sel]
     a = mapping[pol.allow]
     s.select_pols.remove(pol)

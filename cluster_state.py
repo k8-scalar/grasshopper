@@ -39,15 +39,15 @@ class ClusterState:
         # Get all nodes
         nodes = v1.list_node().items
         for node in nodes:
-            ClusterState.nodes.append(Node(name=node.metadata.name))
+            ClusterState().nodes.append(Node(name=node.metadata.name))
 
         # Get all pods
         pods = v1.list_pod_for_all_namespaces().items
         for pod in pods:
             node_name = pod.spec.node_name
-            node = next((n for n in ClusterState.nodes if n.name == node_name), None)
+            node = next((n for n in ClusterState().nodes if n.name == node_name), None)
             if node:
-                ClusterState.pods.append(
+                ClusterState().pods.append(
                     Pod(
                         name=pod.metadata.name,
                         label_set=LabelSet(labels=pod.metadata.labels),
@@ -81,7 +81,7 @@ class ClusterState:
                                     )
 
                                     # Append the policy to the ClusterState
-                                    ClusterState.policies.append(
+                                    ClusterState().policies.append(
                                         Policy(
                                             name=policy.metadata.name,
                                             sel=select_set,
@@ -106,7 +106,7 @@ class ClusterState:
                                 )
 
                                 # Append the policy to the ClusterState
-                                ClusterState.policies.append(
+                                ClusterState().policies.append(
                                     Policy(
                                         name=policy.metadata.name,
                                         sel=select_set,
@@ -118,80 +118,80 @@ class ClusterState:
         if is_openstack():
             from openstackfiles.openstack_client import OpenStackClient
 
-            neutron = OpenStackClient.get_neutron()
+            neutron = OpenStackClient().get_neutron()
             security_groups = neutron.list_security_groups()["security_groups"]
             for sg in security_groups:
-                ClusterState.security_groups[sg["name"]] = SecurityGroup(
+                ClusterState().security_groups[sg["name"]] = SecurityGroup(
                     name=sg["name"], id=sg["id"]
                 )
 
     @staticmethod
     def get_map():
-        return ClusterState.map
+        return ClusterState().map
 
     @staticmethod
     def add_map_entry(label_set: LabelSet, map_entry: MapEntry):
-        ClusterState.map.update({label_set: map_entry})
+        ClusterState().map.update({label_set: map_entry})
 
     @staticmethod
     def get_nodes():
-        return ClusterState.nodes
+        return ClusterState().nodes
 
     @staticmethod
     def add_node(node: Node):
-        ClusterState.nodes.append(node)
+        ClusterState().nodes.append(node)
 
     @staticmethod
     def get_pods():
-        return ClusterState.pods
+        return ClusterState().pods
 
     @staticmethod
     def get_pods_by_node(node: Node):
-        return set(filter(lambda pod: pod.node == node, ClusterState.pods))
+        return set(filter(lambda pod: pod.node == node, ClusterState().pods))
 
     @staticmethod
     def add_pod(pod: Pod):
-        ClusterState.pods.append(pod)
+        ClusterState().pods.append(pod)
 
     @staticmethod
     def remove_pod(pod: Pod):
-        ClusterState.pods.remove(pod)
+        ClusterState().pods.remove(pod)
 
     @staticmethod
     def get_policies():
-        return ClusterState.policies
+        return ClusterState().policies
 
     @staticmethod
     def add_policy(pol: Policy):
-        ClusterState.policies.append(pol)
+        ClusterState().policies.append(pol)
 
     @staticmethod
     def get_map_entry(label_set: LabelSet):
-        return ClusterState.map.get(label_set)
+        return ClusterState().map.get(label_set)
 
     @staticmethod
     def add_match_node_to_map_entry(label_set: LabelSet, node: Node):
-        if label_set in ClusterState.map:
-            ClusterState.map[label_set].matchNodes.add(node)
+        if label_set in ClusterState().map:
+            ClusterState().map[label_set].matchNodes.add(node)
         else:
             # Handle the case where the label_set is not in the map
-            ClusterState.map[label_set] = MapEntry(matchNodes={node})
+            ClusterState().map[label_set] = MapEntry(matchNodes={node})
 
     @staticmethod
     def remove_match_node_from_map_entry(label_set: LabelSet, node: Node):
-        if label_set in ClusterState.map:
-            ClusterState.map[label_set].matchNodes.remove(node)
+        if label_set in ClusterState().map:
+            ClusterState().map[label_set].matchNodes.remove(node)
         else:
             # Handle the case where the label_set is not in the map
             raise Exception("LabelSet not found in the map")
 
     @staticmethod
     def get_label_sets():
-        return ClusterState.map.keys()
+        return ClusterState().map.keys()
 
     @staticmethod
     def get_security_groups():
-        return ClusterState.security_groups
+        return ClusterState().security_groups
 
     # print out a nice / clear representation of the cluster state.
     @staticmethod
@@ -200,36 +200,36 @@ class ClusterState:
         print("Cluster State:")
 
         print("Nodes:")
-        if ClusterState.nodes:
-            for node in ClusterState.nodes:
+        if ClusterState().nodes:
+            for node in ClusterState().nodes:
                 print(f"  - {node}")
         else:
             print("  None")
 
         print("\nPods:")
-        if ClusterState.pods:
-            for pod in ClusterState.pods:
+        if ClusterState().pods:
+            for pod in ClusterState().pods:
                 print(f"  - {pod}")
         else:
             print("  None")
 
         print("\nPolicies:")
-        if ClusterState.policies:
-            for policy in ClusterState.policies:
+        if ClusterState().policies:
+            for policy in ClusterState().policies:
                 print(f"  - {policy}")
         else:
             print("  None")
 
         print("\nSecurity Groups:")
-        if ClusterState.security_groups:
-            for name, sg in ClusterState.security_groups.items():
+        if ClusterState().security_groups:
+            for name, sg in ClusterState().security_groups.items():
                 print(f"  - {name}: {sg}")
         else:
             print("  None")
 
         print("\nLabel Sets to Map Entries:")
-        if ClusterState.map:
-            for label_set, map_entry in ClusterState.map.items():
+        if ClusterState().map:
+            for label_set, map_entry in ClusterState().map.items():
                 print(f"  - {label_set}: {map_entry}")
         else:
             print("  None")

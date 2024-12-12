@@ -10,11 +10,11 @@ class SecurityGroupModule:
         pass
 
     def SGn(n: Node) -> SecurityGroup:
-        return ClusterState.get_security_groups().get("SG-" + n.name)
+        return ClusterState().get_security_groups().get("SG-" + n.name)
 
     def add_rule_to_remotes(SG: SecurityGroup, rule: Rule) -> None:
         print(f"Adding rule {rule.id} to {SG.name}")
-        neutron = OpenStackClient.get_neutron()
+        neutron = OpenStackClient().get_neutron()
         rule = neutron.create_security_group_rule(
             {
                 "security_group_rule": {
@@ -33,7 +33,7 @@ class SecurityGroupModule:
 
     def remove_rule_from_remotes(SG: SecurityGroup, rule: Rule) -> None:
         print(f"Removing rule {rule.id} from {SG.name}")
-        neutron = OpenStackClient.get_neutron()
+        neutron = OpenStackClient().get_neutron()
         neutron.delete_security_group_rule(security_group_rule=rule.id)
         SG.remotes.remove(rule)
 
