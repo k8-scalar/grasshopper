@@ -1,6 +1,6 @@
 from classes import CIDR, Node, Policy, Rule, SecurityGroup
 from cluster_state import ClusterState
-from openstack.openstack_client import OpenStackClient
+from openstackfiles.openstack_client import OpenStackClient
 
 
 # A class to encompass all functionality of actually manipulating the SG's

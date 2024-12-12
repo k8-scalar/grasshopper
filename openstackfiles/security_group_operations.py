@@ -1,4 +1,4 @@
-from openstack.openstack_client import OpenStackClient
+from openstackfiles.openstack_client import OpenStackClient
 
 
 def create_security_group_if_not_exists(sg_name, description):

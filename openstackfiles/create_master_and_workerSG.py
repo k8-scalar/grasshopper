@@ -1,6 +1,6 @@
 from kubernetes import client, config
-from openstack.openstack_client import OpenStackClient
-from openstack.security_group_operations import (
+from openstackfiles.openstack_client import OpenStackClient
+from openstackfiles.security_group_operations import (
     add_rules_to_security_group,
     attach_security_group_to_instance,
     create_security_group_if_not_exists,

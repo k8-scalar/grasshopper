@@ -33,8 +33,8 @@ def main():
     if distributed:
         print("Running in distributed mode")
         if is_openstack():
-            from openstack.add_distributed_gh_rules import add_rpc_rules
-            from openstack.openstack_client import OpenStackClient
+            from openstackfiles.add_distributed_gh_rules import add_rpc_rules
+            from openstackfiles.openstack_client import OpenStackClient
 
             neutron = OpenStackClient.get_neutron()
 

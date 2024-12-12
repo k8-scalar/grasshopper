@@ -1,4 +1,4 @@
-from openstack.openstack_client import OpenStackClient
+from openstackfiles.openstack_client import OpenStackClient
 from kubernetes import client, config
 
 

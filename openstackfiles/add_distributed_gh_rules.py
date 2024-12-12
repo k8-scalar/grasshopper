@@ -1,5 +1,5 @@
 from kubelet_watch_server import master_port
-from openstack.security_group_operations import add_rules_to_security_group
+from openstackfiles.security_group_operations import add_rules_to_security_group
 
 MASTER_SG_RULES = [
     # Ingress rules for masterSG

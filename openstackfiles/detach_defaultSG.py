@@ -1,5 +1,5 @@
 from kubernetes import client, config
-from openstack.openstack_client import OpenStackClient
+from openstackfiles.openstack_client import OpenStackClient
 
 
 def detach_defaultSG():
