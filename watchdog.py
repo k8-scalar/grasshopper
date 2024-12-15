@@ -33,15 +33,15 @@ class WatchDog:
     def handle_modified_policy(self, pol: Policy):
         pass
 
-    # functions to handle added / removed / modified pods.
+    # functions to handle added / removed pods.
     def handle_new_pod(self, pod: Pod):
-        #Only handle the new pod once.
-        # if pod in ClusterState.get_pods():
-        #     return
+        # Only handle the new pod once.
+        if pod in ClusterState().get_pods():
+            print(f"Pod {pod.name} already exists in the cluster.")
+            return
 
         print(f"New pod: {pod.name}, on node: {pod.node.name}")
-        # ClusterState.add_pod(pod)
-        # ClusterState.print()
+        ClusterState().add_pod(pod)
 
         for label_set in filter(
             lambda L: matching(L, pod), ClusterState().get_label_sets()
@@ -54,12 +54,12 @@ class WatchDog:
 
     def handle_removed_pod(self, pod: Pod):
         # Only handle removed pod event once.
-        # if pod not in ClusterState.get_pods():
-        #     return
+        if pod not in ClusterState().get_pods():
+            print(f"Pod {pod.name} does not exist in the cluster.")
+            return
 
         print(f"Removed pod: {pod.name}, on node: {pod.node.name}")
-        # ClusterState.remove_pod(pod)
-        # ClusterState.print()
+        ClusterState().remove_pod(pod)
 
         n = pod.node
         pod.node = None
