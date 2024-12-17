@@ -1,5 +1,6 @@
 from classes import CIDR, Node, Policy, Rule, SecurityGroup
 from cluster_state import ClusterState
+from helpers import rule_from
 from openstackfiles.openstack_client import OpenStackClient
 
 
@@ -39,7 +40,7 @@ class SecurityGroupModule:
 
     def SG_add_conn(pol: Policy, n: Node, m: Node) -> None:
         print(f"Adding connection from {n.name} to {m.name}")
-        rule: Rule = SecurityGroupModule.rule_from(pol, m)
+        rule: Rule = rule_from(pol, m)
         if rule not in SecurityGroupModule.SGn(n).remotes:
             SecurityGroupModule.add_rule_to_remotes(SecurityGroupModule.SGn(n), rule)
 
@@ -49,5 +50,5 @@ class SecurityGroupModule:
             if SecurityGroupModule.traffic_pols(pol.allow, n, m) != pol:
                 return
             SecurityGroupModule.remove_rule_from_remotes(
-                SecurityGroupModule.SGn(n), SecurityGroupModule.rule_from(pol, m)
+                SecurityGroupModule.SGn(n), rule_from(pol, m)
             )
