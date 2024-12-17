@@ -7,6 +7,15 @@ class Traffic:
     def __str__(self):
         return f"Traffic(direction={self.direction}, port={self.port}, protocol={self.protocol})"
 
+    def __eq__(self, other):
+        if isinstance(other, Traffic):
+            return (
+                self.direction == other.direction
+                and self.port == other.port
+                and self.protocol == other.protocol
+            )
+        return False
+
 
 class LabelSet:
     def __init__(self, labels: dict[str, str]):
@@ -21,6 +30,11 @@ class LabelSet:
     def __str__(self):
         return f"LabelSet(labels={self.labels})"
 
+    def __eq__(self, other):
+        if isinstance(other, LabelSet):
+            return self.labels == other.labels
+        return False
+
 
 class CIDR:
     def __init__(self, cidr: str):
@@ -28,6 +42,11 @@ class CIDR:
 
     def __str__(self):
         return f"CIDR(cidr={self.cidr})"
+
+    def __eq__(self, other):
+        if isinstance(other, CIDR):
+            return self.cidr == other.cidr
+        return False
 
 
 class Policy:
@@ -42,6 +61,15 @@ class Policy:
         allow_str = ", ".join(str(item) for item in self.allow)
         return f"Policy(name={self.name}, sel={self.sel}, allow=[{allow_str}])"
 
+    def __eq__(self, other):
+        if isinstance(other, Policy):
+            return (
+                self.name == other.name
+                and self.sel == other.sel
+                and self.allow == other.allow
+            )
+        return False
+
 
 class SecurityGroup:
     def __init__(self, id: str, name: str):
@@ -53,6 +81,11 @@ class SecurityGroup:
         remotes_str = ", ".join(str(item) for item in self.remotes)
         return f"SecurityGroup(id={self.id}, name={self.name}, remotes={remotes_str})"
 
+    def __eq__(self, other):
+        if isinstance(other, SecurityGroup):
+            return self.id == other.id and self.name == other.name
+        return False
+
 
 class Node:
     def __init__(self, name: str):
@@ -60,6 +93,11 @@ class Node:
 
     def __str__(self):
         return f"Node(name={self.name})"
+
+    def __eq__(self, other):
+        if isinstance(other, Node):
+            return self.name == other.name
+        return False
 
 
 class Pod:
