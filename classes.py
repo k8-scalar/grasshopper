@@ -3,12 +3,9 @@ class Traffic:
         self.direction = direction
         self.port = port
         self.protocol = protocol
-
-    def __eq__(self, other):
-        if not isinstance(other, Traffic):
-            return False
-        return (self.direction == other.direction and self.port == other.port and 
-               self.protocol == other.protocol)
+    
+    def __hash__(self):
+        return hash(str(self.direction) + str(self.port) + str(self.protocol))
 
     def __str__(self):
         return f"Traffic(direction={self.direction}, port={self.port}, protocol={self.protocol})"
@@ -25,14 +22,12 @@ class Traffic:
 
 class LabelSet:
     def __init__(self, labels: dict[str, str]):
-        self.labels = labels
-
-    def __init__(self):
-        self.labels = dict()
+        self.labels: dict[str, str] = labels
         self.string_repr = self.get_string_repr()
 
-    def add_label(key, value):
-        self.labels.update({key: value})
+    #Get the unique string-representation of the LabelSet.
+    def get_string_repr(self):
+        return "".join(f'{k}:{v}' for k, v in sorted(self.labels.items()))
 
     def issubset(self, other):
         return all(
@@ -40,24 +35,23 @@ class LabelSet:
             for key, value in self.labels.items()
         )
 
-    def get_string_repr(self):
-        """
-        Returns the labelset in string-representation. (as defined in GrassHopper paper.)
-        """
-        pass
+    def __eq__(self, other): 
+        if not isinstance(other, LabelSet):
+            return False
+        return self.string_repr == other.string_repr
+
+    def __hash__(self):
+        return hash(self.string_repr)
 
     def __str__(self):
         return f"LabelSet(labels={self.labels})"
 
-    def __eq__(self, other):
-        if isinstance(other, LabelSet):
-            return self.labels == other.labels
-        return False
 
 
 class CIDR:
     def __init__(self, cidr: str):
         self.cidr = cidr
+        # self._except = _except
 
     def __str__(self):
         return f"CIDR(cidr={self.cidr})"
@@ -72,35 +66,27 @@ class Policy:
     def __init__(
         self, name: str, sel: LabelSet, allow: list[tuple[LabelSet | CIDR, Traffic]]
     ):
-<<<<<<< Updated upstream
-        self.name: str = name
-        self.sel: LabelSet = sel
-        self.allow: set[tuple[LabelSet | CIDR, Traffic]] = allow
-=======
         self.name:  str = name
         self.sel:   LabelSet = sel
         self.allow: list[tuple[LabelSet | CIDR, Traffic]] = allow
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+
+    def __eq__(self, other): 
+        if not isinstance(other, Policy):
+            return False
+        return (self.name, self.sel, self.allow) == (other.name, other.sel, other.allow)
+
+    def __hash__(self):
+        allow_tuple = tuple(item for item in self.allow)
+        return hash((self.name, self.sel, allow_tuple))
 
     def __str__(self):
-        allow_str = ", ".join(str(item) for item in self.allow)
+        # allow_str = ", ".join(str(item) for item in self.allow)
+        allow_str = "\n"
+        for allow_rule in self.allow:
+            allow_tuple_str = f"({str(allow_rule[0])}, {str(allow_rule[1])})"
+            allow_str += f"{allow_tuple_str} \n"
+        
         return f"Policy(name={self.name}, sel={self.sel}, allow=[{allow_str}])"
-
-    def __eq__(self, other):
-        if isinstance(other, Policy):
-            return (
-                self.name == other.name
-                and self.sel == other.sel
-                and self.allow == other.allow
-            )
-        return False
-
 
 class SecurityGroup:
     def __init__(self, id: str, name: str):
@@ -188,8 +174,23 @@ class MapEntry:
         self.select_pols: set[Policy] = set()
         self.allow_pols: set[Policy] = set()
 
+    def add_select_policy(self, pol: Policy):
+        self.select_pols.add(pol)
+    
+    def add_allow_policy(self, pol: Policy):
+        self.allow_pols.add(pol)
+
+
     def __str__(self):
+        select_pols_str = "[" + ", ".join(f"{pol.name}" for pol in self.select_pols) + "]"
+        allow_pols_str =  "[" + ", ".join(f"{pol.name}" for pol in self.allow_pols) + "]"
+
         return (
             f"MapEntry(match_nodes={self.match_nodes}, "
-            f"select_pols={self.select_pols}, allow_pols={self.allow_pols})"
+            f"select_pols={select_pols_str}, allow_pols={allow_pols_str})"
         )
+
+
+if __name__ == "__main__":
+    labelset = LabelSet(dict({"role": "db", "end": "frontend"}))
+    print(labelset.get_string_repr())

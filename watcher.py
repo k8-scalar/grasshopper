@@ -257,67 +257,73 @@ class Watcher:
         selected = None
         if pod_selector.match_labels:
             selected = Watcher.create_selected(pod_selector.match_labels)
-
-        # Construct allow-set.
-        allow_set = set()
+        else: 
+            selected = LabelSet(dict())
+  
+        #Construct allow-list.
+        allow_list = []
         if ingress:
-            allow_set_ingress = Watcher.create_allow_set_ingress(ingress)
-            allow_set = allow_set | allow_set_ingress
-
+            allow_list_ingress = Watcher.create_allow_list_ingress(ingress)
+            allow_list = allow_list + allow_list_ingress
+        
         if egress:
-            allow_set_egress = Watcher.create_allow_set_egress(egress)
-            allow_set = allow_set | allow_set_egress
+            allow_list_egress = Watcher.create_allow_list_egress(egress)
+            allow_list = allow_list + allow_list_egress
 
-        return Policy(name, selected, allow_set)
+        return Policy(name, selected, allow_list)
 
     @staticmethod
-    def create_allow_set_ingress(ingress_list) -> set[tuple[str, Traffic]]:
-        allow_tuples = set()
+    def create_allow_list_ingress(ingress_list) -> list[tuple[LabelSet | CIDR, Traffic]]: 
+        allow_list = []
         for ingress in ingress_list:
             if ingress._from:
                 for entry in ingress._from:
-                    label_set_string = ""
-                    if entry.ip_block:
-                        label_set_string = str(entry.ip_block.cidr)
-                    else:
-                        label_set_string = (
-                            Watcher.create_labelset_string_from_selectors(entry)
-                        )
+                    #parse the field to create labelset.
+                    labelset = Watcher.parse_networkpolicypeer_field(entry)
 
-                    # If there is a selector and ports
-                    if label_set_string and ingress.ports:
-                        # Combine labelset strings and ports, to create all pairs.
-                        for port in ingress.ports:
+                    #if there is a ports-field.
+                    if ingress.ports:
+                        #Create allow-tuples.
+                        for port in ingress.ports: 
                             traffic = Traffic("Ing", port.port, port.protocol)
-                            tupple = (label_set_string, str(traffic))
+                            tupple = (labelset, traffic)    
+                            
+                            allow_list.append(tupple)                   
 
-                            allow_tuples.add(tupple)
-
-        return allow_tuples
-
+        return allow_list
+    
     @staticmethod
-    def create_allow_set_egress(egress_list):
-        allow_tuples = set()
+    def create_allow_list_egress(egress_list): 
+        allow_list = []
         for egress in egress_list:
             if egress.to:
                 for entry in egress.to:
-                    label_set_string = ""
-                    if entry.ip_block:
-                        label_set_string = str(entry.ip_block.cidr)
-                    else:
-                        label_set_string = (
-                            Watcher.create_labelset_string_from_selectors(entry)
-                        )
+                    labelset = Watcher.parse_networkpolicypeer_field(entry)
 
-                    if label_set_string and egress.ports:
-                        for port in egress.ports:
+                    #if there is a ports-field. 
+                    if egress.ports:
+                        for port in egress.ports: 
                             traffic = Traffic("Eg", port.port, port.protocol)
-                            tupple = (label_set_string, str(traffic))
+                            tupple = (labelset, traffic)    
+                            
+                            allow_list.append(tupple)                   
 
-                            allow_tuples.add(tupple)
+        return allow_list
 
-        return allow_tuples
+    @staticmethod
+    def parse_networkpolicypeer_field(entry) -> LabelSet:
+        labels = dict()
+        if entry.ip_block:
+            return CIDR(str(entry.ip_block.cidr))
+        else: 
+            if entry.namespace_selector and entry.namespace_selector.match_labels:
+                labels.update(entry.namespace_selector.match_labels)
+            if entry.pod_selector and entry.pod_selector.match_labels:
+                labels.update(entry.pod_selector.match_labels)
 
+            return LabelSet(labels)
+
+    #currently not used.
     @staticmethod
     def create_labelset_string_from_selectors(entry) -> str:
         """
@@ -358,9 +364,10 @@ class Watcher:
         """
         This method creates the selected-attribute from a given podSelector-field.
         """
-        keys_concatenated = "".join(key for key in label_set.keys())
-        values_concatenated = "".join(value for value in label_set.values())
-        return keys_concatenated + ":" + values_concatenated
+        # keys_concatenated = ''.join(key for key in label_set.keys())
+        # values_concatenated = ''.join(value for value in label_set.values())
+        # return keys_concatenated + ":" + values_concatenated
+        return LabelSet(label_set)
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ class WatchDog:
     def split(pol_new) -> list[Policy]:
         sub_policies: list[Policy] = []
         for allow_rule in pol_new.allow:
-            sub_pol = Policy(pol_new.name, pol_new.sel, allow_rule)
+            sub_pol = Policy(pol_new.name, pol_new.sel, [allow_rule])
             sub_policies.append(sub_pol)
 
         return sub_policies
@@ -24,9 +24,10 @@ class WatchDog:
     @staticmethod
     def policy_check(pol_new) -> bool:
         passed: set[Policy] = ClusterState.get_policies()
-
+        # print("Splitted policies: ", WatchDog.split(pol_new))
         for pol in WatchDog.split(pol_new):
-            if WatchDog.permissive(pol_new) or WatchDog.conflicting(pol, passed) or WatchDog.redundant(pol, passed):
+            print("Splitted policy: ", pol)
+            if WatchDog.permissive(pol) or WatchDog.conflicting(pol, passed) or WatchDog.redundant(pol, passed):
                 print("Policy check failed. Aborting...")
                 return False
             else:
@@ -36,11 +37,15 @@ class WatchDog:
     @staticmethod
     def conflicting(pol_new, pols) -> bool:
         for pol in ClusterState.get_policies():
-            if pol_new.sel.issubset(pol):
+            if pol_new.sel.issubset(pol.sel):
                 for labelset_new, traffic_new in pol_new.allow:
+                    if not isinstance(labelset_new, LabelSet):
+                        continue
                     for labelset, traffic in pol.allow:
+                        if not isinstance(labelset, LabelSet):
+                            continue
                         if (traffic_new == traffic and labelset_new.issubset(labelset) and
-                            (pol_new.sel != pol.sel or label_set_new != label_set)):
+                            (pol_new.sel != pol.sel or labelset_new != labelset)):
                                 return True
         return False
 
@@ -51,9 +56,13 @@ class WatchDog:
             if pol.sel.issubset(pol_new.sel):
                 is_redundant = True
                 for labelset_new, traffic_new in pol_new.allow:
+                    if not isinstance(labelset_new, LabelSet):
+                        continue
                     exists_match = False
                     for labelset, traffic in pol.allow:
-                        if traffic_new == traffic and labelset.issubset(label_set_new):
+                        if not isinstance(labelset, LabelSet):
+                            continue
+                        if traffic_new == traffic and labelset.issubset(labelset_new):
                             exists_match = True
                     if exists_match == False:
                         return False
@@ -70,65 +79,45 @@ class WatchDog:
     
     # functions to handle added / removed / modified policies.
     def handle_new_policy(self, pol: Policy):
-        print(pol)
-
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        # if self.verify_policy(pol):
-        #     # Update the cluster state.
-        #     # should call the matcher object to handle
-        #     pass
-        # else:
-        #     self.report_policy(pol)
-
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-        if self.verify_policy(pol):
-            # Update the cluster state.
-            # should call the matcher object to handle
+        verified = self.verify_policy(pol)
+        
+        if verified:
             print(f"Passed policy check, adding new policy: {pol.name} to cluster state.")
 
-            # for spol in WatchDog.split(pol):
-            #     WatchDog.add_policy(spol)
-            # for node in ClusterState.get_nodes():
-            #     if running(spol.sel, node):
-            #         ClusterState.add_match_node_to_map_entry(spol.sel, node)
-            # if isinstance(spol.allow, Labelset):
-            #     for node in ClusterState.get_nodes():
-            #         if running(spol.allow, node):
-            #             ClusterState.add_match_node_to_map_entry(spol.allow, node)
+            for spol in WatchDog.split(pol):
+                WatchDog.add_policy(spol)
+                for node in ClusterState.get_nodes():
+                    if running(spol.sel, node):
+                        ClusterState.add_match_node_to_map_entry(spol.sel, node)
+                if isinstance(spol.allow, LabelSet):
+                    for node in ClusterState.get_nodes():
+                        if running(spol.allow, node):
+                            ClusterState.add_match_node_to_map_entry(spol.allow, node)
+                #self.matcher.SG_config_new_pol(spol)
+                ClusterState.print()
         else:
+            print("Reporting policicy...")
             self.report_policy(pol)
-    
->>>>>>> Stashed changes
+
+    @staticmethod
+    def add_policy(pol: Policy): #Adding the policy to ClusterState.
+        if not ClusterState.get_map_entry(pol.sel):
+            map_entry = MapEntry()
+            ClusterState.add_map_entry(pol.sel, map_entry)
+        ClusterState.get_map_entry(pol.sel).add_select_policy(pol)
+
+        if not isinstance(pol.allow, CIDR):
+            if not ClusterState.get_map_entry(pol.allow[0][0]):
+                map_entry = MapEntry()
+                ClusterState.add_map_entry(pol.allow[0][0], map_entry)
+            ClusterState.get_map_entry(pol.allow[0][0]).add_allow_policy(pol)
+
+        print("Succesfully added policy to ClusterState")
+
     def handle_removed_policy(self, pol: Policy):
         print(pol)
 
     def handle_modified_policy(self, pol: Policy):
-        pass
-
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    # functions to handle added / removed pods.
-=======
-    @staticmethod
-    def add_policy(pol: Policy): #Adding the policy to ClusterState.
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-    @staticmethod
-    def add_policy(pol: Policy): #Adding the policy to ClusterState.
         pass
 
     # functions to handle added / removed / modified pods.
@@ -152,11 +141,9 @@ class WatchDog:
 
     def handle_modified_pod(self, pod: Pod):
         print(f"Modified pod: {pod.name}, on node: {pod.node.name}")
->>>>>>> Stashed changes
         pass
 
     # functions to handle added / removed / modified pods.
->>>>>>> Stashed changes
     def handle_new_pod(self, pod: Pod):
         # Only handle the new pod once.
         if pod in ClusterState().get_pods():
