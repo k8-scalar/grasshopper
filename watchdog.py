@@ -74,6 +74,8 @@ class WatchDog:
 
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
         # if self.verify_policy(pol):
         #     # Update the cluster state.
         #     # should call the matcher object to handle
@@ -82,6 +84,10 @@ class WatchDog:
         #     self.report_policy(pol)
 
 =======
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
         if self.verify_policy(pol):
@@ -110,11 +116,17 @@ class WatchDog:
 
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
     # functions to handle added / removed pods.
 =======
     @staticmethod
     def add_policy(pol: Policy): #Adding the policy to ClusterState.
 =======
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
     @staticmethod
     def add_policy(pol: Policy): #Adding the policy to ClusterState.
         pass

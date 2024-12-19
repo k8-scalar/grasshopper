@@ -80,6 +80,12 @@ class Policy:
         self.name:  str = name
         self.sel:   LabelSet = sel
         self.allow: list[tuple[LabelSet | CIDR, Traffic]] = allow
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
     def __str__(self):
