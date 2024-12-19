@@ -73,6 +73,7 @@ class WatchDog:
         print(pol)
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         # if self.verify_policy(pol):
         #     # Update the cluster state.
         #     # should call the matcher object to handle
@@ -81,6 +82,8 @@ class WatchDog:
         #     self.report_policy(pol)
 
 =======
+=======
+>>>>>>> Stashed changes
         if self.verify_policy(pol):
             # Update the cluster state.
             # should call the matcher object to handle
@@ -106,10 +109,38 @@ class WatchDog:
         pass
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     # functions to handle added / removed pods.
 =======
     @staticmethod
     def add_policy(pol: Policy): #Adding the policy to ClusterState.
+=======
+    @staticmethod
+    def add_policy(pol: Policy): #Adding the policy to ClusterState.
+        pass
+
+    # functions to handle added / removed / modified pods.
+    def handle_new_pod(self, pod: Pod):
+        #Only handle the new pod once.
+        # if pod in ClusterState.get_pods():
+        #     return
+
+        print(f"New pod: {pod.name}, on node: {pod.node.name}")
+        # ClusterState.add_pod(pod)
+        # ClusterState.print()
+
+        for label_set in filter(
+            lambda L: matching(L, pod), ClusterState.get_label_sets()
+        ):
+            map_entry = ClusterState.get_map_entry(label_set)
+            if map_entry is None or pod.node not in map_entry.matchNodes:
+                # 'pod' is the first pod on n to match L
+                ClusterState.add_match_node_to_map_entry(label_set, pod.node)
+                self.matcher.SG_config_new_pod(label_set, pod.node)
+
+    def handle_modified_pod(self, pod: Pod):
+        print(f"Modified pod: {pod.name}, on node: {pod.node.name}")
+>>>>>>> Stashed changes
         pass
 
     # functions to handle added / removed / modified pods.

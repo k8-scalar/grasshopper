@@ -72,9 +72,15 @@ class Policy:
     def __init__(
         self, name: str, sel: LabelSet, allow: list[tuple[LabelSet | CIDR, Traffic]]
     ):
+<<<<<<< Updated upstream
         self.name: str = name
         self.sel: LabelSet = sel
         self.allow: set[tuple[LabelSet | CIDR, Traffic]] = allow
+=======
+        self.name:  str = name
+        self.sel:   LabelSet = sel
+        self.allow: list[tuple[LabelSet | CIDR, Traffic]] = allow
+>>>>>>> Stashed changes
 
     def __str__(self):
         allow_str = ", ".join(str(item) for item in self.allow)
