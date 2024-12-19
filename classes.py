@@ -4,6 +4,12 @@ class Traffic:
         self.port = port
         self.protocol = protocol
 
+    def __eq__(self, other):
+        if not isinstance(other, Traffic):
+            return False
+        return (self.direction == other.direction and self.port == other.port and 
+               self.protocol == other.protocol)
+
     def __str__(self):
         return f"Traffic(direction={self.direction}, port={self.port}, protocol={self.protocol})"
 
@@ -21,11 +27,24 @@ class LabelSet:
     def __init__(self, labels: dict[str, str]):
         self.labels = labels
 
+    def __init__(self):
+        self.labels = dict()
+        self.string_repr = self.get_string_repr()
+
+    def add_label(key, value):
+        self.labels.update({key: value})
+
     def issubset(self, other):
         return all(
             key in other.labels and other.labels[key] == value
             for key, value in self.labels.items()
         )
+
+    def get_string_repr(self):
+        """
+        Returns the labelset in string-representation. (as defined in GrassHopper paper.)
+        """
+        pass
 
     def __str__(self):
         return f"LabelSet(labels={self.labels})"
@@ -162,8 +181,3 @@ class MapEntry:
             f"MapEntry(match_nodes={self.match_nodes}, "
             f"select_pols={self.select_pols}, allow_pols={self.allow_pols})"
         )
-
-
-class PodEvent:
-    def __init__(self):
-        pass
