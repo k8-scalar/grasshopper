@@ -27,7 +27,11 @@ class WatchDog:
         # print("Splitted policies: ", WatchDog.split(pol_new))
         for pol in WatchDog.split(pol_new):
             print("Splitted policy: ", pol)
-            if WatchDog.permissive(pol) or WatchDog.conflicting(pol, passed) or WatchDog.redundant(pol, passed):
+            if (
+                WatchDog.permissive(pol)
+                or WatchDog.conflicting(pol, passed)
+                or WatchDog.redundant(pol, passed)
+            ):
                 print("Policy check failed. Aborting...")
                 return False
             else:
@@ -44,9 +48,12 @@ class WatchDog:
                     for labelset, traffic in pol.allow:
                         if not isinstance(labelset, LabelSet):
                             continue
-                        if (traffic_new == traffic and labelset_new.issubset(labelset) and
-                            (pol_new.sel != pol.sel or labelset_new != labelset)):
-                                return True
+                        if (
+                            traffic_new == traffic
+                            and labelset_new.issubset(labelset)
+                            and (pol_new.sel != pol.sel or labelset_new != labelset)
+                        ):
+                            return True
         return False
 
     @staticmethod
@@ -76,13 +83,15 @@ class WatchDog:
     # report the policy to offenders. (if not verified)
     def report_policy(self, pol):
         pass
-    
+
     # functions to handle added / removed / modified policies.
     def handle_new_policy(self, pol: Policy):
         verified = self.verify_policy(pol)
-        
+
         if verified:
-            print(f"Passed policy check, adding new policy: {pol.name} to cluster state.")
+            print(
+                f"Passed policy check, adding new policy: {pol.name} to cluster state."
+            )
 
             for spol in WatchDog.split(pol):
                 WatchDog.add_policy(spol)
@@ -118,29 +127,6 @@ class WatchDog:
         print(pol)
 
     def handle_modified_policy(self, pol: Policy):
-        pass
-
-    # functions to handle added / removed / modified pods.
-    def handle_new_pod(self, pod: Pod):
-        #Only handle the new pod once.
-        # if pod in ClusterState.get_pods():
-        #     return
-
-        print(f"New pod: {pod.name}, on node: {pod.node.name}")
-        # ClusterState.add_pod(pod)
-        # ClusterState.print()
-
-        for label_set in filter(
-            lambda L: matching(L, pod), ClusterState.get_label_sets()
-        ):
-            map_entry = ClusterState.get_map_entry(label_set)
-            if map_entry is None or pod.node not in map_entry.matchNodes:
-                # 'pod' is the first pod on n to match L
-                ClusterState.add_match_node_to_map_entry(label_set, pod.node)
-                self.matcher.SG_config_new_pod(label_set, pod.node)
-
-    def handle_modified_pod(self, pod: Pod):
-        print(f"Modified pod: {pod.name}, on node: {pod.node.name}")
         pass
 
     # functions to handle added / removed / modified pods.

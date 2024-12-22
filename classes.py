@@ -3,7 +3,7 @@ class Traffic:
         self.direction = direction
         self.port = port
         self.protocol = protocol
-    
+
     def __hash__(self):
         return hash(str(self.direction) + str(self.port) + str(self.protocol))
 
@@ -25,9 +25,9 @@ class LabelSet:
         self.labels: dict[str, str] = labels
         self.string_repr = self.get_string_repr()
 
-    #Get the unique string-representation of the LabelSet.
+    # Get the unique string-representation of the LabelSet.
     def get_string_repr(self):
-        return "".join(f'{k}:{v}' for k, v in sorted(self.labels.items()))
+        return "".join(f"{k}:{v}" for k, v in sorted(self.labels.items()))
 
     def issubset(self, other):
         return all(
@@ -35,7 +35,7 @@ class LabelSet:
             for key, value in self.labels.items()
         )
 
-    def __eq__(self, other): 
+    def __eq__(self, other):
         if not isinstance(other, LabelSet):
             return False
         return self.string_repr == other.string_repr
@@ -45,7 +45,6 @@ class LabelSet:
 
     def __str__(self):
         return f"LabelSet(labels={self.labels})"
-
 
 
 class CIDR:
@@ -66,11 +65,11 @@ class Policy:
     def __init__(
         self, name: str, sel: LabelSet, allow: list[tuple[LabelSet | CIDR, Traffic]]
     ):
-        self.name:  str = name
-        self.sel:   LabelSet = sel
+        self.name: str = name
+        self.sel: LabelSet = sel
         self.allow: list[tuple[LabelSet | CIDR, Traffic]] = allow
 
-    def __eq__(self, other): 
+    def __eq__(self, other):
         if not isinstance(other, Policy):
             return False
         return (self.name, self.sel, self.allow) == (other.name, other.sel, other.allow)
@@ -85,8 +84,9 @@ class Policy:
         for allow_rule in self.allow:
             allow_tuple_str = f"({str(allow_rule[0])}, {str(allow_rule[1])})"
             allow_str += f"{allow_tuple_str} \n"
-        
+
         return f"Policy(name={self.name}, sel={self.sel}, allow=[{allow_str}])"
+
 
 class SecurityGroup:
     def __init__(self, id: str, name: str):
@@ -176,14 +176,15 @@ class MapEntry:
 
     def add_select_policy(self, pol: Policy):
         self.select_pols.add(pol)
-    
+
     def add_allow_policy(self, pol: Policy):
         self.allow_pols.add(pol)
 
-
     def __str__(self):
-        select_pols_str = "[" + ", ".join(f"{pol.name}" for pol in self.select_pols) + "]"
-        allow_pols_str =  "[" + ", ".join(f"{pol.name}" for pol in self.allow_pols) + "]"
+        select_pols_str = (
+            "[" + ", ".join(f"{pol.name}" for pol in self.select_pols) + "]"
+        )
+        allow_pols_str = "[" + ", ".join(f"{pol.name}" for pol in self.allow_pols) + "]"
 
         return (
             f"MapEntry(match_nodes={self.match_nodes}, "
