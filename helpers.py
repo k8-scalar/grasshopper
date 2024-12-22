@@ -30,8 +30,3 @@ def traffic_pols(traffic: Traffic, n: Node, m: Node) -> Policy | None:
             ]
         ):
             return pol
-
-
-def rule_from(pol: Policy, m: Node) -> Rule:
-    A, traffic = pol.allow
-    return Rule(A if isinstance(A, CIDR) else SecurityGroupModule.SGn(m), traffic)
