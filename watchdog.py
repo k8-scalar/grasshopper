@@ -23,7 +23,7 @@ class WatchDog:
 
     @staticmethod
     def policy_check(pol_new) -> bool:
-        passed: set[Policy] = ClusterState.get_policies()
+        passed: set[Policy] = ClusterState().get_policies()
         # print("Splitted policies: ", WatchDog.split(pol_new))
         for pol in WatchDog.split(pol_new):
             print("Splitted policy: ", pol)
@@ -40,7 +40,7 @@ class WatchDog:
 
     @staticmethod
     def conflicting(pol_new, pols) -> bool:
-        for pol in ClusterState.get_policies():
+        for pol in ClusterState().get_policies():
             if pol_new.sel.issubset(pol.sel):
                 for labelset_new, traffic_new in pol_new.allow:
                     if not isinstance(labelset_new, LabelSet):
@@ -59,7 +59,7 @@ class WatchDog:
     @staticmethod
     def redundant(pol_new, pols) -> bool:
         is_redundant = False
-        for pol in ClusterState.get_policies():
+        for pol in ClusterState().get_policies():
             if pol.sel.issubset(pol_new.sel):
                 is_redundant = True
                 for labelset_new, traffic_new in pol_new.allow:
@@ -95,31 +95,31 @@ class WatchDog:
 
             for spol in WatchDog.split(pol):
                 WatchDog.add_policy(spol)
-                for node in ClusterState.get_nodes():
+                for node in ClusterState().get_nodes():
                     if running(spol.sel, node):
-                        ClusterState.add_match_node_to_map_entry(spol.sel, node)
+                        ClusterState().add_match_node_to_map_entry(spol.sel, node)
                 if isinstance(spol.allow, LabelSet):
-                    for node in ClusterState.get_nodes():
+                    for node in ClusterState().get_nodes():
                         if running(spol.allow, node):
-                            ClusterState.add_match_node_to_map_entry(spol.allow, node)
-                #self.matcher.SG_config_new_pol(spol)
-                ClusterState.print()
+                            ClusterState().add_match_node_to_map_entry(spol.allow, node)
+                # self.matcher.SG_config_new_pol(spol)
+                ClusterState().print()
         else:
             print("Reporting policicy...")
             self.report_policy(pol)
 
     @staticmethod
-    def add_policy(pol: Policy): #Adding the policy to ClusterState.
-        if not ClusterState.get_map_entry(pol.sel):
+    def add_policy(pol: Policy):  # Adding the policy to ClusterState().
+        if not ClusterState().get_map_entry(pol.sel):
             map_entry = MapEntry()
-            ClusterState.add_map_entry(pol.sel, map_entry)
-        ClusterState.get_map_entry(pol.sel).add_select_policy(pol)
+            ClusterState().add_map_entry(pol.sel, map_entry)
+        ClusterState().get_map_entry(pol.sel).add_select_policy(pol)
 
         if not isinstance(pol.allow, CIDR):
-            if not ClusterState.get_map_entry(pol.allow[0][0]):
+            if not ClusterState().get_map_entry(pol.allow[0][0]):
                 map_entry = MapEntry()
-                ClusterState.add_map_entry(pol.allow[0][0], map_entry)
-            ClusterState.get_map_entry(pol.allow[0][0]).add_allow_policy(pol)
+                ClusterState().add_map_entry(pol.allow[0][0], map_entry)
+            ClusterState().get_map_entry(pol.allow[0][0]).add_allow_policy(pol)
 
         print("Succesfully added policy to ClusterState")
 

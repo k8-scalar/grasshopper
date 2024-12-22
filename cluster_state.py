@@ -143,9 +143,9 @@ class ClusterState:
 
     @staticmethod
     def add_map_entry(label_set: LabelSet, map_entry: MapEntry):
-        if label_set.string_repr in ClusterState.map:
+        if label_set.string_repr in ClusterState().map:
             print("labelset already in map")
-        ClusterState.map.update({label_set.string_repr: map_entry})
+        ClusterState().map.update({label_set.string_repr: map_entry})
 
     @staticmethod
     def get_nodes():
@@ -181,7 +181,7 @@ class ClusterState:
 
     @staticmethod
     def get_map_entry(label_set: LabelSet):
-        return ClusterState.map.get(label_set.string_repr)
+        return ClusterState().map.get(label_set.string_repr)
 
     @staticmethod
     def add_match_node_to_map_entry(label_set: LabelSet, node: Node):
