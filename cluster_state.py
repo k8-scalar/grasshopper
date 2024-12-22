@@ -74,7 +74,7 @@ class ClusterState:
                                     allow_tuple = (
                                         LabelSet(labels=allow_labels),
                                         Traffic(
-                                            direction="ingress",
+                                            direction=INGRESS,
                                             port=port.port,
                                             protocol=port.protocol,
                                         ),
@@ -99,7 +99,7 @@ class ClusterState:
                                 allow_tuple = (
                                     LabelSet(labels=allow_labels),
                                     Traffic(
-                                        direction="egress",
+                                        direction=EGRESS,
                                         port=port.port,
                                         protocol=port.protocol,
                                     ),

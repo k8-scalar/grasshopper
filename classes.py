@@ -61,6 +61,10 @@ class CIDR:
         return False
 
 
+INGRESS = "ingress"
+EGRESS = "egress"
+
+
 class Policy:
     def __init__(
         self, name: str, sel: LabelSet, allow: list[tuple[LabelSet | CIDR, Traffic]]
