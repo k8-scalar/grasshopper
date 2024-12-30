@@ -65,7 +65,15 @@ def main():
         start_kubelet_watch_server()
     else:
         print("Running in local mode")
-        Watcher().watch_all_events()
+        # ClusterState().initialize()
+
+        policies_thread = threading.Thread(target=watch_policies)
+        pods_thread = threading.Thread(target=watch_pods)
+
+        policies_thread.start()
+        pods_thread.start()
+
+        # Watcher().watch_all_events()
 
 
 def start_kubelet_watch_server():
@@ -88,6 +96,9 @@ def watch_policies():
     watch_policies method to monitor policy changes.
     """
     Watcher().watch_policies()
+
+def watch_pods():
+    Watcher().watch_pods()
 
 
 def watch_services():

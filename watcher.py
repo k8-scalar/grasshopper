@@ -90,14 +90,23 @@ class Watcher:
             elif event_kind == "Service":
                 self.handle_service_event(event)
 
+    def watch_pods(self):
+        print("Watching pods now...")
+        
+        # #Watching pod-events and converting them to Pod-objects.
+        for event in self.k8s_watcher.stream(
+            self.core_api.list_pod_for_all_namespaces,
+        ):
+            self.handle_pod_event(event)
+
+
     def watch_policies(self):
         print("Watching policies now...")
         for event in self.k8s_watcher.stream(
             self.networking_api.list_network_policy_for_all_namespaces,
         ):
-            event_object = event["object"]
-            name = event_object.metadata.name
-            print(f"Policy: {name}")
+            # event_object = event["object"]
+            # name = event_object.metadata.name
 
             # involved_object = event_object.involved_object
             # event_kind = involved_object.kind or "Unknown"
@@ -111,8 +120,7 @@ class Watcher:
             #     f"Event: {event_kind:>10.10} {object_name:>20.20} {event_type:>10.10} | Reason: {change_reason:>20.20}, {change_reason_message:>90.90} | Occurred at: {event_occurred_at}"
             # )
 
-            # if event_kind == "NetworkPolicy":
-            #     self.handle_policy_event(event)
+            self.handle_policy_event(event)
 
     def watch_services(self):
         print("Watching services now...")
