@@ -25,13 +25,18 @@ class WatchDog:
     def policy_check(pol_new) -> bool:
         passed: set[Policy] = ClusterState().get_policies()
         for pol in WatchDog.split(pol_new):
-            if (
-                WatchDog.permissive(pol)
-                or WatchDog.conflicting(pol, passed)
-                or WatchDog.redundant(pol, passed)
-            ):
-                print("Policy check failed. Aborting...")
+            if WatchDog.conflicting(pol, passed):
+                print("Policy check failed, policy is conflicting. Aborting...")
                 return False
+
+            if WatchDog.redundant(pol, passed):
+                print("Policy check failed, policy is redundant. Aborting...")
+                return False     
+
+            if WatchDog.permissive(pol):
+                print("Policy check failed, policy is overly permissive. Aborting...")
+                return False
+
             else:
                 passed.append(pol)
         return True
