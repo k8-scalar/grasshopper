@@ -76,11 +76,10 @@ class Policy:
     def __eq__(self, other):
         if not isinstance(other, Policy):
             return False
-        return (self.name, self.sel, self.allow) == (other.name, other.sel, other.allow)
+        return (self.name, self.sel, self.allow[0]) == (other.name, other.sel, other.allow[0])
 
     def __hash__(self):
-        allow_tuple = tuple(item for item in self.allow)
-        return hash((self.name, self.sel, allow_tuple))
+        return hash((self.name, self.sel, self.allow[0]))
 
     def __str__(self):
         # allow_str = ", ".join(str(item) for item in self.allow)
@@ -183,6 +182,12 @@ class MapEntry:
 
     def add_allow_policy(self, pol: Policy):
         self.allow_pols.add(pol)
+
+    def remove_select_policy(self, pol: Policy):
+        self.select_pols.discard(pol)
+
+    def remove_allow_policy(self, pol: Policy):
+        self.allow_pols.discard(pol)
 
     def __str__(self):
         select_pols_str = (

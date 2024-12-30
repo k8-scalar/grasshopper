@@ -26,7 +26,7 @@ class WatchDog:
         passed: set[Policy] = ClusterState().get_policies()
         # print("Splitted policies: ", WatchDog.split(pol_new))
         for pol in WatchDog.split(pol_new):
-            print("Splitted policy: ", pol)
+            # print("Splitted policy: ", pol)
             if (
                 WatchDog.permissive(pol)
                 or WatchDog.conflicting(pol, passed)
@@ -90,7 +90,7 @@ class WatchDog:
 
         if verified:
             print(
-                f"Passed policy check, adding new policy: {pol.name} to cluster state."
+                # f"Passed policy check, adding new policy: {pol.name} to cluster state."
             )
 
             for spol in WatchDog.split(pol):
@@ -108,6 +108,32 @@ class WatchDog:
             self.report_policy(pol)
         ClusterState().print()
 
+    def handle_removed_policy(self, pol: Policy):
+        if pol in ClusterState.get_offenders():
+            ClusterState.remove_offender(pol)
+        else:
+            for spol in WatchDog.split(pol):
+                # self.matcher.SG_config_remove_pol(pol)
+                WatchDog.remove_policy(spol)
+
+        ClusterState.print()
+
+    # Remove a splitted policy.
+    @staticmethod
+    def remove_policy(spol):
+        s = ClusterState.get_map_entry(spol.sel)
+        a = ClusterState.get_map_entry(spol.allow[0][0]) # Get labelset from allow-rule.
+
+        s.remove_select_policy(spol)
+        a.remove_allow_policy(spol)
+
+        if (len(s.select_pols) == 0 and len(s.allow_pols) == 0):
+            ClusterState.remove_map_entry(spol.sel)
+        
+        if (len(a.select_pols) == 0 and len(a.allow_pols) == 0):
+            ClusterState.remove_map_entry(spol.allow[0][0])
+
+        # ClusterState.print()
 
 
     @staticmethod
@@ -124,9 +150,6 @@ class WatchDog:
             ClusterState().get_map_entry(pol.allow[0][0]).add_allow_policy(pol)
 
         print("Succesfully added policy to ClusterState")
-
-    def handle_removed_policy(self, pol: Policy):
-        print(pol)
 
     def handle_modified_policy(self, pol: Policy):
         pass

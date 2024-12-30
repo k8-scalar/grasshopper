@@ -146,9 +146,9 @@ class ClusterState:
 
     @staticmethod
     def add_map_entry(label_set: LabelSet, map_entry: MapEntry):
-        if label_set.string_repr in ClusterState().map:
-            print("labelset already in map")
-        ClusterState().map.update({label_set.string_repr: map_entry})
+        if label_set  in ClusterState().map:
+            print("labelset already in map") 
+        ClusterState().map.update({label_set: map_entry})
 
     @staticmethod
     def get_nodes():
@@ -190,9 +190,21 @@ class ClusterState:
     def add_offender(pol: Policy):
         ClusterState.offenders.add(pol)
 
+    @staticmethod 
+    def remove_offender(pol: Policy):
+        ClusterState.offenders.remove(pol)
+
     @staticmethod
     def get_map_entry(label_set: LabelSet):
-        return ClusterState().map.get(label_set.string_repr)
+        return ClusterState().map.get(label_set)
+
+    @staticmethod
+    def remove_map_entry(label_set: LabelSet):
+        print("Removing map entry.")
+        if label_set in ClusterState.map:
+            ClusterState.map.pop(label_set)
+        else:
+            print(f"labelset: {label_set} not presented in the map.")
 
     @staticmethod
     def add_match_node_to_map_entry(label_set: LabelSet, node: Node):
