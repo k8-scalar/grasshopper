@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: my-app
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          environment: production
+      podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+    - protocol: UDP
+      port: 53
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          environment: staging
+      podSelector:
+        matchLabels:
+          role: backend
+    ports:
+    - protocol: TCP
+      port: 5432  # PostgreSQL port
+    - protocol: TCP
+      port: 9200  # Elasticsearch port
+    - protocol: UDP
+      port: 53    # DNS port
