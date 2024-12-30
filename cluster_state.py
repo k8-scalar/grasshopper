@@ -261,7 +261,7 @@ class ClusterState:
 
         print("\n Offenders:")
         if ClusterState().get_offenders():
-            for offender in ClusterState().get_offenders:
+            for offender in ClusterState().get_offenders():
                 print(f"  - {offender}")
         else:
             print("  None")

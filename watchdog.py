@@ -103,11 +103,11 @@ class WatchDog:
                         if running(spol.allow, node):
                             ClusterState().add_match_node_to_map_entry(spol.allow, node)
                 # self.matcher.SG_config_new_pol(spol)
-                ClusterState().print()
-
         else:
             print("Reporting policicy...")
             self.report_policy(pol)
+        ClusterState().print()
+
 
 
     @staticmethod
