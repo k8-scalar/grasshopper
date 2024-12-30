@@ -63,32 +63,7 @@ class Watcher:
         and processes them based on their type. It delegates handling of specific event types
         to corresponding handler methods.
         """
-        print("Watching events now...")
-        for event in self.k8s_watcher.stream(
-            self.core_api.list_event_for_all_namespaces
-        ):
-            event_object = event["object"]
-            involved_object = event_object.involved_object
-            event_kind = involved_object.kind or "Unknown"
-            event_type = event.get("type", "Unknown")
-            object_name = involved_object.name or "Unknown"
-            change_reason = event_object.reason or "Unknown"
-            change_reason_message = event_object.message or "No message"
-            event_occurred_at = event_object.last_timestamp or "Unknown time"
-
-            print(
-                f"Event: {event_kind:>10.10} {object_name:>20.20} {event_type:>10.10} | Reason: {change_reason:>20.20}, {change_reason_message:>90.90} | Occurred at: {event_occurred_at}"
-            )
-
-            if "spec" in event.keys():
-                print(event["spec"])
-
-            if event_kind == "Pod":
-                self.handle_pod_event(event)
-            elif event_kind == "NetworkPolicy":
-                self.handle_policy_event(event)
-            elif event_kind == "Service":
-                self.handle_service_event(event)
+        pass
 
     def watch_pods(self):
         print("Watching pods now...")
@@ -144,28 +119,7 @@ class Watcher:
 
             # if event_kind == "Service":
             #     self.handle_service_event(event)
-
-    def custom_watch(self):
-        # #Watching pod-events and converting them to Pod-objects.
-        # for event in self.k8s_watcher.stream(
-        #     self.core_api.list_pod_for_all_namespaces,
-        #     # timeout_seconds=100
-        # ):
-        #     self.handle_pod_event(event)
-
-        # Watch policies.
-        for event in self.k8s_watcher.stream(
-            self.networking_api.list_network_policy_for_all_namespaces,
-            # timeout_seconds=1
-        ):
-            self.handle_policy_event(event)
-
-        # for event in self.k8s_watcher.stream(
-        #     self.core_api.list_service_for_all_namespaces,
-        #     timeout_seconds=1
-        # ):
-        #     print("Watching services")
-        #     print(event)
+            
 
     def handle_pod_event(self, event):
         # Get the event type.
@@ -333,50 +287,11 @@ class Watcher:
 
             return LabelSet(labels)
 
-    # currently not used.
-    @staticmethod
-    def create_labelset_string_from_selectors(entry) -> str:
-        """
-        This method creates the labelset-string from a given entry of selectors.
-
-        * Arg:
-            - entry: list[sources | destinations] | This is a list of sources from either
-                                                    the _from-field of an ingress-rule or
-                                                    a list of destinations from the _to-
-                                                    field of an egress-rule.
-        * Returns:
-            - label_set_string: str | This is the constructed string of a given labelset.
-        """
-        keys = []
-        values = []
-        label_set_string = ""
-
-        # if there is a namespace-selector.
-        if entry.namespace_selector and entry.namespace_selector.match_labels:
-            keys.extend(sorted(entry.namespace_selector.match_labels.keys()))
-            values.extend(sorted(entry.namespace_selector.match_labels.values()))
-
-        # if there is a pod-selector.
-        if entry.pod_selector and entry.pod_selector.match_labels:
-            keys.extend(sorted(entry.pod_selector.match_labels.keys()))
-            values.extend(sorted(entry.pod_selector.match_labels.values()))
-
-        # if there is a selector and ports
-        if keys or values:
-            keys_concatenated = "".join(keys)
-            values_concatenated = "".join(values)
-            label_set_string = keys_concatenated + ":" + values_concatenated
-
-        return label_set_string
-
     @staticmethod
     def create_selected(label_set: dict[str, str]):
         """
         This method creates the selected-attribute from a given podSelector-field.
         """
-        # keys_concatenated = ''.join(key for key in label_set.keys())
-        # values_concatenated = ''.join(value for value in label_set.values())
-        # return keys_concatenated + ":" + values_concatenated
         return LabelSet(label_set)
 
 
