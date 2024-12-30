@@ -21,6 +21,9 @@ class ClusterState:
     # Mapping of security group names to their corresponding security group objects
     security_groups: dict[str, SecurityGroup] = {}
 
+    # Set of all offending policies
+    offenders = set()
+
     _instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -180,6 +183,14 @@ class ClusterState:
         ClusterState().policies.append(pol)
 
     @staticmethod
+    def get_offenders():
+        return ClusterState.offenders
+
+    @staticmethod
+    def add_offender(pol: Policy):
+        ClusterState.offenders.add(pol)
+
+    @staticmethod
     def get_map_entry(label_set: LabelSet):
         return ClusterState().map.get(label_set.string_repr)
 
@@ -245,6 +256,13 @@ class ClusterState:
         if ClusterState().map:
             for label_set, map_entry in ClusterState().map.items():
                 print(f"  - {label_set}: {map_entry}")
+        else:
+            print("  None")
+
+        print("\n Offenders:")
+        if ClusterState().get_offenders():
+            for offender in ClusterState().get_offenders:
+                print(f"  - {offender}")
         else:
             print("  None")
 

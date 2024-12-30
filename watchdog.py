@@ -82,7 +82,7 @@ class WatchDog:
 
     # report the policy to offenders. (if not verified)
     def report_policy(self, pol):
-        pass
+        ClusterState.add_offender(pol)
 
     # functions to handle added / removed / modified policies.
     def handle_new_policy(self, pol: Policy):
@@ -104,9 +104,11 @@ class WatchDog:
                             ClusterState().add_match_node_to_map_entry(spol.allow, node)
                 # self.matcher.SG_config_new_pol(spol)
                 ClusterState().print()
+
         else:
             print("Reporting policicy...")
             self.report_policy(pol)
+
 
     @staticmethod
     def add_policy(pol: Policy):  # Adding the policy to ClusterState().
