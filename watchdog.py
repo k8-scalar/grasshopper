@@ -24,9 +24,7 @@ class WatchDog:
     @staticmethod
     def policy_check(pol_new) -> bool:
         passed: set[Policy] = ClusterState().get_policies()
-        # print("Splitted policies: ", WatchDog.split(pol_new))
         for pol in WatchDog.split(pol_new):
-            # print("Splitted policy: ", pol)
             if (
                 WatchDog.permissive(pol)
                 or WatchDog.conflicting(pol, passed)
@@ -77,7 +75,27 @@ class WatchDog:
         return False
 
     @staticmethod
-    def permissive(pol) -> bool:
+    def permissive(spol) -> bool:
+        """
+        Checks whether or not a given policy is overly permissive.
+        I.e.: 
+            - It has the empty selector in it's selected-attribute. (Selects all pods)
+            - If it has an allow-rule, which selects all pods. (empty selector or 0.0.0.0/24
+
+            Is only called on splitted policies, so we assume the allow-list has only 1 element.
+        """
+
+        if len(spol.sel.labels) == 0: # empty dict corresponds to empty-selector. 
+            return True
+
+        if isinstance(spol.allow[0][0], LabelSet):
+            if len(spol.allow[0][0].labels) == 0: # empty dict corresponds to empty-selector. 
+                return True
+
+        if isinstance(spol.allow[0][0], CIDR):
+            if spol.allow[0][0].cidr == "0.0.0.0/24":
+                return True
+                
         return False
 
     # report the policy to offenders. (if not verified)
@@ -102,7 +120,7 @@ class WatchDog:
                     for node in ClusterState().get_nodes():
                         if running(spol.allow, node):
                             ClusterState().add_match_node_to_map_entry(spol.allow, node)
-                # self.matcher.SG_config_new_pol(spol)
+                # Matcher.SG_config_new_pol(spol)
         else:
             print("Reporting policicy...")
             self.report_policy(pol)

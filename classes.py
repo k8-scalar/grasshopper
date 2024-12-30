@@ -60,6 +60,9 @@ class CIDR:
             return self.cidr == other.cidr
         return False
 
+    def __hash__(self):
+        return hash(self.cidr)
+
 
 INGRESS = "ingress"
 EGRESS = "egress"
