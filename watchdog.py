@@ -129,9 +129,13 @@ class WatchDog:
                         if running(spol.allow, node):
                             ClusterState().add_match_node_to_map_entry(spol.allow, node)
                 # Matcher.SG_config_new_pol(spol)
+            
+            ClusterState.add_policy(pol)
+            print("Succesfully added policy to ClusterState")
         else:
-            print("Reporting policicy...")
+            print("Reporting policy...")
             self.report_policy(pol)
+
         ClusterState().print()
 
     def handle_removed_policy(self, pol: Policy):
@@ -142,6 +146,10 @@ class WatchDog:
                 # self.matcher.SG_config_remove_pol(pol)
                 WatchDog.remove_policy(spol)
 
+            # Also remove policy from ClusterState.policies
+            ClusterState.remove_policy(pol)
+        
+        print("Succesfully removed policy from ClusterState")
         ClusterState.print()
 
     # Remove a splitted policy.
@@ -159,9 +167,6 @@ class WatchDog:
         if (len(a.select_pols) == 0 and len(a.allow_pols) == 0):
             ClusterState.remove_map_entry(spol.allow[0][0])
 
-        # ClusterState.print()
-
-
     @staticmethod
     def add_policy(pol: Policy):  # Adding the policy to ClusterState().
         if not ClusterState().get_map_entry(pol.sel):
@@ -174,10 +179,6 @@ class WatchDog:
                 map_entry = MapEntry()
                 ClusterState().add_map_entry(pol.allow[0][0], map_entry)
             ClusterState().get_map_entry(pol.allow[0][0]).add_allow_policy(pol)
-
-        ClusterState.add_policy(pol)
-
-        print("Succesfully added policy to ClusterState")
 
     def handle_modified_policy(self, pol: Policy):
         pass

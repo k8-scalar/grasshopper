@@ -73,8 +73,6 @@ def main():
         policies_thread.start()
         pods_thread.start()
 
-        # Watcher().watch_all_events()
-
 
 def start_kubelet_watch_server():
     """

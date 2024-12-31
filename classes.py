@@ -79,10 +79,10 @@ class Policy:
     def __eq__(self, other):
         if not isinstance(other, Policy):
             return False
-        return (self.name, self.sel, self.allow[0]) == (other.name, other.sel, other.allow[0])
+        return (self.name, self.sel, tuple(self.allow)) == (other.name, other.sel, tuple(other.allow))
 
     def __hash__(self):
-        return hash((self.name, self.sel, self.allow[0]))
+        return hash((self.name, self.sel, tuple(self.allow)))
 
     def __str__(self):
         # allow_str = ", ".join(str(item) for item in self.allow)

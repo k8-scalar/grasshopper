@@ -183,6 +183,10 @@ class ClusterState:
         ClusterState().policies.append(pol)
 
     @staticmethod
+    def remove_policy(pol: Policy):
+        ClusterState.policies.remove(pol)
+
+    @staticmethod
     def get_offenders():
         return ClusterState.offenders
 
