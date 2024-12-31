@@ -202,6 +202,8 @@ class WatchDog:
                 ClusterState().add_match_node_to_map_entry(label_set, pod.node)
                 self.matcher.SG_config_new_pod(label_set, pod.node)
 
+        ClusterState.print()
+
     def handle_removed_pod(self, pod: Pod):
         # Only handle removed pod event once.
         if pod not in ClusterState().get_pods():
@@ -219,3 +221,5 @@ class WatchDog:
             if not running(label_set, n):
                 ClusterState().remove_match_node_from_map_entry(label_set, n)
                 self.matcher.SG_config_remove_pod(label_set, n)
+
+        ClusterState.print()

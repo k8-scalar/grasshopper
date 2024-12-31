@@ -122,6 +122,9 @@ class Node:
             return self.name == other.name
         return False
 
+    def __hash__(self):
+        return hash(self.name)
+
 
 class Pod:
     def __init__(self, name: str, label_set: LabelSet, node: Node):
