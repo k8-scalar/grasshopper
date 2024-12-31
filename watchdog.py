@@ -2,6 +2,7 @@ from classes import *
 from helpers import matching, running
 from matcher import Matcher
 from cluster_state import ClusterState
+import copy
 
 
 class WatchDog:
@@ -23,7 +24,9 @@ class WatchDog:
 
     @staticmethod
     def policy_check(pol_new) -> bool:
-        passed: set[Policy] = ClusterState().get_policies()
+        policies: set[Policy] = ClusterState().get_policies()
+        passed = policies.copy()
+
         for pol in WatchDog.split(pol_new):
             if WatchDog.conflicting(pol, passed):
                 print("Policy check failed, policy is conflicting. Aborting...")
@@ -43,7 +46,7 @@ class WatchDog:
 
     @staticmethod
     def conflicting(pol_new, pols) -> bool:
-        for pol in ClusterState().get_policies():
+        for pol in pols:
             if pol_new.sel.issubset(pol.sel):
                 for labelset_new, traffic_new in pol_new.allow:
                     if not isinstance(labelset_new, LabelSet):
@@ -62,7 +65,7 @@ class WatchDog:
     @staticmethod
     def redundant(pol_new, pols) -> bool:
         is_redundant = False
-        for pol in ClusterState().get_policies():
+        for pol in pols:
             if pol.sel.issubset(pol_new.sel):
                 is_redundant = True
                 for labelset_new, traffic_new in pol_new.allow:
@@ -171,6 +174,8 @@ class WatchDog:
                 map_entry = MapEntry()
                 ClusterState().add_map_entry(pol.allow[0][0], map_entry)
             ClusterState().get_map_entry(pol.allow[0][0]).add_allow_policy(pol)
+
+        ClusterState.add_policy(pol)
 
         print("Succesfully added policy to ClusterState")
 
