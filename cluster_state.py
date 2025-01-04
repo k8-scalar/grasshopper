@@ -88,7 +88,7 @@ class ClusterState:
                                         Policy(
                                             name=policy.metadata.name,
                                             sel=select_set,
-                                            allow=allow_tuple,
+                                            allow=[allow_tuple],
                                         )
                                     )
 
@@ -113,7 +113,7 @@ class ClusterState:
                                     Policy(
                                         name=policy.metadata.name,
                                         sel=select_set,
-                                        allow=allow_tuple,
+                                        allow=[allow_tuple],
                                     )
                                 )
 
