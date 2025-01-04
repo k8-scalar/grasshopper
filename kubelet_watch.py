@@ -15,19 +15,23 @@ master_port = os.getenv("MASTER_PORT", "9000")  # Default value if not set
 
 class KubeletWatch:
     def __init__(self):
-        try:
-            print(f"Trying to connect to master at {master_ip}:{master_port}")
-            self.master = xmlrpc.client.ServerProxy(f"http://{master_ip}:{master_port}")
-            node_name = platform.node()
-            is_connected = self.master.on_connect_worker(node_name)
-            if is_connected:  # register the worker to the master
-                print("Connected to master.")
-            else:
-                print("Failed to connect to master.")
-                exit(1)
-        except Exception as e:
-            print(f"Failed to connect to master: {e}")
-            exit(1)
+        print(f"Trying to connect to master at {master_ip}:{master_port}")
+        self.master = xmlrpc.client.ServerProxy(f"http://{master_ip}:{master_port}")
+        node_name = platform.node()
+        is_connected = False
+        failed_attempts = 0
+        while not is_connected:
+            try:
+                is_connected = self.master.on_connect_worker(node_name)
+            except Exception as e:
+                print(f"Failed to connect to master: {e}")
+                failed_attempts += 1
+                if failed_attempts >= 5:
+                    print("Tried 5 times, stopping now")
+                    exit(1)
+                print("Retrying in 5 seconds")
+                time.sleep(5)
+        print("Connected to master.")
         self.pods = set()
         print("Created KubeletWatch instance.")
 
