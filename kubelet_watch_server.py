@@ -21,6 +21,8 @@ class KubeletWatchServer:
         `watchdog` instance to the server. The server runs indefinitely, handling
         incoming XML-RPC requests.
         """
+        print("Kubeletwatch server started")
+
         with SimpleXMLRPCServer(
             (master_ip, master_port), logRequests=False, allow_none=True
         ) as server:

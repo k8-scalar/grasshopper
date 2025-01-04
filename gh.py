@@ -54,15 +54,15 @@ def main():
             print("Not running on OpenStack")
 
         ClusterState().initialize()
+        print(ClusterState())
 
-        # thread1 = threading.Thread(target=start_kubelet_watch_server)
-        # thread2 = threading.Thread(target=watch_policies)
+        thread1 = threading.Thread(target=start_kubelet_watch_server)
+        thread2 = threading.Thread(target=watch_policies)
         # thread3 = threading.Thread(target=watch_services)
 
-        # thread1.start()
-        # thread2.start()
+        thread1.start()
+        thread2.start()
         # thread3.start()
-        start_kubelet_watch_server()
     else:
         print("Running in local mode")
         # ClusterState().initialize()
