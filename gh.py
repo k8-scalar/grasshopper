@@ -95,6 +95,7 @@ def watch_policies():
     """
     Watcher().watch_policies()
 
+
 def watch_pods():
     Watcher().watch_pods()
 

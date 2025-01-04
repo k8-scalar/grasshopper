@@ -146,8 +146,8 @@ class ClusterState:
 
     @staticmethod
     def add_map_entry(label_set: LabelSet, map_entry: MapEntry):
-        if label_set  in ClusterState().map:
-            print("labelset already in map") 
+        if label_set in ClusterState().map:
+            print("labelset already in map")
         ClusterState().map.update({label_set: map_entry})
 
     @staticmethod
@@ -194,7 +194,7 @@ class ClusterState:
     def add_offender(pol: Policy):
         ClusterState.offenders.add(pol)
 
-    @staticmethod 
+    @staticmethod
     def remove_offender(pol: Policy):
         ClusterState.offenders.remove(pol)
 
@@ -234,52 +234,50 @@ class ClusterState:
     def get_security_groups():
         return ClusterState().security_groups
 
-    # print out a nice / clear representation of the cluster state.
-    @staticmethod
-    def print():
-        print("--------------")
-        print("Cluster State:")
+    def __str__(self):
+        result = ["--------------", "Cluster State:"]
 
-        print("Nodes:")
-        if ClusterState().nodes:
-            for node in ClusterState().nodes:
-                print(f"  - {node}")
+        result.append("Nodes:")
+        if self.nodes:
+            for node in self.nodes:
+                result.append(f"  - {node}")
         else:
-            print("  None")
+            result.append("  None")
 
-        print("\nPods:")
-        if ClusterState().pods:
-            for pod in ClusterState().pods:
-                print(f"  - {pod}")
+        result.append("\nPods:")
+        if self.pods:
+            for pod in self.pods:
+                result.append(f"  - {pod}")
         else:
-            print("  None")
+            result.append("  None")
 
-        print("\nPolicies:")
-        if ClusterState().policies:
-            for policy in ClusterState().policies:
-                print(f"  - {policy}")
+        result.append("\nPolicies:")
+        if self.policies:
+            for policy in self.policies:
+                result.append(f"  - {policy}")
         else:
-            print("  None")
+            result.append("  None")
 
-        print("\nSecurity Groups:")
-        if ClusterState().security_groups:
-            for name, sg in ClusterState().security_groups.items():
-                print(f"  - {name}: {sg}")
+        result.append("\nOffending Policies:")
+        if self.offenders:
+            for policy in self.offenders:
+                result.append(f"  - {policy}")
         else:
-            print("  None")
+            result.append("  None")
 
-        print("\nLabel Sets to Map Entries:")
-        if ClusterState().map:
-            for label_set, map_entry in ClusterState().map.items():
-                print(f"  - {label_set}: {map_entry}")
+        result.append("\nSecurity Groups:")
+        if self.security_groups:
+            for name, sg in self.security_groups.items():
+                result.append(f"  - {name}: {sg}")
         else:
-            print("  None")
+            result.append("  None")
 
-        print("\n Offenders:")
-        if ClusterState().get_offenders():
-            for offender in ClusterState().get_offenders():
-                print(f"  - {offender}")
+        result.append("\nLabel Sets to Map Entries:")
+        if self.map:
+            for label_set, map_entry in self.map.items():
+                result.append(f"  - {label_set}: {map_entry}")
         else:
-            print("  None")
+            result.append("  None")
 
-        print("--------------")
+        result.append("--------------")
+        return "\n".join(result)

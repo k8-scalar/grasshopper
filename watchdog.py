@@ -34,7 +34,7 @@ class WatchDog:
 
             if WatchDog.redundant(pol, passed):
                 print("Policy check failed, policy is redundant. Aborting...")
-                return False     
+                return False
 
             if WatchDog.permissive(pol):
                 print("Policy check failed, policy is overly permissive. Aborting...")
@@ -86,24 +86,26 @@ class WatchDog:
     def permissive(spol) -> bool:
         """
         Checks whether or not a given policy is overly permissive.
-        I.e.: 
+        I.e.:
             - It has the empty selector in it's selected-attribute. (Selects all pods)
             - If it has an allow-rule, which selects all pods. (empty selector or 0.0.0.0/24
 
             Is only called on splitted policies, so we assume the allow-list has only 1 element.
         """
 
-        if len(spol.sel.labels) == 0: # empty dict corresponds to empty-selector. 
+        if len(spol.sel.labels) == 0:  # empty dict corresponds to empty-selector.
             return True
 
         if isinstance(spol.allow[0][0], LabelSet):
-            if len(spol.allow[0][0].labels) == 0: # empty dict corresponds to empty-selector. 
+            if (
+                len(spol.allow[0][0].labels) == 0
+            ):  # empty dict corresponds to empty-selector.
                 return True
 
         if isinstance(spol.allow[0][0], CIDR):
             if spol.allow[0][0].cidr == "0.0.0.0/24":
                 return True
-                
+
         return False
 
     # report the policy to offenders. (if not verified)
@@ -129,14 +131,14 @@ class WatchDog:
                         if running(spol.allow, node):
                             ClusterState().add_match_node_to_map_entry(spol.allow, node)
                 # Matcher.SG_config_new_pol(spol)
-            
+
             ClusterState.add_policy(pol)
             print("Succesfully added policy to ClusterState")
         else:
             print("Reporting policy...")
             self.report_policy(pol)
 
-        ClusterState().print()
+        print(ClusterState())
 
     def handle_removed_policy(self, pol: Policy):
         if pol in ClusterState.get_offenders():
@@ -148,23 +150,25 @@ class WatchDog:
 
             # Also remove policy from ClusterState.policies
             ClusterState.remove_policy(pol)
-        
+
         print("Succesfully removed policy from ClusterState")
-        ClusterState.print()
+        print(ClusterState())
 
     # Remove a splitted policy.
     @staticmethod
     def remove_policy(spol):
         s = ClusterState.get_map_entry(spol.sel)
-        a = ClusterState.get_map_entry(spol.allow[0][0]) # Get labelset from allow-rule.
+        a = ClusterState.get_map_entry(
+            spol.allow[0][0]
+        )  # Get labelset from allow-rule.
 
         s.remove_select_policy(spol)
         a.remove_allow_policy(spol)
 
-        if (len(s.select_pols) == 0 and len(s.allow_pols) == 0):
+        if len(s.select_pols) == 0 and len(s.allow_pols) == 0:
             ClusterState.remove_map_entry(spol.sel)
-        
-        if (len(a.select_pols) == 0 and len(a.allow_pols) == 0):
+
+        if len(a.select_pols) == 0 and len(a.allow_pols) == 0:
             ClusterState.remove_map_entry(spol.allow[0][0])
 
     @staticmethod
@@ -202,7 +206,7 @@ class WatchDog:
                 ClusterState().add_match_node_to_map_entry(label_set, pod.node)
                 self.matcher.SG_config_new_pod(label_set, pod.node)
 
-        ClusterState.print()
+        print(ClusterState())
 
     def handle_removed_pod(self, pod: Pod):
         # Only handle removed pod event once.
@@ -222,4 +226,4 @@ class WatchDog:
                 ClusterState().remove_match_node_from_map_entry(label_set, n)
                 self.matcher.SG_config_remove_pod(label_set, n)
 
-        ClusterState.print()
+        print(ClusterState())
