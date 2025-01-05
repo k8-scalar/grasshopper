@@ -1,16 +1,37 @@
 from classes import CIDR, LabelSet, Node, Policy
 from cluster_state import ClusterState
 from security_group_module import SecurityGroupModule
+from abc import ABC, abstractmethod
+
+class Matcher(ABC):
+
+    def __init__(self):
+        self.security_group_module = SecurityGroupModule()
+
+    """
+    Defines an interface of a Matcher Class.
+    """
+    @abstractmethod
+    def SG_config_new_pol(self, spol):
+        pass
+
+    @abstractmethod
+    def SG_config_new_pod(self, L, n):
+        pass
+
+    @abstractmethod
+    def SG_config_remove_pol(self, spl):
+        pass
+
+    @abstractmethod
+    def SG_config_remove_pod(self, L, n):
+        pass
 
 
 # A class that provides all functionality to actually execute the GrassHopper Algorithm.
-class Matcher:
-    def __init__(self):
-        # the security-group-module used to actually manipulate the SG's.
-        self.security_group_module = SecurityGroupModule()
-
+class PNSMatcher(Matcher):
     # functionality to execute algorithm.
-    def SG_config_new_pol(pol: Policy) -> None:
+    def SG_config_new_pol(self, pol: Policy) -> None:
         """
         Enables all required VM-level connections allowed by a newly added sub-policy pol
 
@@ -28,7 +49,7 @@ class Matcher:
                 for m in mapping.get(pol.allow[0][0]).match_nodes:
                     SecurityGroupModule.SG_add_conn(pol, n, m)
 
-    def SG_config_remove_pol(pol: Policy) -> None:
+    def SG_config_remove_pol(self, pol: Policy) -> None:
         """
         Conversely removes all VM connections no longer required after removing pol
 
@@ -40,13 +61,13 @@ class Matcher:
         """
         mapping = ClusterState().get_map()
         for n in mapping.get(pol.sel).match_nodes:
-            if isinstance(pol.allow, CIDR):
+            if isinstance(pol.allow[0][0], CIDR):
                 SecurityGroupModule.SG_remove_conn(pol, n, None)
             else:
-                for m in mapping.get(pol.allow).match_nodes:
+                for m in mapping.get(pol.allow[0][0]).match_nodes:
                     SecurityGroupModule.SG_remove_conn(pol, n, m)
 
-    def SG_config_new_pod(L: LabelSet, n: Node) -> None:
+    def SG_config_new_pod(self, L: LabelSet, n: Node) -> None:
         """
         Adds connections after deploying a new Pod on a Node n, taking into account
         deployed Kubernetes Network Policies that select label set L or contain L in
@@ -74,7 +95,7 @@ class Matcher:
             for m in mapping.get(pol.allow[0][0]).match_nodes:
                 SecurityGroupModule.SG_add_conn(pol, n, m)
 
-    def SG_config_remove_pod(L: LabelSet, n: Node) -> None:
+    def SG_config_remove_pod(self, L: LabelSet, n: Node) -> None:
         """
         Removes connections due to deployed Kubernetes NPs with select or allow sections matching L, after removing a Pod from a Node n
 
@@ -98,3 +119,22 @@ class Matcher:
         for pol in mapping.get(L).allow_pols:
             for m in mapping.get(pol.allow[0]).match_nodes:
                 SecurityGroupModule.SG_remove_conn(pol, n, m)
+
+
+class PLSMatcher(Matcher):
+
+    def __init__(self):
+        super().__init__()
+
+    def SG_config_new_pol(self, spol):
+        print("PLS implementation...")
+
+    def SG_config_new_pod(self, L, n):
+        print("PLS implementation...")
+    
+    def SG_config_remove_pol(self, spl):
+        print("PLS implementation...")
+
+    def SG_config_remove_pod(self, L, n):
+        print("PLS implementation...")
+

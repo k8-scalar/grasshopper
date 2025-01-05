@@ -1,13 +1,23 @@
 from classes import *
 from helpers import matching, running
-from matcher import Matcher
+from matcher import PLSMatcher, PNSMatcher
 from cluster_state import ClusterState
 import copy
 
 
 class WatchDog:
     def __init__(self):
-        self.matcher: Matcher = Matcher()
+        PNS_scenario = True
+        self.set_matcher(PNS_scenario)
+
+    def set_matcher(self, PNS_scenario: bool):
+        """
+        Sets the appriopriate matcher.
+        """
+        if PNS_scenario:
+            self.matcher = PNSMatcher()
+        else:
+            self.matcher = PLSMatcher()
 
     # verify new policy
     def verify_policy(self, pol: Policy):
@@ -130,7 +140,7 @@ class WatchDog:
                     for node in ClusterState().get_nodes():
                         if running(spol.allow, node):
                             ClusterState().add_match_node_to_map_entry(spol.allow, node)
-                Matcher.SG_config_new_pol(spol)
+                self.matcher.SG_config_new_pol(spol)
 
             ClusterState.add_policy(pol)
             print("Succesfully added policy to ClusterState")
@@ -145,7 +155,7 @@ class WatchDog:
             ClusterState.remove_offender(pol)
         else:
             for spol in WatchDog.split(pol):
-                # self.matcher.SG_config_remove_pol(pol)
+                self.matcher.SG_config_remove_pol(pol)
                 WatchDog.remove_policy(spol)
 
             # Also remove policy from ClusterState.policies
@@ -204,7 +214,7 @@ class WatchDog:
             if map_entry is None or pod.node not in map_entry.match_nodes:
                 # 'pod' is the first pod on n to match L
                 ClusterState().add_match_node_to_map_entry(label_set, pod.node)
-                Matcher.SG_config_new_pod(label_set, pod.node)
+                self.matcher.SG_config_new_pod(label_set, pod.node)
 
         print(ClusterState())
 
@@ -224,6 +234,6 @@ class WatchDog:
         ):
             if not running(label_set, n):
                 ClusterState().remove_match_node_from_map_entry(label_set, n)
-                Matcher.SG_config_remove_pod(label_set, n)
+                self.matcher.SG_config_remove_pod(label_set, n)
 
         print(ClusterState())
