@@ -201,8 +201,10 @@ class MapEntry:
         )
         allow_pols_str = "[" + ", ".join(f"{pol.name}" for pol in self.allow_pols) + "]"
 
+        match_nodes_str = "(" + ", ".join(str(node) for node in self.match_nodes) + ")"
+        
         return (
-            f"MapEntry(match_nodes={self.match_nodes}, "
+            f"MapEntry(match_nodes={match_nodes_str}, "
             f"select_pols={select_pols_str}, allow_pols={allow_pols_str})"
         )
 

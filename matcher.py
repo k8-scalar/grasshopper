@@ -22,10 +22,10 @@ class Matcher:
         """
         mapping = ClusterState().get_map()
         for n in mapping.get(pol.sel).match_nodes:
-            if isinstance(pol.allow, CIDR):
+            if isinstance(pol.allow[0][0], CIDR):
                 SecurityGroupModule.SG_add_conn(pol, n, None)
             else:
-                for m in mapping.get(pol.allow).match_nodes:
+                for m in mapping.get(pol.allow[0][0]).match_nodes:
                     SecurityGroupModule.SG_add_conn(pol, n, m)
 
     def SG_config_remove_pol(pol: Policy) -> None:
@@ -59,16 +59,19 @@ class Matcher:
         Returns:
             None
         """
+
+        print("Configuring new SG for new pod")
+
         mapping = ClusterState().get_map()
         for pol in mapping.get(L).select_pols:
-            if isinstance(pol.allow, CIDR):
+            if isinstance(pol.allow[0][0], CIDR):
                 SecurityGroupModule.SG_add_conn(pol, n, None)
             else:
-                for m in mapping.get(pol.allow).match_nodes:
+                for m in mapping.get(pol.allow[0][0]).match_nodes:
                     SecurityGroupModule.SG_add_conn(pol, n, m)
 
         for pol in mapping.get(L).allow_pols:
-            for m in mapping.get(pol.allow).match_nodes:
+            for m in mapping.get(pol.allow[0][0]).match_nodes:
                 SecurityGroupModule.SG_add_conn(pol, n, m)
 
     def SG_config_remove_pod(L: LabelSet, n: Node) -> None:
@@ -86,12 +89,12 @@ class Matcher:
         """
         mapping = ClusterState().get_map()
         for pol in mapping.get(L).select_pols:
-            if isinstance(pol.allow, CIDR):
+            if isinstance(pol.allow[0][0], CIDR):
                 SecurityGroupModule.SG_remove_conn(pol, n, None)
             else:
-                for m in mapping.get(pol.allow).match_nodes:
+                for m in mapping.get(pol.allow[0][0]).match_nodes:
                     SecurityGroupModule.SG_remove_conn(pol, n, m)
 
         for pol in mapping.get(L).allow_pols:
-            for m in mapping.get(pol.allow).match_nodes:
+            for m in mapping.get(pol.allow[0]).match_nodes:
                 SecurityGroupModule.SG_remove_conn(pol, n, m)

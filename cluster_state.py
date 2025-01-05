@@ -213,7 +213,7 @@ class ClusterState:
     @staticmethod
     def add_match_node_to_map_entry(label_set: LabelSet, node: Node):
         if label_set in ClusterState().map:
-            ClusterState().map[label_set].matchNodes.add(node)
+            ClusterState().map[label_set].match_nodes.add(node)
         else:
             # Handle the case where the label_set is not in the map
             ClusterState().map[label_set] = MapEntry(matchNodes={node})
@@ -221,7 +221,7 @@ class ClusterState:
     @staticmethod
     def remove_match_node_from_map_entry(label_set: LabelSet, node: Node):
         if label_set in ClusterState().map:
-            ClusterState().map[label_set].matchNodes.remove(node)
+            ClusterState().map[label_set].match_nodes.remove(node)
         else:
             # Handle the case where the label_set is not in the map
             raise Exception("LabelSet not found in the map")
