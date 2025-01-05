@@ -56,5 +56,5 @@ class SecurityGroupModule:
 
     @staticmethod
     def rule_from(pol: Policy, m: Node) -> Rule:
-        A, traffic = pol.allow
+        A, traffic = pol.allow[0]
         return Rule(A if isinstance(A, CIDR) else SecurityGroupModule.SGn(m), traffic)
