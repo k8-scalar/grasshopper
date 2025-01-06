@@ -67,13 +67,12 @@ class Watcher:
 
     def watch_pods(self):
         print("Watching pods now...")
-        
+
         # #Watching pod-events and converting them to Pod-objects.
         for event in self.k8s_watcher.stream(
             self.core_api.list_pod_for_all_namespaces,
         ):
             self.handle_pod_event(event)
-
 
     def watch_policies(self):
         print("Watching policies now...")
@@ -119,7 +118,6 @@ class Watcher:
 
             # if event_kind == "Service":
             #     self.handle_service_event(event)
-            
 
     def handle_pod_event(self, event):
         # Get the event type.
@@ -267,7 +265,7 @@ class Watcher:
                     # if there is a ports-field.
                     if egress.ports:
                         for port in egress.ports:
-                            traffic = Traffic("Eg", port.port, port.protocol)
+                            traffic = Traffic(EGRESS, port.port, port.protocol)
                             tuple = (labelset, traffic)
 
                             allow_list.append(tuple)

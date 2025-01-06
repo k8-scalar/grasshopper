@@ -216,7 +216,7 @@ class ClusterState:
             ClusterState().map[label_set].match_nodes.add(node)
         else:
             # Handle the case where the label_set is not in the map
-            ClusterState().map[label_set] = MapEntry(matchNodes={node})
+            ClusterState().map[label_set] = MapEntry(match_nodes={node})
 
     @staticmethod
     def remove_match_node_from_map_entry(label_set: LabelSet, node: Node):

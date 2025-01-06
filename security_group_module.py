@@ -8,13 +8,13 @@ from openstackfiles.openstack_client import OpenStackClient
 class SecurityGroupModule:
     @staticmethod
     def SGn(n: Node) -> SecurityGroup:
-        return ClusterState().get_security_groups().get("SG-" + n.name)
+        return ClusterState().get_security_groups().get("SG_" + n.name)
 
     @staticmethod
     def add_rule_to_remotes(SG: SecurityGroup, rule: Rule) -> None:
-        print(f"Adding rule {rule.id} to {SG.name}")
+        print(f"Adding rule to {SG.name}")
         neutron = OpenStackClient().get_neutron()
-        rule = neutron.create_security_group_rule(
+        created_rule = neutron.create_security_group_rule(
             {
                 "security_group_rule": {
                     "direction": rule.traffic.direction,
@@ -22,13 +22,13 @@ class SecurityGroupModule:
                     "protocol": rule.traffic.protocol,
                     "port_range_min": rule.traffic.port,
                     "port_range_max": rule.traffic.port,
-                    "remote_ip_prefix": rule.target.cidr,
-                    "security_group_id": rule.target.id,
+                    "remote_group_id": rule.target.id,
+                    "security_group_id": SG.id,
                 }
             }
         )
-        rule.id = rule["security_group_rule"]["id"]
-        SG.remotes.append(rule)
+        rule.id = created_rule["security_group_rule"]["id"]
+        SG.remotes.add(rule)
 
     @staticmethod
     def remove_rule_from_remotes(SG: SecurityGroup, rule: Rule) -> None:

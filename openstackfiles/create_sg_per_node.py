@@ -37,10 +37,10 @@ def create_sg_per_node(delete_existing_rules=False):
                 for r in security_group["security_group_rules"]:
                     neutron.delete_security_group_rule(security_group_rule=r["id"])
             attach_security_group_to_instance(node_name, security_group)
-        print("\nFinished checking SGs")
+        print("Finished checking SGs")
     else:
         print("No nodes found in the cluster.")
 
 
 if __name__ == "__main__":
-    create_sg_per_node()
+    create_sg_per_node(True)

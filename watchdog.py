@@ -2,7 +2,6 @@ from classes import *
 from helpers import matching, running
 from matcher import PLSMatcher, PNSMatcher
 from cluster_state import ClusterState
-import copy
 
 
 class WatchDog:
@@ -143,9 +142,9 @@ class WatchDog:
                 self.matcher.SG_config_new_pol(spol)
 
             ClusterState.add_policy(pol)
-            print("Succesfully added policy to ClusterState")
+            print(f"Successfully added policy {pol.name} to ClusterState")
         else:
-            print("Reporting policy...")
+            print(f"Reporting policy {pol.name}...")
             self.report_policy(pol)
 
         print(ClusterState())

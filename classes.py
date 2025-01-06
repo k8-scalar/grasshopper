@@ -22,7 +22,7 @@ class Traffic:
 
 class LabelSet:
     def __init__(self, labels: dict[str, str]):
-        self.labels: dict[str, str] = labels
+        self.labels: dict[str, str] = labels if labels is not None else {}
         self.string_repr = self.get_string_repr()
 
     # Get the unique string-representation of the LabelSet.
@@ -79,7 +79,11 @@ class Policy:
     def __eq__(self, other):
         if not isinstance(other, Policy):
             return False
-        return (self.name, self.sel, tuple(self.allow)) == (other.name, other.sel, tuple(other.allow))
+        return (self.name, self.sel, tuple(self.allow)) == (
+            other.name,
+            other.sel,
+            tuple(other.allow),
+        )
 
     def __hash__(self):
         return hash((self.name, self.sel, tuple(self.allow)))
@@ -202,7 +206,7 @@ class MapEntry:
         allow_pols_str = "[" + ", ".join(f"{pol.name}" for pol in self.allow_pols) + "]"
 
         match_nodes_str = "(" + ", ".join(str(node) for node in self.match_nodes) + ")"
-        
+
         return (
             f"MapEntry(match_nodes={match_nodes_str}, "
             f"select_pols={select_pols_str}, allow_pols={allow_pols_str})"

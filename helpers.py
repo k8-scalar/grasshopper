@@ -18,7 +18,7 @@ def matching(L: LabelSet, p: Pod):
     True if Pod p matches a label set L that has a record in the hash map,
     i.e., there is a policy which has a select or allow set that is a subset of L.
     """
-    return p.label_set.issubset(L)
+    return L.issubset(p.label_set)
 
 
 def traffic_pols(traffic: Traffic, n: Node, m: Node) -> Policy | None:
