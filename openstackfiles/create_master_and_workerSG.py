@@ -249,16 +249,16 @@ def create_master_and_workerSG():
     v1 = client.CoreV1Api()
 
     # Create or get security groups
-    master_sg_id = create_security_group_if_not_exists(
+    master_sg = create_security_group_if_not_exists(
         MASTER_SG_NAME, "Master security group"
     )
-    worker_sg_id = create_security_group_if_not_exists(
+    worker_sg = create_security_group_if_not_exists(
         WORKER_SG_NAME, "Worker security group"
     )
 
     # Add rules to security groups
-    add_rules_to_security_group(master_sg_id, MASTER_SG_RULES, worker_sg_id)
-    add_rules_to_security_group(worker_sg_id, WORKER_SG_RULES, master_sg_id)
+    add_rules_to_security_group(master_sg["id"], MASTER_SG_RULES, worker_sg["id"])
+    add_rules_to_security_group(worker_sg["id"], WORKER_SG_RULES, master_sg["id"])
 
     # Retrieve the Kubernetes node list
     node_list = v1.list_node()
@@ -272,12 +272,12 @@ def create_master_and_workerSG():
                 print(
                     f"Attaching {MASTER_SG_NAME} to control-plane node: {node.metadata.name}"
                 )
-                attach_security_group_to_instance(instance_id, MASTER_SG_NAME)
+                attach_security_group_to_instance(instance_id, master_sg)
             else:
                 print(
                     f"Attaching {WORKER_SG_NAME} to worker node: {node.metadata.name}"
                 )
-                attach_security_group_to_instance(instance_id, WORKER_SG_NAME)
+                attach_security_group_to_instance(instance_id, worker_sg)
         else:
             print(f"Could not determine instance ID for node: {node.metadata.name}")
 

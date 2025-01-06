@@ -7,13 +7,13 @@ def create_security_group_if_not_exists(sg_name, description):
     existing_sgs = neutron.list_security_groups(name=sg_name)
     if existing_sgs["security_groups"]:
         print(f"Security group '{sg_name}' already exists.")
-        return existing_sgs["security_groups"][0]["id"]
+        return existing_sgs["security_groups"][0]
 
     print(f"Creating security group: {sg_name}")
     sg = neutron.create_security_group(
         {"security_group": {"name": sg_name, "description": description}}
     )
-    return sg["security_group"]["id"]
+    return sg["security_group"]
 
 
 def add_rules_to_security_group(sg_id, rules, remote_sg_id):
@@ -58,11 +58,12 @@ def add_rules_to_security_group(sg_id, rules, remote_sg_id):
             )
 
 
-def attach_security_group_to_instance(instance_id, security_group_name):
+def attach_security_group_to_instance(instance_id, security_group):
     nova = OpenStackClient().get_nova()
 
     server = nova.servers.find(name=instance_id)
     security_groups = server.list_security_group()
+    security_group_name = security_group["name"]
 
     # Check if security group is already attached
     if any(sg.name == security_group_name for sg in security_groups):

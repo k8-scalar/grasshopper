@@ -1,6 +1,7 @@
 import sys
 from cluster_state import ClusterState
 from is_openstack import is_openstack
+from openstackfiles.create_sg_per_node import create_sg_per_node
 from watcher import Watcher
 import threading
 
@@ -33,6 +34,8 @@ def main():
     if not singleSGPerNodeScenario:
         print("Single security group per node scenario is not supported")
         sys.exit(1)
+
+    create_sg_per_node()
 
     if distributed:
         print("Running in distributed mode")
