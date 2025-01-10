@@ -3,6 +3,7 @@ from cluster_state import ClusterState
 from security_group_module import SecurityGroupModule
 from abc import ABC, abstractmethod
 
+
 class Matcher(ABC):
 
     def __init__(self):
@@ -11,6 +12,7 @@ class Matcher(ABC):
     """
     Defines an interface of a Matcher Class.
     """
+
     @abstractmethod
     def SG_config_new_pol(self, spol):
         pass
@@ -117,7 +119,7 @@ class PNSMatcher(Matcher):
                     SecurityGroupModule.SG_remove_conn(pol, n, m)
 
         for pol in mapping.get(L).allow_pols:
-            for m in mapping.get(pol.allow[0]).match_nodes:
+            for m in mapping.get(pol.allow[0][0]).match_nodes:
                 SecurityGroupModule.SG_remove_conn(pol, n, m)
 
 
@@ -131,10 +133,9 @@ class PLSMatcher(Matcher):
 
     def SG_config_new_pod(self, L, n):
         print("PLS implementation...")
-    
+
     def SG_config_remove_pol(self, spl):
         print("PLS implementation...")
 
     def SG_config_remove_pod(self, L, n):
         print("PLS implementation...")
-

@@ -113,6 +113,9 @@ class SecurityGroup:
             return self.id == other.id and self.name == other.name
         return False
 
+    def __hash__(self):
+        return hash((self.id, self.name, frozenset(self.remotes)))
+
 
 class Node:
     def __init__(self, name: str):
@@ -166,9 +169,10 @@ class Pod:
 
 
 class Rule:
-    def __init__(self, target: SecurityGroup | CIDR, traffic: Traffic):
+    def __init__(self, target: SecurityGroup | CIDR, traffic: Traffic, id: str = None):
         self.target = target
         self.traffic = traffic
+        self.id = id
 
     def set_Id(self, id: str):
         self.id = id
@@ -178,7 +182,17 @@ class Rule:
             target_str = self.target.name
         else:
             target_str = str(self.target)
-        return f"Rule(target={target_str}, traffic={self.traffic})"
+        return f"Rule(id={self.id}, target={target_str}, traffic={self.traffic})"
+
+    def __eq__(self, other):
+        if isinstance(other, Rule):
+            return (self.id != None and self.id == other.id) or (
+                self.target == other.target and self.traffic == other.traffic
+            )
+        return False
+
+    def __hash__(self):
+        return hash((self.id, self.target, self.traffic))
 
 
 class MapEntry:

@@ -1,6 +1,5 @@
-from classes import CIDR, LabelSet, Node, Pod, Policy, Rule, Traffic
+from classes import LabelSet, Node, Pod, Policy, Traffic
 from cluster_state import ClusterState
-from security_group_module import SecurityGroupModule
 
 
 def running(L: LabelSet, n: Node):
@@ -25,8 +24,8 @@ def traffic_pols(traffic: Traffic, n: Node, m: Node) -> Policy | None:
     for pol in ClusterState().get_policies():
         if running(pol.sel, n) and any(
             [
-                pol.allow == (sg, traffic) and running(sg, m)
-                for sg in ClusterState().get_security_groups()
+                pol.allow[0] == (labelset, traffic) and running(labelset, m)
+                for labelset in ClusterState().get_label_sets()
             ]
         ):
             return pol

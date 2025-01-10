@@ -123,45 +123,46 @@ class WatchDog:
 
     # functions to handle added / removed / modified policies.
     def handle_new_policy(self, pol: Policy):
+        # Only handle the new policy once.
+        for spol in WatchDog.split(pol):
+            if spol in ClusterState().get_policies():
+                print(f"Pod {pol.name} already exists in the cluster.")
+                return
+
         verified = self.verify_policy(pol)
 
         if verified:
-            print(
-                # f"Passed policy check, adding new policy: {pol.name} to cluster state."
-            )
-
             for spol in WatchDog.split(pol):
                 WatchDog.add_policy(spol)
                 for node in ClusterState().get_nodes():
                     if running(spol.sel, node):
                         ClusterState().add_match_node_to_map_entry(spol.sel, node)
-                if isinstance(spol.allow, LabelSet):
+                if isinstance(spol.allow[0][0], LabelSet):
                     for node in ClusterState().get_nodes():
-                        if running(spol.allow, node):
-                            ClusterState().add_match_node_to_map_entry(spol.allow, node)
+                        if running(spol.allow[0][0], node):
+                            ClusterState().add_match_node_to_map_entry(
+                                spol.allow[0][0], node
+                            )
                 self.matcher.SG_config_new_pol(spol)
 
-            ClusterState.add_policy(pol)
+                ClusterState.add_policy(spol)
             print(f"Successfully added policy {pol.name} to ClusterState")
         else:
             print(f"Reporting policy {pol.name}...")
             self.report_policy(pol)
-
-        print(ClusterState())
 
     def handle_removed_policy(self, pol: Policy):
         if pol in ClusterState.get_offenders():
             ClusterState.remove_offender(pol)
         else:
             for spol in WatchDog.split(pol):
-                self.matcher.SG_config_remove_pol(pol)
+                self.matcher.SG_config_remove_pol(spol)
                 WatchDog.remove_policy(spol)
 
-            # Also remove policy from ClusterState.policies
-            ClusterState.remove_policy(pol)
+                # Also remove policy from ClusterState.policies
+                ClusterState.remove_policy(spol)
 
         print("Succesfully removed policy from ClusterState")
-        print(ClusterState())
 
     # Remove a splitted policy.
     @staticmethod
@@ -187,7 +188,7 @@ class WatchDog:
             ClusterState().add_map_entry(pol.sel, map_entry)
         ClusterState().get_map_entry(pol.sel).add_select_policy(pol)
 
-        if not isinstance(pol.allow, CIDR):
+        if not isinstance(pol.allow[0][0], CIDR):
             if not ClusterState().get_map_entry(pol.allow[0][0]):
                 map_entry = MapEntry()
                 ClusterState().add_map_entry(pol.allow[0][0], map_entry)
@@ -215,8 +216,6 @@ class WatchDog:
                 ClusterState().add_match_node_to_map_entry(label_set, pod.node)
                 self.matcher.SG_config_new_pod(label_set, pod.node)
 
-        print(ClusterState())
-
     def handle_removed_pod(self, pod: Pod):
         # Only handle removed pod event once.
         if pod not in ClusterState().get_pods():
@@ -234,5 +233,3 @@ class WatchDog:
             if not running(label_set, n):
                 ClusterState().remove_match_node_from_map_entry(label_set, n)
                 self.matcher.SG_config_remove_pod(label_set, n)
-
-        print(ClusterState())
