@@ -5,8 +5,8 @@ from cluster_state import ClusterState
 
 
 class WatchDog:
-    def __init__(self):
-        PNS_scenario = True
+    def __init__(self, PNS_scenario):
+        # PNS_scenario = True
         self.set_matcher(PNS_scenario)
 
     def set_matcher(self, PNS_scenario: bool):

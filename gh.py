@@ -31,10 +31,6 @@ def main():
     singleSGPerNodeScenario = sys.argv[1].lower() == "true"
     distributed = sys.argv[2].lower() == "true"
 
-    if not singleSGPerNodeScenario:
-        print("Single security group per node scenario is not supported")
-        sys.exit(1)
-
     create_sg_per_node()
 
     if distributed:
@@ -66,15 +62,30 @@ def main():
         thread1.start()
         thread2.start()
         # thread3.start()
+    
+    # Running non-distributed.
     else:
         print("Running in local mode")
-        # ClusterState().initialize()
 
-        policies_thread = threading.Thread(target=watch_policies)
-        pods_thread = threading.Thread(target=watch_pods)
+        # PLS-scenario
+        if not singleSGPerNodeScenario:
+            print("Running in PLS-mode...")
+            policies_PLS_thread = threading.Thread(target=watch_policies_PLS)
+            pods_PLS_thread = threading.Thread(target=watch_pods_PLS)
 
-        policies_thread.start()
-        pods_thread.start()
+            policies_PLS_thread.start()
+            pods_PLS_thread.start()
+        
+        # PNS-scenario
+        else:
+            print("Running in PNS-mode...")
+            # ClusterState().initialize()
+
+            policies_thread = threading.Thread(target=watch_policies)
+            pods_thread = threading.Thread(target=watch_pods)
+
+            policies_thread.start()
+            pods_thread.start()
 
 
 def start_kubelet_watch_server():
@@ -111,6 +122,12 @@ def watch_services():
     watch_services method to monitor service changes.
     """
     Watcher().watch_services()
+
+def watch_policies_PLS():
+    Watcher(PNS_scenario=False).watch_policies()
+
+def watch_pods_PLS():
+    Watcher(PNS_scenario=False).watch_pods()
 
 
 if __name__ == "__main__":

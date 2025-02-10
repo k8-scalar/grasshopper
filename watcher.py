@@ -34,9 +34,9 @@ class Watcher:
         Handles Service events based on their type (ADDED, DELETED, MODIFIED).
     """
 
-    def __init__(self):
+    def __init__(self, PNS_scenario=True):
         self.load_config()
-        self.watchdog = WatchDog()
+        self.watchdog = WatchDog(PNS_scenario)
         self.core_api = client.CoreV1Api()
         self.networking_api = client.NetworkingV1Api()
         self.networking_v1 = client.NetworkingV1Api()
