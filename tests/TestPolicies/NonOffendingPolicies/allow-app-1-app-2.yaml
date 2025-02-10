@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-app-1-app-2
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: my-app-1 # Selects pods with the label app=my-app
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: my-app-2 # Allows traffic  to pods with the label app=my-app-2
+    ports:
+    - protocol: TCP
+      port: 80 # Allows HTTP traffic
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: my-app-2 # Allows traffic  to pods with the label app=my-app-2
+    ports:
+    - protocol: TCP
+      port: 80 # Allows HTTP traffic
