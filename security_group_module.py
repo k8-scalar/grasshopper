@@ -75,6 +75,10 @@ class SecurityGroupModule:
             print(f"SGMod: removed rule from {SecurityGroupModule.SGn(n).name}")
 
     @staticmethod
+    def add_SG(L: LabelSet):
+        pass
+
+    @staticmethod
     def rule_from(pol: Policy, m: Node) -> Rule:
         A, traffic = pol.allow[0]
         return Rule(A if isinstance(A, CIDR) else SecurityGroupModule.SGn(m), traffic)

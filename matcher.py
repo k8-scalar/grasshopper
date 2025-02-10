@@ -124,12 +124,19 @@ class PNSMatcher(Matcher):
 
 
 class PLSMatcher(Matcher):
-
     def __init__(self):
         super().__init__()
 
     def SG_config_new_pol(self, spol):
         print("PLS implementation...")
+
+        # if len(ClusterState.get_map(spol.sel).match_nodes) > 0:
+        #     #add_sg(spol.allow[0][0])
+
+        # if isinstance(spol.allow[0][0], LabelSet):
+        #     #add_sg(spol.allow[0][0])
+
+        # sg = ClusterState.
 
     def SG_config_new_pod(self, L, n):
         print("PLS implementation...")
