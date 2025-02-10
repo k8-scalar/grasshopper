@@ -1,4 +1,4 @@
-from classes import CIDR, Node, Policy, Rule, SecurityGroup
+from classes import CIDR, Node, Policy, Rule, SecurityGroup, LabelSet
 from cluster_state import ClusterState
 from helpers import traffic_pols
 from openstackfiles.openstack_client import OpenStackClient
