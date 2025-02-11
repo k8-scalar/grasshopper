@@ -102,8 +102,8 @@ class PNSMatcher(Matcher):
                     SecurityGroupModule.SG_add_conn(pol, n, m)
 
         for pol in mapping.get(L).allow_pols:
-            for m in mapping.get(pol.allow[0][0]).match_nodes:
-                SecurityGroupModule.SG_add_conn(pol, n, m)
+            for m in mapping.get(pol.sel).match_nodes:
+                SecurityGroupModule.SG_add_conn(pol, m, n)
 
     def SG_config_remove_pod(self, L: LabelSet, n: Node) -> None:
         """
@@ -127,8 +127,8 @@ class PNSMatcher(Matcher):
                     SecurityGroupModule.SG_remove_conn(pol, n, m)
 
         for pol in mapping.get(L).allow_pols:
-            for m in mapping.get(pol.allow[0][0]).match_nodes:
-                SecurityGroupModule.SG_remove_conn(pol, n, m)
+            for m in mapping.get(pol.sel).match_nodes:
+                SecurityGroupModule.SG_remove_conn(pol, m, n)
 
 
 class PLSMatcher(Matcher):

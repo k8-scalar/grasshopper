@@ -9,7 +9,7 @@ master_port = 9000
 class KubeletWatchServer:
 
     def __init__(self):
-        self.watchdog: WatchDog = WatchDog()
+        self.watchdog: WatchDog = WatchDog(PNS_scenario=True)
 
     def start(self):
         """

@@ -31,7 +31,7 @@ def main():
     singleSGPerNodeScenario = sys.argv[1].lower() == "true"
     distributed = sys.argv[2].lower() == "true"
 
-    create_sg_per_node()
+    create_sg_per_node(delete_existing_rules=True)
 
     if distributed:
         print("Running in distributed mode")
