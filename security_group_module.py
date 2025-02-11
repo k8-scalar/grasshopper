@@ -2,11 +2,26 @@ from classes import CIDR, Node, Policy, Rule, SecurityGroup, LabelSet
 from cluster_state import ClusterState
 from helpers import traffic_pols
 from openstackfiles.openstack_client import OpenStackClient
+from abc import ABC, abstractmethod
+
+
+
+class SecurityGroupModule(ABC):
+    
+    @staticmethod
+    @abstractmethod
+    def SGn(n) -> SecurityGroup:
+        pass
+
+    @staticmethod
+    def rule_from(pol: Policy, m: Node) -> Rule:
+        A, traffic = pol.allow[0]
+        return Rule(A if isinstance(A, CIDR) else SecurityGroupModule.SGn(m), traffic)
 
 
 # A class to encompass all functionality of actually manipulating the SG's
 # through the Openstack API.
-class SecurityGroupModule:
+class SecurityGroupModulePNS(SecurityGroupModule):
     @staticmethod
     def SGn(n: Node) -> SecurityGroup:
         return ClusterState().get_security_groups().get("SG_" + n.name)
@@ -74,11 +89,13 @@ class SecurityGroupModule:
             )
             print(f"SGMod: removed rule from {SecurityGroupModule.SGn(n).name}")
 
+class SecurityGroupModulePLS(SecurityGroupModule):
+
+    @staticmethod
+    def SGn(L: LabelSet) -> str:
+        return "SG-" + L.get_string_repr
+
+    
     @staticmethod
     def add_SG(L: LabelSet):
         pass
-
-    @staticmethod
-    def rule_from(pol: Policy, m: Node) -> Rule:
-        A, traffic = pol.allow[0]
-        return Rule(A if isinstance(A, CIDR) else SecurityGroupModule.SGn(m), traffic)

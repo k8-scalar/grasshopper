@@ -1,17 +1,21 @@
 from classes import CIDR, LabelSet, Node, Policy
 from cluster_state import ClusterState
-from security_group_module import SecurityGroupModule
+from security_group_module import SecurityGroupModulePNS, SecurityGroupModulePLS
 from abc import ABC, abstractmethod
 
 
 class Matcher(ABC):
 
     def __init__(self):
-        self.security_group_module = SecurityGroupModule()
+        self.set_security_group_module()
 
     """
     Defines an interface of a Matcher Class.
     """
+
+    @abstractmethod
+    def set_security_group_module(self):
+        pass
 
     @abstractmethod
     def SG_config_new_pol(self, spol):
@@ -32,6 +36,10 @@ class Matcher(ABC):
 
 # A class that provides all functionality to actually execute the GrassHopper Algorithm.
 class PNSMatcher(Matcher):
+
+    def set_security_group_module(self):
+        self.security_group_module = SecurityGroupModulePNS()
+
     # functionality to execute algorithm.
     def SG_config_new_pol(self, pol: Policy) -> None:
         """
@@ -124,8 +132,9 @@ class PNSMatcher(Matcher):
 
 
 class PLSMatcher(Matcher):
-    def __init__(self):
-        super().__init__()
+
+    def set_security_group_module(self):
+        self.security_group_module = SecurityGroupModulePLS()
 
     def SG_config_new_pol(self, spol):
         print("PLS implementation...")
