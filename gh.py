@@ -70,6 +70,7 @@ def main():
         # PLS-scenario
         if not singleSGPerNodeScenario:
             print("Running in PLS-mode...")
+            ClusterState().initialize()
             policies_PLS_thread = threading.Thread(target=watch_policies_PLS)
             pods_PLS_thread = threading.Thread(target=watch_pods_PLS)
 
@@ -79,7 +80,7 @@ def main():
         # PNS-scenario
         else:
             print("Running in PNS-mode...")
-            # ClusterState().initialize()
+            ClusterState().initialize()
 
             policies_thread = threading.Thread(target=watch_policies)
             pods_thread = threading.Thread(target=watch_pods)

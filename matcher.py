@@ -139,13 +139,16 @@ class PLSMatcher(Matcher):
     def SG_config_new_pol(self, spol):
         print("PLS implementation...")
 
-        # if len(ClusterState.get_map(spol.sel).match_nodes) > 0:
-        #     #add_sg(spol.allow[0][0])
+        if len(ClusterState.get_map_entry(spol.sel).match_nodes) > 0:
+            SecurityGroupModulePLS.add_sg(spol.sel)
 
-        # if isinstance(spol.allow[0][0], LabelSet):
-        #     #add_sg(spol.allow[0][0])
+        if isinstance(spol.allow[0][0], LabelSet):
+            SecurityGroupModulePLS.add_sg(spol.allow[0][0])
 
-        # sg = ClusterState.
+        sg = ClusterState.get_security_group(SecurityGroupModulePLS.SGn(spol.allow[0][0]))
+        rule = SecurityGroupModulePLS.rule_from(spol)
+
+        SecurityGroupModulePLS.add_rule_to_remotes(sg, rule)
 
     def SG_config_new_pod(self, L, n):
         print("PLS implementation...")

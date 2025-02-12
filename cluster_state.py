@@ -236,6 +236,18 @@ class ClusterState:
     def get_security_groups():
         return ClusterState().security_groups
 
+    @staticmethod
+    def get_security_group(sg_name: str):
+        return ClusterState().security_groups.get(sg_name)
+
+    @staticmethod
+    def add_security_group(sg: SecurityGroup):
+        ClusterState().security_groups[sg.name] = sg
+
+    @staticmethod
+    def remove_security_group(sg_name: str):
+        ClusterState().security_groups.pop(sg_name)
+
     def __str__(self):
         result = ["--------------", "Cluster State:"]
 

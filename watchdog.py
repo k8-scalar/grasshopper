@@ -126,7 +126,7 @@ class WatchDog:
         # Only handle the new policy once.
         for spol in WatchDog.split(pol):
             if spol in ClusterState().get_policies():
-                print(f"Pod {pol.name} already exists in the cluster.")
+                print(f"Policy {pol.name} already exists in the cluster.")
                 return
 
         verified = self.verify_policy(pol)

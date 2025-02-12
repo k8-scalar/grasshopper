@@ -1,31 +1,19 @@
 from classes import CIDR, Node, Policy, Rule, SecurityGroup, LabelSet
 from cluster_state import ClusterState
-from helpers import traffic_pols
+from helpers import traffic_pols, running
 from openstackfiles.openstack_client import OpenStackClient
 from abc import ABC, abstractmethod
+from openstackfiles.security_group_operations import create_security_group_if_not_exists, attach_security_group_to_instance
 
 
 
 class SecurityGroupModule(ABC):
-    
+
     @staticmethod
     @abstractmethod
     def SGn(n) -> SecurityGroup:
         pass
-
-    @staticmethod
-    def rule_from(pol: Policy, m: Node) -> Rule:
-        A, traffic = pol.allow[0]
-        return Rule(A if isinstance(A, CIDR) else SecurityGroupModule.SGn(m), traffic)
-
-
-# A class to encompass all functionality of actually manipulating the SG's
-# through the Openstack API.
-class SecurityGroupModulePNS(SecurityGroupModule):
-    @staticmethod
-    def SGn(n: Node) -> SecurityGroup:
-        return ClusterState().get_security_groups().get("SG_" + n.name)
-
+    
     @staticmethod
     def add_rule_to_remotes(SG: SecurityGroup, rule: Rule) -> None:
         print(
@@ -69,6 +57,19 @@ class SecurityGroupModulePNS(SecurityGroupModule):
         SG.remotes = {r for r in SG.remotes if r.id != rule.id}
 
     @staticmethod
+    def rule_from(pol: Policy, m: Node) -> Rule:
+        A, traffic = pol.allow[0]
+        return Rule(A if isinstance(A, CIDR) else SecurityGroupModule.SGn(m), traffic)
+
+
+# A class to encompass all functionality of actually manipulating the SG's
+# through the Openstack API.
+class SecurityGroupModulePNS(SecurityGroupModule):
+    @staticmethod
+    def SGn(n: Node) -> SecurityGroup:
+        return ClusterState().get_security_groups().get("SG_" + n.name)
+
+    @staticmethod
     def SG_add_conn(pol: Policy, n: Node, m: Node) -> None:
         print(f"SGMod: Adding connection from {n.name} to {m.name}")
         rule: Rule = SecurityGroupModule.rule_from(pol, m)
@@ -93,9 +94,93 @@ class SecurityGroupModulePLS(SecurityGroupModule):
 
     @staticmethod
     def SGn(L: LabelSet) -> str:
-        return "SG-" + L.get_string_repr
+        return "SG-" + L.get_string_repr()
 
+    @staticmethod
+    def create_security_group(L: LabelSet):
+        """
+        This method is used to create a security group in openstack.
+
+        It also adds the created security group to the clusterstate.
+
+        Returns: 
+            {"security_group": 
+                {"id": ... ,
+                 "name": ... ,
+                 "description": ... ,
+                 "tenant_id": ... ,
+                 "security_group_rules": [
+                    ...
+                 ]
+
+                }
+            }
+
+        """
+        name = SecurityGroupModulePLS.SGn(L)
+        description = "Security Group for " + name
+        sg = create_security_group_if_not_exists(name, description)
+        sg_id = sg["id"]
+        sg_name = sg["name"]
+
+        sg_our_model = SecurityGroup(sg_id, sg_name)
+        return sg_our_model
+    
     
     @staticmethod
-    def add_SG(L: LabelSet):
-        pass
+    def add_sg(L: LabelSet):
+        if SecurityGroupModulePLS.SGn(L) not in ClusterState.get_security_groups():
+            sg = SecurityGroupModulePLS.create_security_group(L)
+            
+            for n in filter(lambda n: running(L, n), ClusterState.get_nodes()):
+                SecurityGroupModulePLS.attach_security_group_to_node(sg, n)
+
+            ClusterState.add_security_group(sg)
+        
+
+    @staticmethod
+    def remove_sg(L: LabelSet):
+        if SecurityGroupModulePLS.SGn(L) in ClusterState.get_security_groups.keys():
+            for n in filter(lambda n: running(L, n), ClusterState.get_nodes()):
+                SecurityGroupModulePLS.detach_security_group(sg, n)
+
+            ClusterState.remove_security_group(SecurityGroupModulePLS.SGn(L))
+
+    @staticmethod
+    def attach_security_group_to_node(sg: SecurityGroup, node_id: str):
+        """
+        A method used for attaching a security group to an openstack node.
+        """
+        nova = OpenStackClient().get_nova()
+        server = nova.servers.find(name=node_id)
+        security_group_name = sg.name
+        sg_id = sg.id
+
+        print(f"Attaching security group {security_group_name} to instance {node_id}")
+        server.add_security_group(sg_id)
+
+
+    @staticmethod
+    def detach_security_group(sg: SecurityGroup, node_id: str):
+        """
+        A method used for attaching a security group to an openstack node.
+        """
+        nova = OpenStackClient().get_nova()
+        server = nova.servers.find(name=node_id)
+        security_group_name = sg.name
+        sg_id = sg.id
+
+        print(f"Detaching security group {security_group_name} to instance {node_id}")
+        server.remove_security_group(sg_id)
+
+    @staticmethod
+    def add_rule_to_remotes(sg: SecurityGroup, rule: Rule):
+        try:
+            super().add_rule_to_remotes(sg, rule)
+        except Exception:
+            print("Cannot add rule to remotes (probably already exists...)")
+
+    @staticmethod
+    def rule_from(spol: Policy):
+        A, traffic = spol.allow[0]
+        return Rule(A if isinstance(A, CIDR) else ClusterState.get_security_group(SecurityGroupModulePLS.SGn(A)), traffic)
