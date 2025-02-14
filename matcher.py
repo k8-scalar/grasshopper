@@ -54,10 +54,10 @@ class PNSMatcher(Matcher):
         mapping = ClusterState().get_map()
         for n in mapping.get(pol.sel).match_nodes:
             if isinstance(pol.allow[0][0], CIDR):
-                SecurityGroupModule.SG_add_conn(pol, n, None)
+                SecurityGroupModulePNS.SG_add_conn(pol, n, None)
             else:
                 for m in mapping.get(pol.allow[0][0]).match_nodes:
-                    SecurityGroupModule.SG_add_conn(pol, n, m)
+                    SecurityGroupModulePNS.SG_add_conn(pol, n, m)
 
     def SG_config_remove_pol(self, pol: Policy) -> None:
         """
@@ -72,10 +72,10 @@ class PNSMatcher(Matcher):
         mapping = ClusterState().get_map()
         for n in mapping.get(pol.sel).match_nodes:
             if isinstance(pol.allow[0][0], CIDR):
-                SecurityGroupModule.SG_remove_conn(pol, n, None)
+                SecurityGroupModulePNS.SG_remove_conn(pol, n, None)
             else:
                 for m in mapping.get(pol.allow[0][0]).match_nodes:
-                    SecurityGroupModule.SG_remove_conn(pol, n, m)
+                    SecurityGroupModulePNS.SG_remove_conn(pol, n, m)
 
     def SG_config_new_pod(self, L: LabelSet, n: Node) -> None:
         """
@@ -96,14 +96,14 @@ class PNSMatcher(Matcher):
         mapping = ClusterState().get_map()
         for pol in mapping.get(L).select_pols:
             if isinstance(pol.allow[0][0], CIDR):
-                SecurityGroupModule.SG_add_conn(pol, n, None)
+                SecurityGroupModulePNS.SG_add_conn(pol, n, None)
             else:
                 for m in mapping.get(pol.allow[0][0]).match_nodes:
-                    SecurityGroupModule.SG_add_conn(pol, n, m)
+                    SecurityGroupModulePNS.SG_add_conn(pol, n, m)
 
         for pol in mapping.get(L).allow_pols:
             for m in mapping.get(pol.sel).match_nodes:
-                SecurityGroupModule.SG_add_conn(pol, m, n)
+                SecurityGroupModulePNS.SG_add_conn(pol, m, n)
 
     def SG_config_remove_pod(self, L: LabelSet, n: Node) -> None:
         """
@@ -121,14 +121,14 @@ class PNSMatcher(Matcher):
         mapping = ClusterState().get_map()
         for pol in mapping.get(L).select_pols:
             if isinstance(pol.allow[0][0], CIDR):
-                SecurityGroupModule.SG_remove_conn(pol, n, None)
+                SecurityGroupModulePNS.SG_remove_conn(pol, n, None)
             else:
                 for m in mapping.get(pol.allow[0][0]).match_nodes:
-                    SecurityGroupModule.SG_remove_conn(pol, n, m)
+                    SecurityGroupModulePNS.SG_remove_conn(pol, n, m)
 
         for pol in mapping.get(L).allow_pols:
             for m in mapping.get(pol.sel).match_nodes:
-                SecurityGroupModule.SG_remove_conn(pol, m, n)
+                SecurityGroupModulePNS.SG_remove_conn(pol, m, n)
 
 
 class PLSMatcher(Matcher):

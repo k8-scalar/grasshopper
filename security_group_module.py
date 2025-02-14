@@ -73,8 +73,8 @@ class SecurityGroupModulePNS(SecurityGroupModule):
     def SG_add_conn(pol: Policy, n: Node, m: Node) -> None:
         print(f"SGMod: Adding connection from {n.name} to {m.name}")
         rule: Rule = SecurityGroupModule.rule_from(pol, m)
-        if rule not in SecurityGroupModule.SGn(n).remotes:
-            SecurityGroupModule.add_rule_to_remotes(SecurityGroupModule.SGn(n), rule)
+        if rule not in SecurityGroupModulePNS.SGn(n).remotes:
+            SecurityGroupModule.add_rule_to_remotes(SecurityGroupModulePNS.SGn(n), rule)
 
     @staticmethod
     def SG_remove_conn(pol: Policy, n: Node, m: Node) -> None:
@@ -86,9 +86,9 @@ class SecurityGroupModulePNS(SecurityGroupModule):
                 )
                 return
             SecurityGroupModule.remove_rule_from_remotes(
-                SecurityGroupModule.SGn(n), SecurityGroupModule.rule_from(pol, m)
+                SecurityGroupModulePNS.SGn(n), SecurityGroupModulePNS.rule_from(pol, m)
             )
-            print(f"SGMod: removed rule from {SecurityGroupModule.SGn(n).name}")
+            print(f"SGMod: removed rule from {SecurityGroupModulePNS.SGn(n).name}")
             
 
 class SecurityGroupModulePLS(SecurityGroupModule):
