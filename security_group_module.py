@@ -89,9 +89,9 @@ class SecurityGroupModulePNS(SecurityGroupModule):
                 SecurityGroupModule.SGn(n), SecurityGroupModule.rule_from(pol, m)
             )
             print(f"SGMod: removed rule from {SecurityGroupModule.SGn(n).name}")
+            
 
 class SecurityGroupModulePLS(SecurityGroupModule):
-
     @staticmethod
     def SGn(L: LabelSet) -> str:
         return "SG-" + L.get_string_repr()
@@ -101,20 +101,7 @@ class SecurityGroupModulePLS(SecurityGroupModule):
         """
         This method is used to create a security group in openstack.
 
-        It also adds the created security group to the clusterstate.
-
-        Returns: 
-            {"security_group": 
-                {"id": ... ,
-                 "name": ... ,
-                 "description": ... ,
-                 "tenant_id": ... ,
-                 "security_group_rules": [
-                    ...
-                 ]
-
-                }
-            }
+        Returns: sg_our_model: SecurityGroup | A SecurityGroup object.
 
         """
         name = SecurityGroupModulePLS.SGn(L)
@@ -129,6 +116,11 @@ class SecurityGroupModulePLS(SecurityGroupModule):
     
     @staticmethod
     def add_sg(L: LabelSet):
+        """
+        Method to add a SG. This method creates a security group for the given labelset
+        and attaches it to every node, that is running a pod with said labelset. Additionally,
+        it adds the created SecurityGroup-object to the ClusterState.
+        """
         if SecurityGroupModulePLS.SGn(L) not in ClusterState.get_security_groups():
             sg = SecurityGroupModulePLS.create_security_group(L)
             
@@ -140,6 +132,14 @@ class SecurityGroupModulePLS(SecurityGroupModule):
 
     @staticmethod
     def remove_sg(L: LabelSet):
+        """
+        This method is used to remove a security group for a given labelset.
+        It detaches the security group for the given labelset from all nodes, 
+        running on a pod that has those labels.
+
+        Additionally, it removes the security group from the cluster state.
+
+        """
         if SecurityGroupModulePLS.SGn(L) in ClusterState.get_security_groups.keys():
             for n in filter(lambda n: running(L, n), ClusterState.get_nodes()):
                 SecurityGroupModulePLS.detach_security_group(sg, n)
@@ -163,7 +163,7 @@ class SecurityGroupModulePLS(SecurityGroupModule):
     @staticmethod
     def detach_security_group(sg: SecurityGroup, node_id: str):
         """
-        A method used for attaching a security group to an openstack node.
+        A method used for detaching a security group from an openstack node.
         """
         nova = OpenStackClient().get_nova()
         server = nova.servers.find(name=node_id)
@@ -175,6 +175,9 @@ class SecurityGroupModulePLS(SecurityGroupModule):
 
     @staticmethod
     def add_rule_to_remotes(sg: SecurityGroup, rule: Rule):
+        """
+        A method used to add a rule to a given security group.
+        """
         try:
             super().add_rule_to_remotes(sg, rule)
         except Exception:
@@ -182,5 +185,12 @@ class SecurityGroupModulePLS(SecurityGroupModule):
 
     @staticmethod
     def rule_from(spol: Policy):
+        """
+        A method to create a security group rule from a given splitted policy.
+
+        Returns:
+
+            rule: Rule | The created rule from the splitted policy.
+        """
         A, traffic = spol.allow[0]
         return Rule(A if isinstance(A, CIDR) else ClusterState.get_security_group(SecurityGroupModulePLS.SGn(A)), traffic)

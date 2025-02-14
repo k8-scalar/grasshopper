@@ -142,19 +142,39 @@ class PLSMatcher(Matcher):
         if len(ClusterState.get_map_entry(spol.sel).match_nodes) > 0:
             SecurityGroupModulePLS.add_sg(spol.sel)
 
-        if isinstance(spol.allow[0][0], LabelSet):
-            SecurityGroupModulePLS.add_sg(spol.allow[0][0])
+            if isinstance(spol.allow[0][0], LabelSet):
+                SecurityGroupModulePLS.add_sg(spol.allow[0][0])
 
-        sg = ClusterState.get_security_group(SecurityGroupModulePLS.SGn(spol.allow[0][0]))
-        rule = SecurityGroupModulePLS.rule_from(spol)
+            sg = ClusterState.get_security_group(SecurityGroupModulePLS.SGn(spol.allow[0][0]))
+            rule = SecurityGroupModulePLS.rule_from(spol)
 
-        SecurityGroupModulePLS.add_rule_to_remotes(sg, rule)
+            SecurityGroupModulePLS.add_rule_to_remotes(sg, rule)
 
     def SG_config_new_pod(self, L, n):
         print("PLS implementation...")
 
-    def SG_config_remove_pol(self, spl):
+        for spol in [spol in ClusterState.get_map_entry(L).select_pols] + [spol in ClusterState.get_map_entry(L).allow_pols]:
+            PLSMatcher.SG_config_new_pol(spol)
+        
+        sg = ClusterState.get_security_group(SecurityGroupModulePLS.SGn(L))
+        if sg:
+            SecurityGroupModulePLS.attach_security_group_to_node(sg, n)
+
+    #TODO: Figure out if-statements
+    def SG_config_remove_pol(self, spol):
         print("PLS implementation...")
+        sg = ClusterState.get_security_group(SecurityGroupModulePLS.SGn(spol.sel))
+        rule = SecurityGroupModulePLS.rule_from(spol)
+
+        if ClusterState.get_map().get(spol.sel) == "...":
+            SecurityGroupModulePLS.remove_sg(spol.sel)
+
+        if ClusterState.get_map().get(spol.allow[0][0]) == "...":
+            SecurityGroupModulePLS.remove_sg(spol.allow[0][0])
+
 
     def SG_config_remove_pod(self, L, n):
         print("PLS implementation...")
+        sg = ClusterState.get_security_group(SecurityGroupModulePLS.SGn(L))
+        if sg:
+            SecurityGroupModulePLS.detach_security_group(sg, n)
