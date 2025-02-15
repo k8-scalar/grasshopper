@@ -56,12 +56,6 @@ class SecurityGroupModule(ABC):
         # Create a new set without the rule to remove
         SG.remotes = {r for r in SG.remotes if r.id != rule.id}
 
-    @staticmethod
-    def rule_from(pol: Policy, m: Node) -> Rule:
-        A, traffic = pol.allow[0]
-        return Rule(A if isinstance(A, CIDR) else SecurityGroupModule.SGn(m), traffic)
-
-
 # A class to encompass all functionality of actually manipulating the SG's
 # through the Openstack API.
 class SecurityGroupModulePNS(SecurityGroupModule):
@@ -72,7 +66,7 @@ class SecurityGroupModulePNS(SecurityGroupModule):
     @staticmethod
     def SG_add_conn(pol: Policy, n: Node, m: Node) -> None:
         print(f"SGMod: Adding connection from {n.name} to {m.name}")
-        rule: Rule = SecurityGroupModule.rule_from(pol, m)
+        rule: Rule = SecurityGroupModulePNS.rule_from(pol, m)
         if rule not in SecurityGroupModulePNS.SGn(n).remotes:
             SecurityGroupModule.add_rule_to_remotes(SecurityGroupModulePNS.SGn(n), rule)
 
@@ -89,6 +83,11 @@ class SecurityGroupModulePNS(SecurityGroupModule):
                 SecurityGroupModulePNS.SGn(n), SecurityGroupModulePNS.rule_from(pol, m)
             )
             print(f"SGMod: removed rule from {SecurityGroupModulePNS.SGn(n).name}")
+
+    @staticmethod
+    def rule_from(pol: Policy, m: Node) -> Rule:
+        A, traffic = pol.allow[0]
+        return Rule(A if isinstance(A, CIDR) else SecurityGroupModulePNS.SGn(m), traffic)
             
 
 class SecurityGroupModulePLS(SecurityGroupModule):
