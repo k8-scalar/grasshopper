@@ -137,44 +137,49 @@ class PLSMatcher(Matcher):
         self.security_group_module = SecurityGroupModulePLS()
 
     def SG_config_new_pol(self, spol):
-        print("PLS implementation...")
+        print(f"PLS: Configuring new spol {spol}")
 
         if len(ClusterState.get_map_entry(spol.sel).match_nodes) > 0:
+            print(f"Adding Security Group for select labelset: {spol.sel}" )
             SecurityGroupModulePLS.add_sg(spol.sel)
 
             if isinstance(spol.allow[0][0], LabelSet):
+                print(f"Adding Security Group for allow labelset: {spol.allow[0][0]}" )
                 SecurityGroupModulePLS.add_sg(spol.allow[0][0])
 
-            sg = ClusterState.get_security_group(SecurityGroupModulePLS.SGn(spol.allow[0][0]))
+            sg = ClusterState.get_security_group(SecurityGroupModulePLS.SGn(spol.sel))
             rule = SecurityGroupModulePLS.rule_from(spol)
 
             SecurityGroupModulePLS.add_rule_to_remotes(sg, rule)
 
     def SG_config_new_pod(self, L, n):
-        print("PLS implementation...")
+        print("PLS: Configuring new pod with labelset: {L}")
 
-        for spol in [spol in ClusterState.get_map_entry(L).select_pols] + [spol in ClusterState.get_map_entry(L).allow_pols]:
-            PLSMatcher.SG_config_new_pol(spol)
+        for spol in ClusterState.get_map_entry(L).select_pols | ClusterState.get_map_entry(L).allow_pols:
+            self.SG_config_new_pol(spol)
         
         sg = ClusterState.get_security_group(SecurityGroupModulePLS.SGn(L))
         if sg:
             SecurityGroupModulePLS.attach_security_group_to_node(sg, n)
 
-    #TODO: Figure out if-statements
     def SG_config_remove_pol(self, spol):
-        print("PLS implementation...")
+        print(f"PLS: SG_config: removing spol: {spol}")
         sg = ClusterState.get_security_group(SecurityGroupModulePLS.SGn(spol.sel))
         rule = SecurityGroupModulePLS.rule_from(spol)
+        
+        if sg:
+            print(f"Removing rule {rule.id} from sg {sg.name}")
+            SecurityGroupModulePLS.remove_rule_from_remotes(sg, rule)
 
-        if ClusterState.get_map().get(spol.sel) == "...":
+        if ClusterState.get_map().get(spol.sel).select_pols == {spol} and len(ClusterState.get_map().get(spol.sel).allow_pols) == 0:
             SecurityGroupModulePLS.remove_sg(spol.sel)
 
-        if ClusterState.get_map().get(spol.allow[0][0]) == "...":
+        if len(ClusterState.get_map().get(spol.allow[0][0]).select_pols) == 0 and ClusterState.get_map().get(spol.allow[0][0]).allow_pols == {spol}:
             SecurityGroupModulePLS.remove_sg(spol.allow[0][0])
 
 
     def SG_config_remove_pod(self, L, n):
-        print("PLS implementation...")
+        print(f"PLS: SG_config: removing pod with labelset: {L}")
         sg = ClusterState.get_security_group(SecurityGroupModulePLS.SGn(L))
         if sg:
             SecurityGroupModulePLS.detach_security_group(sg, n)

@@ -139,38 +139,70 @@ class SecurityGroupModulePLS(SecurityGroupModule):
         Additionally, it removes the security group from the cluster state.
 
         """
-        if SecurityGroupModulePLS.SGn(L) in ClusterState.get_security_groups.keys():
+
+        print(f"Removing SG: {SecurityGroupModulePLS.SGn(L)}")
+
+        if SecurityGroupModulePLS.SGn(L) in ClusterState.get_security_groups().keys():
             for n in filter(lambda n: running(L, n), ClusterState.get_nodes()):
+                sg = ClusterState.get_security_group(SecurityGroupModulePLS.SGn(L))
                 SecurityGroupModulePLS.detach_security_group(sg, n)
 
+            print(f"SGMod: Removing Security Group: {SecurityGroupModulePLS.SGn(L)}")
+            SecurityGroupModulePLS.delete_security_group(SecurityGroupModulePLS.SGn(L))
             ClusterState.remove_security_group(SecurityGroupModulePLS.SGn(L))
 
     @staticmethod
-    def attach_security_group_to_node(sg: SecurityGroup, node_id: str):
+    def attach_security_group_to_node(sg: SecurityGroup, node: Node):
         """
         A method used for attaching a security group to an openstack node.
         """
         nova = OpenStackClient().get_nova()
-        server = nova.servers.find(name=node_id)
+        server = nova.servers.find(name=node.name)
+        attached_sgs = {sg["name"] for sg in server.security_groups}
+
+        if sg.name in attached_sgs:
+            print(f"{sg.name} already attached to {node.name}")
+            return
+
         security_group_name = sg.name
         sg_id = sg.id
-
-        print(f"Attaching security group {security_group_name} to instance {node_id}")
+        print(f"Attaching security group {security_group_name} to instance {node.name}")
         server.add_security_group(sg_id)
 
 
     @staticmethod
-    def detach_security_group(sg: SecurityGroup, node_id: str):
+    def detach_security_group(sg: SecurityGroup, node: Node):
         """
         A method used for detaching a security group from an openstack node.
         """
         nova = OpenStackClient().get_nova()
-        server = nova.servers.find(name=node_id)
+        server = nova.servers.find(name=node.name)
         security_group_name = sg.name
         sg_id = sg.id
 
-        print(f"Detaching security group {security_group_name} to instance {node_id}")
+        print(f"Detaching security group {security_group_name} to instance {node.name}")
         server.remove_security_group(sg_id)
+    
+    @staticmethod
+    def delete_security_group(sg_name):
+        """Deletes a security group by name."""
+        # Get security group ID by name
+        neutron = OpenStackClient().get_neutron()
+        security_groups = neutron.list_security_groups().get("security_groups", [])
+        sg = next((sg for sg in security_groups if sg["name"] == sg_name), None)
+
+        if not sg:
+            print(f"Security group '{sg_name}' not found.")
+            return
+
+        sg_id = sg["id"]
+        
+        try:
+            print(f"Deleting security group: {sg_name} ({sg_id})")
+            neutron.delete_security_group(sg_id)
+            print(f"Security group '{sg_name}' deleted successfully.")
+        except Exception as e:
+            print(f"Failed to delete security group '{sg_name}': {e}")  
 
     @staticmethod
     def add_rule_to_remotes(sg: SecurityGroup, rule: Rule):
@@ -178,9 +210,9 @@ class SecurityGroupModulePLS(SecurityGroupModule):
         A method used to add a rule to a given security group.
         """
         try:
-            super().add_rule_to_remotes(sg, rule)
-        except Exception:
-            print("Cannot add rule to remotes (probably already exists...)")
+            SecurityGroupModule.add_rule_to_remotes(sg, rule)
+        except Exception as e:
+            print(f"Cannot add rule to remotes: {e}")
 
     @staticmethod
     def rule_from(spol: Policy):
@@ -193,3 +225,4 @@ class SecurityGroupModulePLS(SecurityGroupModule):
         """
         A, traffic = spol.allow[0]
         return Rule(A if isinstance(A, CIDR) else ClusterState.get_security_group(SecurityGroupModulePLS.SGn(A)), traffic)
+
