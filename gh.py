@@ -36,6 +36,13 @@ def main():
 
     if distributed:
         print("Running in distributed mode")
+
+        if not singleSGPerNodeScenario:
+            print("PLS not supported in distributed mode")
+            return
+        
+        print("Running PNS mode")
+
         if is_openstack():
             print("Running on OpenStack")
             from openstackfiles.add_distributed_gh_rules import add_rpc_rules
@@ -81,6 +88,9 @@ def main():
         # PNS-scenario
         else:
             print("Running in PNS-mode...")
+
+            create_sg_per_node(delete_existing_rules=True)
+
             ClusterState().initialize()
 
             policies_thread = threading.Thread(target=watch_policies)

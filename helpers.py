@@ -20,12 +20,17 @@ def matching(L: LabelSet, p: Pod):
     return L.issubset(p.label_set)
 
 
-def traffic_pols(traffic: Traffic, n: Node, m: Node) -> Policy | None:
-    for pol in ClusterState().get_policies():
-        if running(pol.sel, n) and any(
-            [
-                pol.allow[0] == (labelset, traffic) and running(labelset, m)
-                for labelset in ClusterState().get_label_sets()
-            ]
-        ):
-            return pol
+def traffic_pols(traffic: Traffic, n: Node, m: Node) -> list[Policy]:
+    policies = list()
+    pols = ClusterState().get_policies()
+    for pol in pols:
+        is_running_on_n = running(pol.sel, n)
+        any_labelset = False
+        for labelset in ClusterState().get_label_sets():
+            if pol.allow[0] == (labelset, traffic) and running(labelset, m):
+                any_labelset = True
+                break
+
+        if is_running_on_n and any_labelset:
+            policies.append(pol)
+    return policies

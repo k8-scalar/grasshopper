@@ -230,7 +230,7 @@ class ClusterState:
 
     @staticmethod
     def get_label_sets():
-        return ClusterState().map.keys()
+        return list(ClusterState().map.keys())
 
     @staticmethod
     def get_security_groups():

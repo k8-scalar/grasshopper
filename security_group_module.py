@@ -74,9 +74,10 @@ class SecurityGroupModulePNS(SecurityGroupModule):
     def SG_remove_conn(pol: Policy, n: Node, m: Node) -> None:
         print(f"SGMod: Removing connection from {n.name} to {m.name}")
         if not isinstance(pol.allow[0][0], CIDR):
-            if traffic_pols(pol.allow[0][1], n, m) != pol:
+            trfpols = traffic_pols(pol.allow[0][1], n, m)
+            if  len(trfpols) != 0 or (len(trfpols) == 1 and trfpols[0] != pol):
                 print(
-                    f"SGMod: policy has no running traffic from node {n.name} to node {m.name}"
+                    f"SGMod: similar traffic for other policy detected from node {n.name} to node {m.name}"
                 )
                 return
             SecurityGroupModule.remove_rule_from_remotes(
