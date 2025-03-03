@@ -82,21 +82,6 @@ class Watcher:
         for event in self.k8s_watcher.stream(
             self.networking_api.list_namespaced_network_policy, namespace
         ):
-            # event_object = event["object"]
-            # name = event_object.metadata.name
-
-            # involved_object = event_object.involved_object
-            # event_kind = involved_object.kind or "Unknown"
-            # event_type = event.get("type", "Unknown")
-            # object_name = involved_object.name or "Unknown"
-            # change_reason = event_object.reason or "Unknown"
-            # change_reason_message = event_object.message or "No message"
-            # event_occurred_at = event_object.last_timestamp or "Unknown time"
-
-            # print(
-            #     f"Event: {event_kind:>10.10} {object_name:>20.20} {event_type:>10.10} | Reason: {change_reason:>20.20}, {change_reason_message:>90.90} | Occurred at: {event_occurred_at}"
-            # )
-
             self.handle_policy_event(event)
 
     def watch_services(self):
@@ -108,20 +93,8 @@ class Watcher:
             event_object = event["object"]
             name = event_object.metadata.name
             print(f"Service: {name}")
-            # involved_object = event_object.involved_object
-            # event_kind = involved_object.kind or "Unknown"
-            # event_type = event.get("type", "Unknown")
-            # object_name = involved_object.name or "Unknown"
-            # change_reason = event_object.reason or "Unknown"
-            # change_reason_message = event_object.message or "No message"
-            # event_occurred_at = event_object.last_timestamp or "Unknown time"
+            raise NotImplementedError("Service events are not yet implemented.")
 
-            # print(
-            #     f"Event: {event_kind:>10.10} {object_name:>20.20} {event_type:>10.10} | Reason: {change_reason:>20.20}, {change_reason_message:>90.90} | Occurred at: {event_occurred_at}"
-            # )
-
-            # if event_kind == "Service":
-            #     self.handle_service_event(event)
 
     def handle_pod_event(self, event):
         # Get the event type.
@@ -130,13 +103,6 @@ class Watcher:
 
         # #Irrelevant, since the pod hasn't been assigned a node yet.
         # if event_type == "ADDED":
-        #     #Create the corresponding Pod-object from k8s-event.
-        #     pod = Watcher.create_pod_from_pod_event(event)
-        #     print(pod)
-
-        #     #Handle the new pod, only if it's already assigned a Node.
-        #     if pod.is_assigned_to_node():
-        #         self.watchdog.handle_new_pod(pod)
 
         # Here, the pod will be assigned to a node. (So we're handling this as a new-pod-event)
         if event_type == "MODIFIED" and pod.spec.node_name:
