@@ -94,7 +94,7 @@ class SecurityGroupModulePNS(SecurityGroupModule):
 class SecurityGroupModulePLS(SecurityGroupModule):
     @staticmethod
     def SGn(L: LabelSet) -> str:
-        return "SG-" + L.get_string_repr()
+        return "SG_" + L.get_string_repr()
 
     @staticmethod
     def create_security_group(L: LabelSet):

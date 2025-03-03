@@ -167,6 +167,8 @@ class ClusterState:
             security_groups = neutron.list_security_groups()["security_groups"]
             for sg in security_groups:
                 security_group = SecurityGroup(name=sg["name"], id=sg["id"])
+                if not sg["name"].startswith("SG_"):
+                    continue
                 rules_json = sg["security_group_rules"]
                 rules = [
                     Rule(
