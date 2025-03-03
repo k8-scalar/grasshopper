@@ -1,3 +1,4 @@
+import os
 from kubernetes import watch, client, config
 from watchdog import WatchDog
 from classes import *
@@ -66,18 +67,20 @@ class Watcher:
         pass
 
     def watch_pods(self):
-        print("Watching pods now...")
+        namespace = os.getenv("NAMESPACE", "default")
+        print(f'Watching pods in namespace "{namespace}"...')
 
         # #Watching pod-events and converting them to Pod-objects.
         for event in self.k8s_watcher.stream(
-            self.core_api.list_pod_for_all_namespaces,
+            self.core_api.list_namespaced_pod, namespace
         ):
             self.handle_pod_event(event)
 
     def watch_policies(self):
-        print("Watching policies now...")
+        namespace = os.getenv("NAMESPACE", "default")
+        print(f'Watching policies in namespace "{namespace}"...')
         for event in self.k8s_watcher.stream(
-            self.networking_api.list_network_policy_for_all_namespaces,
+            self.networking_api.list_namespaced_network_policy, namespace
         ):
             # event_object = event["object"]
             # name = event_object.metadata.name
@@ -97,9 +100,10 @@ class Watcher:
             self.handle_policy_event(event)
 
     def watch_services(self):
-        print("Watching services now...")
+        namespace = os.getenv("NAMESPACE", "default")
+        print(f'Watching services in namespace "{namespace}"...')
         for event in self.k8s_watcher.stream(
-            self.core_api.list_service_for_all_namespaces
+            self.core_api.list_namespaced_service, namespace
         ):
             event_object = event["object"]
             name = event_object.metadata.name

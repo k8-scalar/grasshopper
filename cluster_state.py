@@ -1,3 +1,4 @@
+import os
 from kubernetes import client, config
 from classes import *
 from is_openstack import is_openstack
@@ -45,7 +46,8 @@ class ClusterState:
             ClusterState().nodes.append(Node(name=node.metadata.name))
 
         # Get all pods
-        pods = v1.list_pod_for_all_namespaces().items
+        namespace = os.getenv("NAMESPACE", "default")
+        pods = v1.list_namespaced_pod(namespace).items
         for pod in pods:
             node_name = pod.spec.node_name
             node = next((n for n in ClusterState().nodes if n.name == node_name), None)

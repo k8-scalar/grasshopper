@@ -45,8 +45,9 @@ class KubeletWatch:
         self.master.handle_removed_pod(pod)
 
     def start(self):
-        print("KubeletWatch started.")
         node_ip = os.getenv("NODE_IP")
+        namespace = os.getenv("NAMESPACE", "default")
+        print(f'KubeletWatch started, watching namespace "{namespace}".')
 
         while True:
             cmd = ["kubeletctl", "pods", "--raw", "--server", node_ip]
@@ -80,6 +81,7 @@ class KubeletWatch:
                     node=Node(name=item["spec"]["nodeName"]),
                 )
                 for item in pod_list["items"]
+                if item["metadata"].get("namespace", "default") == namespace  # Only process pods in given namespace
             )
 
             # Check for added pods
