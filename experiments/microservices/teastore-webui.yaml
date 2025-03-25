@@ -1,0 +1,76 @@
+---
+# Source: teastore/templates/teastore-clusterip.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teastore-locust
+  labels:
+    run: teastore-locust
+spec:
+  selector:
+    matchLabels:
+      run: teastore-locust
+  template:
+    metadata:
+      labels:
+        run: teastore-locust
+    spec:
+      containers:
+      - name: teastore-locust
+        image: decomads/teastore-locust:1.0
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+          limits:
+            cpu: 2
+            memory: 2Gi
+      nodeSelector:
+        locustNode: "yes"
+---
+# Source: teastore/templates/teastore-clusterip.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teastore-db
+  labels:
+    release: "release-name"
+spec:
+  selector:
+    matchLabels:
+      run: teastore-db
+  strategy:
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 0%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: teastore
+        run: teastore-db
+        release: "release-name"
+    spec:
+      containers:
+      - name: teastore-db
+        image: matthijskaminski/teastore-db:1.2.0
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: 500m
+            memory: 800Mi
+          limits:
+            cpu: 500m
+            memory: 800Mi
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: persistence
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: persistence
+        hostPath:
+          path: /teastore/teastore-db
+      nodeSelector:
+        dbNode: "yes"
