@@ -36,13 +36,13 @@ OS_APPLICATION_CREDENTIAL_SECRET=<application_credential_secret from clouds.yaml
 In one terminal, run this command (This should be run before deploying applications):
 
 ```
-.gh.sh
+. gh.sh
 ```
 
 Optionally, two parameters can be supplied, pernodesg (default: true) and distributed (default: false)
 
 ```
-.gh.sh pernodesg=true distributed=true
+. gh.sh pernodesg=true distributed=true
 ```
 
 In the second terminal, deploy the application.
@@ -50,7 +50,7 @@ In the second terminal, deploy the application.
 E.g the Microservices application Teastore and its network policies can be deployed as follows
 
 ```
-cd grasshopper/microservices
+cd grasshopper/experiments/microservices
 kubectl create -f deny-all.yml
 kubectl create -f teastore-policy.yml 
 kubectl create -f teastore-locust-policy.yml
@@ -66,5 +66,5 @@ The experiment code can be found in the evaluation directory. E.g to run the eva
 ```
 #set GRASSHOPPER variable
 export GRASSHOPPER=$HOME/grasshopper
-. grasshopper/evaluation/teastore/teastore-gh.sh
+. grasshopper/exports/evaluation/teastore/teastore-gh.sh
 ```
