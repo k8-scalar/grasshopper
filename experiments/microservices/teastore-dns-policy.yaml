@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dns-policy
+  namespace: kube-system
+spec:
+  podSelector:
+    matchLabels:
+       k8s-app: kube-dns
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          run: teastore-locust
+    - podSelector:
+        matchLabels:
+          app: teastore
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
