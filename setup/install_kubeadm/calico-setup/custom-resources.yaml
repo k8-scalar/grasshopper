@@ -12,8 +12,10 @@ spec:
       cidr: 192.168.0.0/16
       encapsulation: None
       natOutgoing: Enabled
-      nodeSelector: all()
+      nodeSelector: all()s
     linuxDataplane: BPF
+    nodeAddressAutodetectionV4:
+      kubernetes: NodeInternalIP
 
   # Install Calico Open Source
   variant: Calico
