@@ -73,13 +73,32 @@ class ClusterState:
                         for from_rule in ingress._from:
                             if from_rule.pod_selector:
                                 allow_labels = from_rule.pod_selector.match_labels
-                                for port in ingress.ports:
+                                if ingress.ports:
+                                    for port in ingress.ports:
+                                        allow_tuple = (
+                                            LabelSet(labels=allow_labels),
+                                            Traffic(
+                                                direction=INGRESS,
+                                                port=port.port,
+                                                protocol=port.protocol,
+                                            ),
+                                        )
+
+                                        # Append the policy to the ClusterState
+                                        ClusterState().policies.append(
+                                            Policy(
+                                                name=policy.metadata.name,
+                                                sel=select_set,
+                                                allow=[allow_tuple],
+                                            )
+                                        )
+                                else:
                                     allow_tuple = (
                                         LabelSet(labels=allow_labels),
                                         Traffic(
                                             direction=INGRESS,
-                                            port=port.port,
-                                            protocol=port.protocol,
+                                            port=None,
+                                            protocol=None,
                                         ),
                                     )
 
@@ -98,24 +117,45 @@ class ClusterState:
                     for to_rule in egress.to:
                         if to_rule.pod_selector:
                             allow_labels = to_rule.pod_selector.match_labels
-                            for port in egress.ports:
+                            if egress.ports:
+                                for port in egress.ports:
+                                    allow_tuple = (
+                                        LabelSet(labels=allow_labels),
+                                        Traffic(
+                                            direction=EGRESS,
+                                            port=port.port,
+                                            protocol=port.protocol,
+                                        ),
+                                    )
+    
+                                    # Append the policy to the ClusterState
+                                    ClusterState().policies.append(
+                                        Policy(
+                                            name=policy.metadata.name,
+                                            sel=select_set,
+                                            allow=[allow_tuple],
+                                        )
+                                    )
+                            else:
                                 allow_tuple = (
                                     LabelSet(labels=allow_labels),
                                     Traffic(
                                         direction=EGRESS,
-                                        port=port.port,
-                                        protocol=port.protocol,
+                                        port=None,
+                                        protocol=None,
                                     ),
                                 )
 
                                 # Append the policy to the ClusterState
                                 ClusterState().policies.append(
                                     Policy(
-                                        name=policy.metadata.name,
-                                        sel=select_set,
+                                       name=policy.metadata.name,
+                                       sel=select_set,
                                         allow=[allow_tuple],
                                     )
                                 )
+
+
 
         # Initialize security groups from OpenStack
         if is_openstack():
