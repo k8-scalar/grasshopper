@@ -9,6 +9,7 @@ export nerdctl_version=1.7.7
 export cni_plugins_version=1.5.1
 export pod_cidr=192.168.0.0/16
 sed -i "s/kubernetes_service_host: \".*\"/kubernetes_service_host: \"${kubernetes_master_node}\"/g" calico-setup/calico-configmap.yml
+sed -i "s/KUBERNETES_SERVICE_HOST: .*/KUBERNETES_SERVICE_HOST: \'${kubernetes_master_node}\'/g" calico-setup/k8s-apiserver-cm.yml
 sed -i "s/export kubeadm_version=.*/export kubeadm_version=${kubeadm_version}/g" install_kubeadm_worker.sh
 sed -i "s/\"cniVersion\": .*/\"cniVersion\": \"${cni_plugins_version}\"/g"   calico-setup/calico-configmap.yml
 sed -i "s|cidr: .*|cidr: ${pod_cidr}|g"  calico-setup/custom-resources.yaml

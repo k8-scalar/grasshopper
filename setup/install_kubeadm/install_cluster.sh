@@ -14,7 +14,7 @@ mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v$calico_version/manifests/tigera-operator.yaml
-#kubectl create -f calico-setup/calico-configmap.yml
+kubectl create -f calico-setup/k8s-apiserver-cm.yml -n tigera-operator
 kubectl create -f calico-setup/custom-resources.yaml
 watch kubectl get tigerastatus
 #kubectl patch ds -n kube-system kube-proxy -p '{"spec":{"template":{"spec":{"nodeSelector":{"non-calico": "true"}}}}}'
