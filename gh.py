@@ -89,8 +89,6 @@ def main():
         else:
             print("Running in PNS-mode...")
 
-            create_sg_per_node(delete_existing_rules=True)
-
             ClusterState().initialize()
 
             policies_thread = threading.Thread(target=watch_policies)
