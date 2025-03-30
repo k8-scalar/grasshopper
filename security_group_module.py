@@ -20,21 +20,25 @@ class SecurityGroupModule(ABC):
             f"SGMod: Adding rule to {SG.name}, remote {rule.target.name}, port {rule.traffic.port}, type {rule.traffic.direction}"
         )
         neutron = OpenStackClient().get_neutron()
-        created_rule = neutron.create_security_group_rule(
-            {
-                "security_group_rule": {
-                    "direction": rule.traffic.direction,
-                    "ethertype": "IPv4",
-                    "protocol": rule.traffic.protocol,
-                    "port_range_min": rule.traffic.port,
-                    "port_range_max": rule.traffic.port,
-                    "remote_group_id": rule.target.id,
-                    "security_group_id": SG.id,
+        try:
+            created_rule = neutron.create_security_group_rule(
+                {
+                    "security_group_rule": {
+                        "direction": rule.traffic.direction,
+                        "ethertype": "IPv4",
+                        "protocol": rule.traffic.protocol,
+                        "port_range_min": rule.traffic.port,
+                        "port_range_max": rule.traffic.port,
+                        "remote_group_id": rule.target.id,
+                        "security_group_id": SG.id,
+                    }
                 }
-            }
-        )
-        rule.id = created_rule["security_group_rule"]["id"]
-        SG.remotes.add(rule)
+            )
+            rule.id = created_rule["security_group_rule"]["id"]
+            SG.remotes.add(rule)
+        except Exception as e:
+            print(f"SGMod: Failed creating rule: {e}")
+        
 
     @staticmethod
     def remove_rule_from_remotes(SG: SecurityGroup, rule: Rule) -> None:
