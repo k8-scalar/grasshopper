@@ -70,11 +70,37 @@ class Watcher:
         namespace = os.getenv("NAMESPACE", "default")
         print(f'Watching pods in namespace "{namespace}"...')
 
-        # #Watching pod-events and converting them to Pod-objects.
-        for event in self.k8s_watcher.stream(
-            self.core_api.list_namespaced_pod, namespace
-        ):
-            self.handle_pod_event(event)
+        resource_version = ""
+        while True:
+            try:
+                # Stream events starting from the latest resource version
+                for event in self.k8s_watcher.stream(
+                    self.core_api.list_namespaced_pod,
+                    namespace,
+                    resource_version=resource_version,
+                    timeout_seconds=60,
+                ):
+                    self.handle_pod_event(event)
+                    # Save the latest resource version
+                    resource_version = event["object"].metadata.resource_version
+
+            except client.rest.ApiException as e:
+                if e.status == 410:  # Gone - resource version too old
+                    # Reset resource_version to empty to start from latest
+                    resource_version = ""
+                    print(
+                        "Resource version expired, restarting watch with latest version"
+                    )
+                    continue
+                else:
+                    print(f"API Exception: {e}")
+                    raise
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                # Add small delay before retry
+                import time
+
+                time.sleep(5)
 
     def watch_policies(self):
         namespace = os.getenv("NAMESPACE", "default")
@@ -94,7 +120,6 @@ class Watcher:
             name = event_object.metadata.name
             print(f"Service: {name}")
             raise NotImplementedError("Service events are not yet implemented.")
-
 
     def handle_pod_event(self, event):
         # Get the event type.
