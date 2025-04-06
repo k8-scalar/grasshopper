@@ -114,7 +114,7 @@ class SecurityGroup:
         return False
 
     def __hash__(self):
-        return hash((self.id, self.name, frozenset(self.remotes)))
+        return hash((self.id, self.name))
 
 
 class Node:
@@ -185,14 +185,14 @@ class Rule:
         return f"Rule(id={self.id}, target={target_str}, traffic={self.traffic})"
 
     def __eq__(self, other):
-        if isinstance(other, Rule):
-            return (self.id != None and self.id == other.id) or (
-                self.target == other.target and self.traffic == other.traffic
-            )
-        return False
+        if not isinstance(other, Rule):
+            return False
+        # Always compare by target and traffic
+        return self.target == other.target and self.traffic == other.traffic
 
     def __hash__(self):
-        return hash((self.id, self.target, self.traffic))
+        # Always use target and traffic, not ID as that may change
+        return hash((self.target, self.traffic))
 
 
 class MapEntry:
