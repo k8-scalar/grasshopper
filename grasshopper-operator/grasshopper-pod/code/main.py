@@ -6,27 +6,29 @@ import threading
 from kubernetes import config, client, watch
 import os
 
+NAMESPACE = 'default'
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices=['PNS', 'PLS'], required=True)
     return parser.parse_args()
 
 def watch_pods():
-    Watcher().watch_pods()
+    Watcher(PNS_scenario=True, namespace=NAMESPACE).watch_pods()
 
 def watch_policies():
-    Watcher().watch_policies()
+    Watcher(PNS_scenario=True, namespace=NAMESPACE).watch_policies()
 
 def watch_policies_PLS():
-    Watcher(PNS_scenario=False).watch_policies()
+    Watcher(PNS_scenario=False, namespace=NAMESPACE).watch_policies()
 
 def watch_pods_PLS():
-    Watcher(PNS_scenario=False).watch_pods()
+    Watcher(PNS_scenario=False, namespace=NAMESPACE).watch_pods()
 
 def start_watch_PNS():
     print("Running in PNS-mode...")
     create_sg_per_node(delete_existing_rules=True)
-    ClusterState().initialize()
+    ClusterState().initialize(PNS_scenario=True, namespace=NAMESPACE)
 
     policies_thread = threading.Thread(target=watch_policies)
     pods_thread = threading.Thread(target=watch_pods)
@@ -36,7 +38,7 @@ def start_watch_PNS():
 
 def start_watch_PLS():
     print("Running in PLS-mode...")
-    ClusterState().initialize()
+    ClusterState().initialize(PNS_scenario=False, namespace=NAMESPACE)
     policies_thread = threading.Thread(target=watch_policies_PLS)
     pods_thread = threading.Thread(target=watch_pods_PLS)
 

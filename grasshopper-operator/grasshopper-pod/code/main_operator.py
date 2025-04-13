@@ -7,6 +7,9 @@ from kubernetes import config
 from operator_code.watcher_operator import Watcher
 import logging
 
+# Specify the namespace you want to manage.
+NAMESPACE = 'default'
+
 MODE = None
 watcher = None
 
@@ -32,13 +35,13 @@ def startup_handler(**kwargs):
     args = parse_args()
     MODE = args.mode
 
-    print(f"🚀 Starting Kopf operator in mode: {MODE}")
+    print(f"🚀 Starting Kopf operator in mode: {MODE}, watching the {NAMESPACE} namespace.")
     
     # Initializing cluster configuration.
     initialize_cluster_configuration()
 
     # Initializing Cluster State.
-    ClusterState().initialize()
+    ClusterState().initialize(PNS_scenario=(MODE == "PNS"), namespace=NAMESPACE)
 
     # If mode is PNS, create a sg for every node.
     if MODE == "PNS":
@@ -61,7 +64,7 @@ def handle_policy_event(event, body, **kwargs):
 if __name__ == "__main__":
     kopf.run(
         standalone=True,          # Optional: disables multiprocessing
-        clusterwide=True
+        namespace=NAMESPACE
     )
 
 
