@@ -69,6 +69,9 @@ class SecurityGroupModulePNS(SecurityGroupModule):
 
     @staticmethod
     def SG_add_conn(pol: Policy, n: Node, m: Node) -> None:
+        if n == m:
+            print(f"SGMod: Cannot add connection from {n.name} to itself in PNS mode.")
+            return
         print(f"SGMod: Adding connection from {n.name} to {m.name}")
         rule: Rule = SecurityGroupModulePNS.rule_from(pol, m)
         if rule not in SecurityGroupModulePNS.SGn(n).remotes:
