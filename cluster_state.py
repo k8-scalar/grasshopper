@@ -32,133 +32,9 @@ class ClusterState:
         return cls._instance
 
     @staticmethod
-    def initialize():
-        # Load the Kubernetes configuration
-        config.load_kube_config()
-
-        # Create a Kubernetes API client
-        v1 = client.CoreV1Api()
-
-        # Get all nodes
-        nodes = v1.list_node().items
-        for node in nodes:
-            ClusterState().nodes.append(Node(name=node.metadata.name))
-
-        # Get all pods
-        pods = v1.list_pod_for_all_namespaces().items
-        for pod in pods:
-            node_name = pod.spec.node_name
-            node = next((n for n in ClusterState().nodes if n.name == node_name), None)
-            if node:
-                ClusterState().pods.append(
-                    Pod(
-                        name=pod.metadata.name,
-                        label_set=LabelSet(labels=pod.metadata.labels),
-                        node=node,
-                    )
-                )
-
-        # Get all policies (assuming policies are represented as NetworkPolicies)
-        v1_network = client.NetworkingV1Api()
-        policies = v1_network.list_network_policy_for_all_namespaces().items
-        for policy in policies:
-            # Extract the select set (pod selector)
-            select_labels = policy.spec.pod_selector.match_labels
-            select_set = LabelSet(labels=select_labels)
-
-            # Extract the allow set (ingress rules)
-            if policy.spec.ingress:
-                for ingress in policy.spec.ingress:
-                    if ingress._from:
-                        for from_rule in ingress._from:
-                            if from_rule.pod_selector:
-                                allow_labels = from_rule.pod_selector.match_labels
-                                if ingress.ports:
-                                    for port in ingress.ports:
-                                        allow_tuple = (
-                                            LabelSet(labels=allow_labels),
-                                            Traffic(
-                                                direction=INGRESS,
-                                                port=port.port,
-                                                protocol=port.protocol,
-                                            ),
-                                        )
-
-                                        # Append the policy to the ClusterState
-                                        ClusterState().policies.append(
-                                            Policy(
-                                                name=policy.metadata.name,
-                                                sel=select_set,
-                                                allow=[allow_tuple],
-                                            )
-                                        )
-                                else:
-                                    allow_tuple = (
-                                        LabelSet(labels=allow_labels),
-                                        Traffic(
-                                            direction=INGRESS,
-                                            port=None,
-                                            protocol=None,
-                                        ),
-                                    )
-
-                                    # Append the policy to the ClusterState
-                                    ClusterState().policies.append(
-                                        Policy(
-                                            name=policy.metadata.name,
-                                            sel=select_set,
-                                            allow=[allow_tuple],
-                                        )
-                                    )
-
-            # Extract the allow set (egress rules)
-            if policy.spec.egress:
-                for egress in policy.spec.egress:
-                    for to_rule in egress.to:
-                        if to_rule.pod_selector:
-                            allow_labels = to_rule.pod_selector.match_labels
-                            if egress.ports:
-                                for port in egress.ports:
-                                    allow_tuple = (
-                                        LabelSet(labels=allow_labels),
-                                        Traffic(
-                                            direction=EGRESS,
-                                            port=port.port,
-                                            protocol=port.protocol,
-                                        ),
-                                    )
-    
-                                    # Append the policy to the ClusterState
-                                    ClusterState().policies.append(
-                                        Policy(
-                                            name=policy.metadata.name,
-                                            sel=select_set,
-                                            allow=[allow_tuple],
-                                        )
-                                    )
-                            else:
-                                allow_tuple = (
-                                    LabelSet(labels=allow_labels),
-                                    Traffic(
-                                        direction=EGRESS,
-                                        port=None,
-                                        protocol=None,
-                                    ),
-                                )
-
-                                # Append the policy to the ClusterState
-                                ClusterState().policies.append(
-                                    Policy(
-                                       name=policy.metadata.name,
-                                       sel=select_set,
-                                        allow=[allow_tuple],
-                                    )
-                                )
-
-
-
-        # Initialize security groups from OpenStack
-        if is_openstack():
+    def initialize(PNS_scenario, namespace):   
+        # necessary to make PNS-variant work.
+        if PNS_scenario and is_openstack():
             from openstackfiles.openstack_client import OpenStackClient
 
             neutron = OpenStackClient().get_neutron()
@@ -179,6 +55,40 @@ class ClusterState:
                 ]
                 security_group.remotes = set(rules)
                 ClusterState().security_groups[sg["name"]] = security_group
+
+        # Import necessary classes.
+        from watchdog import WatchDog
+        from watcher import Watcher
+
+        # Load the Kubernetes configuration
+        config.load_kube_config()
+
+        # Create Watchdog to handle already existing pods and policies.
+        watchdog = WatchDog(PNS_scenario)
+
+        # Create a Kubernetes API client
+        v1 = client.CoreV1Api()
+
+        # Put nodes in cluster state.
+        nodes = v1.list_node().items
+        for node in nodes:
+            ClusterState.add_node(Node(name=node.metadata.name))
+
+        # Handle already existing pods.
+        k8s_pods = v1.list_namespaced_pod(namespace).items
+        for pod_object in k8s_pods:
+            pod = Watcher.create_pod_from_pod_object(pod_object)
+            watchdog.handle_new_pod(pod)
+        
+        # Handle already created network policies.
+        networking_v1 = client.NetworkingV1Api()
+        k8s_policies = networking_v1.list_namespaced_network_policy(namespace).items
+
+        for policy_object in k8s_policies:
+            policy = Watcher.create_policy_from_policy_object(policy_object)
+            watchdog.handle_new_policy(policy)
+
+        print("----------------- Cluster State Initialisation Done ---------------------")
 
     @staticmethod
     def get_map():

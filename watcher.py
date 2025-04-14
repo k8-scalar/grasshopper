@@ -34,7 +34,9 @@ class Watcher:
         Handles Service events based on their type (ADDED, DELETED, MODIFIED).
     """
 
-    def __init__(self, PNS_scenario=True):
+    def __init__(self, PNS_scenario, namespace):
+        print(f"Initializing Watcher with scenario {PNS_scenario}, watching the namespace: {namespace}")
+        self.namespace = namespace
         self.load_config()
         self.watchdog = WatchDog(PNS_scenario)
         self.core_api = client.CoreV1Api()
@@ -55,45 +57,19 @@ class Watcher:
         """
         config.load_kube_config()
 
-    def watch_all_events(self):
-        """
-        Watches and processes all Kubernetes events.
-
-        This method continuously streams events from all namespaces in the Kubernetes cluster
-        and processes them based on their type. It delegates handling of specific event types
-        to corresponding handler methods.
-        """
-        pass
-
     def watch_pods(self):
-        print("Watching pods now...")
+        print(f"Watching pods now in namespace: {self.namespace}")
 
-        # #Watching pod-events and converting them to Pod-objects.
         for event in self.k8s_watcher.stream(
-            self.core_api.list_pod_for_all_namespaces,
+            self.core_api.list_namespaced_pod, namespace=self.namespace
         ):
             self.handle_pod_event(event)
 
     def watch_policies(self):
-        print("Watching policies now...")
+        print(f"Watching policies now in namespace: {self.namespace}")
         for event in self.k8s_watcher.stream(
-            self.networking_api.list_network_policy_for_all_namespaces,
+            self.networking_api.list_namespaced_network_policy, namespace=self.namespace
         ):
-            # event_object = event["object"]
-            # name = event_object.metadata.name
-
-            # involved_object = event_object.involved_object
-            # event_kind = involved_object.kind or "Unknown"
-            # event_type = event.get("type", "Unknown")
-            # object_name = involved_object.name or "Unknown"
-            # change_reason = event_object.reason or "Unknown"
-            # change_reason_message = event_object.message or "No message"
-            # event_occurred_at = event_object.last_timestamp or "Unknown time"
-
-            # print(
-            #     f"Event: {event_kind:>10.10} {object_name:>20.20} {event_type:>10.10} | Reason: {change_reason:>20.20}, {change_reason_message:>90.90} | Occurred at: {event_occurred_at}"
-            # )
-
             self.handle_policy_event(event)
 
     def watch_services(self):
@@ -104,53 +80,23 @@ class Watcher:
             event_object = event["object"]
             name = event_object.metadata.name
             print(f"Service: {name}")
-            # involved_object = event_object.involved_object
-            # event_kind = involved_object.kind or "Unknown"
-            # event_type = event.get("type", "Unknown")
-            # object_name = involved_object.name or "Unknown"
-            # change_reason = event_object.reason or "Unknown"
-            # change_reason_message = event_object.message or "No message"
-            # event_occurred_at = event_object.last_timestamp or "Unknown time"
-
-            # print(
-            #     f"Event: {event_kind:>10.10} {object_name:>20.20} {event_type:>10.10} | Reason: {change_reason:>20.20}, {change_reason_message:>90.90} | Occurred at: {event_occurred_at}"
-            # )
-
-            # if event_kind == "Service":
-            #     self.handle_service_event(event)
 
     def handle_pod_event(self, event):
-        # Get the event type.
         event_type = event["type"]
-        pod = event["object"]
-
-        # #Irrelevant, since the pod hasn't been assigned a node yet.
-        # if event_type == "ADDED":
-        #     #Create the corresponding Pod-object from k8s-event.
-        #     pod = Watcher.create_pod_from_pod_event(event)
-        #     print(pod)
-
-        #     #Handle the new pod, only if it's already assigned a Node.
-        #     if pod.is_assigned_to_node():
-        #         self.watchdog.handle_new_pod(pod)
+        pod_object = event["object"] # Kubernetes object
+        pod = Watcher.create_pod_from_pod_object(pod_object)
 
         # Here, the pod will be assigned to a node. (So we're handling this as a new-pod-event)
-        if event_type == "MODIFIED" and pod.spec.node_name:
-            pod = Watcher.create_pod_from_pod_event(event)
+        if event_type == "MODIFIED" and pod_object.spec.node_name:
             self.watchdog.handle_new_pod(pod)
-            print(pod)
 
         elif event_type == "DELETED":
-            # Create the corresponding Pod-object from k8s-event.
-            pod = Watcher.create_pod_from_pod_event(event)
-            print(pod)
-
-            # Handle the removed Pod.
             self.watchdog.handle_removed_pod(pod)
 
     def handle_policy_event(self, event):
         event_type = event["type"]
-        policy = Watcher.create_policy_from_policy_event(event)
+        policy_object = event["object"] # kubernetes object
+        policy = Watcher.create_policy_from_policy_object(policy_object)
 
         if event_type == "ADDED":
             self.watchdog.handle_new_policy(policy)
@@ -169,9 +115,9 @@ class Watcher:
             pass
 
     @staticmethod
-    def create_pod_from_pod_event(event) -> Pod:
+    def create_pod_from_pod_object(pod_object) -> Pod:
         """
-        This method creates a Pod-object from a pod-event.
+        This method creates a Pod-object from a pod-object.
 
         Args:
          - event: Assumed to be a pod event.
@@ -181,7 +127,7 @@ class Watcher:
 
         """
         # Parse the event.
-        event_object = event["object"]
+        event_object = pod_object
         metadata = event_object.metadata
         spec = event_object.spec
 
@@ -201,9 +147,9 @@ class Watcher:
         return Pod(name, LabelSet(labels), node)
 
     @staticmethod
-    def create_policy_from_policy_event(event) -> Policy:
+    def create_policy_from_policy_object(policy_object) -> Policy:
         # Get relevant information from event.
-        event_object = event["object"]
+        event_object = policy_object
         metadata = event_object.metadata
         spec = event_object.spec
 
