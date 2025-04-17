@@ -1,4 +1,6 @@
 import os
+import queue
+import threading
 from kubernetes import watch, client, config
 from watchdog import WatchDog
 from classes import *
@@ -42,6 +44,8 @@ class Watcher:
         self.networking_api = client.NetworkingV1Api()
         self.networking_v1 = client.NetworkingV1Api()
         self.k8s_watcher: watch.Watch = watch.Watch()
+        self.pod_event_queue = queue.Queue()
+        self.running_pod_handling = True
 
     def load_config(self):
         """
@@ -70,8 +74,12 @@ class Watcher:
         namespace = os.getenv("NAMESPACE", "default")
         print(f'Watching pods in namespace "{namespace}"...')
 
+        processor_thread = threading.Thread(target=self._process_pod_events)
+        processor_thread.daemon = True
+        processor_thread.start()
+
         resource_version = ""
-        while True:
+        while self.running_pod_handling:
             try:
                 # Stream events starting from the latest resource version
                 for event in self.k8s_watcher.stream(
@@ -80,7 +88,8 @@ class Watcher:
                     resource_version=resource_version,
                     timeout_seconds=60,
                 ):
-                    self.handle_pod_event(event)
+                    # Put event in the queue instead of processing immediately
+                    self.pod_event_queue.put(event)
                     # Save the latest resource version
                     resource_version = event["object"].metadata.resource_version
 
@@ -101,6 +110,26 @@ class Watcher:
                 import time
 
                 time.sleep(5)
+
+    def _process_pod_events(self):
+        """Process pod events from the event queue."""
+        while self.running_pod_handling:
+            try:
+                # Get pod event from queue with timeout to allow checking running flag
+                try:
+                    event = self.pod_event_queue.get(timeout=1)
+                except queue.Empty:
+                    continue
+                    
+                # Process the event
+                self.handle_pod_event(event)
+                
+                # Mark task as done
+                self.pod_event_queue.task_done()
+                
+            except Exception as e:
+                print(f"Error processing event: {e}")
+                # Continue processing other events even if one fails
 
     def watch_policies(self):
         namespace = os.getenv("NAMESPACE", "default")
