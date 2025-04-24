@@ -3,8 +3,10 @@ from cluster_state import ClusterState
 from helpers import traffic_pols, running
 from openstackfiles.openstack_client import OpenStackClient
 from abc import ABC, abstractmethod
-from openstackfiles.security_group_operations import create_security_group_if_not_exists, attach_security_group_to_instance
-
+from openstackfiles.security_group_operations import (
+    create_security_group_if_not_exists,
+    attach_security_group_to_instance,
+)
 
 
 class SecurityGroupModule(ABC):
@@ -13,7 +15,7 @@ class SecurityGroupModule(ABC):
     @abstractmethod
     def SGn(n) -> SecurityGroup:
         pass
-    
+
     @staticmethod
     def add_rule_to_remotes(SG: SecurityGroup, rule: Rule) -> None:
         print(
@@ -38,7 +40,6 @@ class SecurityGroupModule(ABC):
             SG.remotes.add(rule)
         except Exception as e:
             print(f"SGMod: Failed creating rule: {e}")
-        
 
     @staticmethod
     def remove_rule_from_remotes(SG: SecurityGroup, rule: Rule) -> None:
@@ -59,6 +60,7 @@ class SecurityGroupModule(ABC):
         neutron.delete_security_group_rule(security_group_rule=rule.id)
         # Create a new set without the rule to remove
         SG.remotes = {r for r in SG.remotes if r.id != rule.id}
+
 
 # A class to encompass all functionality of actually manipulating the SG's
 # through the Openstack API.
@@ -82,7 +84,7 @@ class SecurityGroupModulePNS(SecurityGroupModule):
         print(f"SGMod: Removing connection from {n.name} to {m.name}")
         if not isinstance(pol.allow[0][0], CIDR):
             trfpols = traffic_pols(pol.allow[0][1], n, m)
-            if  len(trfpols) > 1 or (len(trfpols) == 1 and trfpols[0] != pol):
+            if len(trfpols) > 1 or (len(trfpols) == 1 and trfpols[0] != pol):
                 print(
                     f"SGMod: similar traffic for other policy detected from node {n.name} to node {m.name}"
                 )
@@ -95,8 +97,10 @@ class SecurityGroupModulePNS(SecurityGroupModule):
     @staticmethod
     def rule_from(pol: Policy, m: Node) -> Rule:
         A, traffic = pol.allow[0]
-        return Rule(A if isinstance(A, CIDR) else SecurityGroupModulePNS.SGn(m), traffic)
-            
+        return Rule(
+            A if isinstance(A, CIDR) else SecurityGroupModulePNS.SGn(m), traffic
+        )
+
 
 class SecurityGroupModulePLS(SecurityGroupModule):
     @staticmethod
@@ -119,8 +123,7 @@ class SecurityGroupModulePLS(SecurityGroupModule):
 
         sg_our_model = SecurityGroup(sg_id, sg_name)
         return sg_our_model
-    
-    
+
     @staticmethod
     def add_sg(L: LabelSet):
         """
@@ -130,18 +133,17 @@ class SecurityGroupModulePLS(SecurityGroupModule):
         """
         if SecurityGroupModulePLS.SGn(L) not in ClusterState.get_security_groups():
             sg = SecurityGroupModulePLS.create_security_group(L)
-            
+
             for n in filter(lambda n: running(L, n), ClusterState.get_nodes()):
                 SecurityGroupModulePLS.attach_security_group_to_node(sg, n)
 
             ClusterState.add_security_group(sg)
-        
 
     @staticmethod
     def remove_sg(L: LabelSet):
         """
         This method is used to remove a security group for a given labelset.
-        It detaches the security group for the given labelset from all nodes, 
+        It detaches the security group for the given labelset from all nodes,
         running on a pod that has those labels.
 
         Additionally, it removes the security group from the cluster state.
@@ -177,7 +179,6 @@ class SecurityGroupModulePLS(SecurityGroupModule):
         print(f"Attaching security group {security_group_name} to instance {node.name}")
         server.add_security_group(sg_id)
 
-
     @staticmethod
     def detach_security_group(sg: SecurityGroup, node: Node):
         """
@@ -190,7 +191,7 @@ class SecurityGroupModulePLS(SecurityGroupModule):
 
         print(f"Detaching security group {security_group_name} to instance {node.name}")
         server.remove_security_group(sg_id)
-    
+
     @staticmethod
     def delete_security_group(sg_name):
         """Deletes a security group by name."""
@@ -204,13 +205,13 @@ class SecurityGroupModulePLS(SecurityGroupModule):
             return
 
         sg_id = sg["id"]
-        
+
         try:
             print(f"Deleting security group: {sg_name} ({sg_id})")
             neutron.delete_security_group(sg_id)
             print(f"Security group '{sg_name}' deleted successfully.")
         except Exception as e:
-            print(f"Failed to delete security group '{sg_name}': {e}")  
+            print(f"Failed to delete security group '{sg_name}': {e}")
 
     @staticmethod
     def add_rule_to_remotes(sg: SecurityGroup, rule: Rule):
@@ -232,5 +233,11 @@ class SecurityGroupModulePLS(SecurityGroupModule):
             rule: Rule | The created rule from the splitted policy.
         """
         A, traffic = spol.allow[0]
-        return Rule(A if isinstance(A, CIDR) else ClusterState.get_security_group(SecurityGroupModulePLS.SGn(A)), traffic)
-
+        return Rule(
+            (
+                A
+                if isinstance(A, CIDR)
+                else ClusterState.get_security_group(SecurityGroupModulePLS.SGn(A))
+            ),
+            traffic,
+        )
