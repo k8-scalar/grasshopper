@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: app-b-allow-backend-database
+  namespace: test-thesis
+spec:
+  podSelector:
+    matchLabels:
+      app: app-b
+      role: backend
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: app-b
+              role: database
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: app-b
+              role: database
+  policyTypes:
+    - Ingress
+    - Egress
