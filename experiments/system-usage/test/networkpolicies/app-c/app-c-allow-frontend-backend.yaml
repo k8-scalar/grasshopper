@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: app-c-allow-frontend-backend
+  namespace: test-thesis
+spec:
+  podSelector:
+    matchLabels:
+      app: app-c
+      role: backend
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: app-c
+              role: frontend
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: app-c
+              role: backend
+  policyTypes:
+    - Ingress
+    - Egress
