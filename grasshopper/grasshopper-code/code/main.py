@@ -6,11 +6,12 @@ import threading
 from kubernetes import config, client, watch
 import os
 
-NAMESPACE = 'default'
+NAMESPACE = None
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices=['PNS', 'PLS'], required=True)
+    parser.add_argument('--namespace', type=str, required=True)
     return parser.parse_args()
 
 def watch_pods():
@@ -57,6 +58,10 @@ def main():
     args = parse_args()
 
     initialize_cluster_configuration()
+
+    global NAMESPACE
+
+    NAMESPACE = args.namespace
     
     if args.mode == 'PNS':
         print("🐝 Starting GrassHopper in PNS mode")

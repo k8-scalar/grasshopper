@@ -123,6 +123,7 @@ class WatchDog:
 
     # functions to handle added / removed / modified policies.
     def handle_new_policy(self, pol: Policy):
+        print(f"Handling new policy event in Watchdog: {pol.name}")
         # Only handle the new policy once.
         for spol in WatchDog.split(pol):
             if spol in ClusterState().get_policies():

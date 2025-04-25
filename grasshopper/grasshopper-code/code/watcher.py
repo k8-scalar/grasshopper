@@ -17,14 +17,14 @@ class Watcher:
         self.k8s_watcher: watch.Watch = watch.Watch()
 
     def watch_pods(self):
-        print("Watching pods now...")
+        print(f"Watching pods now in namespace {self.namespace} ...")
         for event in self.k8s_watcher.stream(
             self.core_api.list_namespaced_pod, namespace=self.namespace
         ):
             self.handle_pod_event(event)
 
     def watch_policies(self):
-        print("Watching policies now...")
+        print(f"Watching policies now in namespace {self.namespace} ...")
         for event in self.k8s_watcher.stream(
             self.networking_api.list_namespaced_network_policy, namespace=self.namespace
         ):
@@ -60,6 +60,7 @@ class Watcher:
             self.watchdog.handle_removed_pod(pod)
 
     def handle_policy_event(self, event):
+        print(f"Handling policy event")
         event_type = event["type"]
         policy = Watcher.create_policy_from_policy_event(event)
 

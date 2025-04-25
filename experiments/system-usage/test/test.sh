@@ -26,7 +26,7 @@ trap cleanup EXIT
 # 1.1) Applying network policies.
 echo "----------------------- Setting up Cluster ----------------------------"
 echo "1: TEST: Applying network policies..."
-./scripts/apply-all-policies.sh test/networkpolicies > /dev/null
+./scripts/apply-all-policies.sh test/networkpolicies 
 # Check if the script ran successfully
 if [ $? -eq 0 ]; then
     echo "Successfully applied network policies."
@@ -56,8 +56,8 @@ python3 measurer/measure_system_performance.py --interval 1 > measurer.log 2>&1 
 echo "----------- Running the Cluster Simulator as a background process ----------"
 python3 simulator/cluster_simulator.py &
 
-
-
+echo "Sleeping for 60 seconds to let Grasshopper be in peace."
+sleep 60
 
 echo "TEST: Burst of X amount of pods created."
 # echo "Sleeping for 2 seconds, to ensure everything has finished"
