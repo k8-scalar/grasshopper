@@ -4,6 +4,8 @@ import random
 import time
 
 
+NAMESPACE = 'test-thesis'
+
 # Modes of the cluster simulation.
 CLUSTER_MODES = ["normal", "heavy", "light", "normal with spikes"]
 
@@ -60,7 +62,7 @@ class ClusterSimulator:
         pod_manifest = {
             "apiVersion": "v1",
             "kind": "Pod",
-            "metadata": {"name": pod_name, "labels": labels,},
+            "metadata": {"namespace" : self.namespace, "name": pod_name, "labels": labels},
             "spec": {
                 "containers": [{
                     "name": "busy-container",
@@ -122,5 +124,5 @@ class ClusterSimulator:
 
 if __name__ == "__main__":
     # Create a cluster simulator instance
-    clusterSimulator = ClusterSimulator('default', CLUSTER_SIZE)
-    clusterSimulator.simulate_cluster()
+    clusterSimulator = ClusterSimulator(NAMESPACE, CLUSTER_SIZE)
+    clusterSimulator.create_test_pod()
