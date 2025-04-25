@@ -31,6 +31,10 @@ def monitor_system(interval=1):
     net_sent_list = []
     net_recv_list = []
 
+    # Create results file path.
+    date_of_measurement = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    results_file_path = os.path.join(RESULTS_FOLDER, f"system_usage_{date_of_measurement}.csv")
+
     try:
         while True:
             # CPU usage
@@ -66,30 +70,26 @@ def monitor_system(interval=1):
             disk_used_list.append(disk_used)
             net_sent_list.append(net_sent)
             net_recv_list.append(net_recv)
+
+            # Storing to csv-file.
+            system_usage_df = pd.DataFrame({
+                "Time": time_list,
+                "CPU Usage (%)": cpu_usage_list,
+                "Memory Used (MB)": memory_used_list,
+                "Memory Total (MB)": memory_total_list,
+                "Memory (%)": memory_percent_list,
+                "Disk Used (GB)": disk_used_list,
+                "Network Sent (KB)": net_sent_list,
+                "Network Received (KB)": net_recv_list
+            })
+
+            # Save the metrics to the CSV file.
+            system_usage_df.to_csv(results_file_path, index=False)
+            print(f"Metrics saved to {results_file_path}.")
     
-    except KeyboardInterrupt:
+    except Exception:
         print("\nMonitoring stopped.")
-        print("Storing metrics to file...")
-
-        # Writing the metrics to a DataFrame.
-        system_usage_df = pd.DataFrame({
-            "Time": time_list,
-            "CPU Usage (%)": cpu_usage_list,
-            "Memory Used (MB)": memory_used_list,
-            "Memory Total (MB)": memory_total_list,
-            "Memory (%)": memory_percent_list,
-            "Disk Used (GB)": disk_used_list,
-            "Network Sent (KB)": net_sent_list,
-            "Network Received (KB)": net_recv_list
-        })
-
-        # Create results file path.
-        date_of_measurement = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-        results_file_path = os.path.join(RESULTS_FOLDER, f"system_usage_{date_of_measurement}.csv")
-
-        # Save the metrics to the CSV file.
-        system_usage_df.to_csv(results_file_path, index=False)
-        print(f"Metrics saved to {results_file_path}.")
+        
 
 if __name__ == "__main__":
     import argparse
