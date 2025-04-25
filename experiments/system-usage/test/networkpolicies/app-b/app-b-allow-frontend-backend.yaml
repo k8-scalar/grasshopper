@@ -14,12 +14,18 @@ spec:
             matchLabels:
               app: app-b
               role: frontend
+      ports:
+        - protocol: TCP
+          port: 80 
   egress:
     - to:
         - podSelector:
             matchLabels:
               app: app-b
               role: backend
+      ports:
+        - protocol: TCP
+          port: 80 
   policyTypes:
     - Ingress
     - Egress
