@@ -6,8 +6,8 @@ NAMESPACE=test-thesis
 # Burst test parameters.
 ITERATIONS=10 # Number of iterations to run.
 NUM_PODS=10   # Number of pods to burst in each iteration.
-SLEEP_TIME=10 # time to sleep between iterations
-INTERVAL=0.5  # Interval in which to take measurements.
+SLEEP_TIME=5 # time to sleep between iterations
+INTERVAL=0.2  # Interval in which to take measurements.
 
 check_if_cluster_is_clean(){
     # Check for pods
