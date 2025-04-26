@@ -21,6 +21,21 @@ cleanup() {
 trap cleanup EXIT
 
 
+# =========================== ARGUMENTS ======================================
+
+# # Check if the required arguments are provided
+# if [ "$#" -lt 2 ]; then
+#     echo "Usage: $0 <namespace> <num-pods>"
+#     exit 1
+# fi
+
+# Read arguments
+NAMESPACE=test-thesis
+NUM_PODS=10
+
+echo "Experiment: Creating a burst of $NUM_PODS pods in namespace $NAMESPACE."
+
+# =========================== CLUSTER SETUP ======================================
 
 # 1) Setting up the cluster.
 # 1.1) Applying network policies.
@@ -36,8 +51,7 @@ fi
 echo "----------------------- Cluster setup done. ---------------------------"
 
 
-
-
+# =========================== MEASURER SETUP =====================================
 
 # 2) Setting up the measurer (to measure CPU- and mem-usage) and write to file.
 echo "----------- Running the Measurer as a background process ---------------"
@@ -45,19 +59,23 @@ python3 measurer/measure_system_performance.py --interval 1 > measurer.log 2>&1 
 
 
 
+# # 3) Setting up grasshopper
+# echo "----------- Running GrassHopper as a background process ----------"
+# # ensuring the virtual environment is activated.
+# source ~/grasshopper-operator/kube_venv/bin/activate
+# echo "Environment variables:" >> debug.log
+# env >> debug.log
+# python3 ../../grasshopper/grasshopper-code/code/main.py --mode PLS --namespace thesis-test > grasshopper.log 2>&1 &
 
-# 3) Setting up grasshopper
 
-
-
-
+# =========================== CLUSTER SIMULATOR SETUP ===============================
 
 # 4) Running the cluster simulator.
 echo "----------- Running the Cluster Simulator as a background process ----------"
-python3 simulator/cluster_simulator.py &
+python3 simulator/cluster_simulator.py --namespace $NAMESPACE --num-pods $NUM_PODS &
 
 echo "Sleeping for 60 seconds to let Grasshopper be in peace."
-sleep 60
+sleep 10
 
 echo "TEST: Burst of X amount of pods created."
 # echo "Sleeping for 2 seconds, to ensure everything has finished"

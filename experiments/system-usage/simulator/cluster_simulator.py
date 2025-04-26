@@ -2,6 +2,7 @@ from kubernetes import client, config
 from labels import *
 import random 
 import time
+import argparse
 
 
 NAMESPACE = 'test-thesis'
@@ -91,6 +92,17 @@ class ClusterSimulator:
         except Exception as e:
             print(f"[!] Failed to delete pod {pod_name}: {e}")
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Simulate a burst of pod creation in a Kubernetes cluster.")
+    parser.add_argument("--namespace", type=str, required=True, help="Namespace you want to create the pods in.")
+    parser.add_argument("--num-pods", type=int, required=True, help="Number of pods to create in the burst.")
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    clusterSimulator = ClusterSimulator(NAMESPACE)
-    clusterSimulator.create_pod_burst(10)
+    args = parse_args()
+    namespace = args.namespace
+    num_pods = args.num_pods
+
+    clusterSimulator = ClusterSimulator(namespace)
+    clusterSimulator.create_pod_burst(num_pods)
