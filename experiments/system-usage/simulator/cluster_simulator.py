@@ -65,21 +65,22 @@ class ClusterSimulator:
         print(f"Creating a burst of {nb_pods} pods.")
         
         # Cycle through all possible combinations of labels.
-        for app_label_value in app_label_values:
-            for role_label_value in role_label_values:
+        while True:
+            for app_label_value in app_label_values:
+                for role_label_value in role_label_values:
 
-                # Break when amount of created pods has reached it's limit.
-                if created_pods_index > nb_pods:
-                    break
-                    
-                # Create the labelset (which is a dictionary for the python framework)
-                label_dict = {'app': app_label_value, 'role': role_label_value}
+                    # Break when amount of created pods has reached it's limit.
+                    if created_pods_index > nb_pods:
+                        break
+                        
+                    # Create the labelset (which is a dictionary for the python framework)
+                    label_dict = {'app': app_label_value, 'role': role_label_value}
 
-                # Create the test-pod with the generated labelset.
-                self.create_test_pod(created_pods_index, label_dict)
+                    # Create the test-pod with the generated labelset.
+                    self.create_test_pod(created_pods_index, label_dict)
 
-                # Increment pod index.
-                created_pods_index += 1
+                    # Increment pod index.
+                    created_pods_index += 1
 
         print(f"Pod burst done. Created {created_pods_index} pods.")
 

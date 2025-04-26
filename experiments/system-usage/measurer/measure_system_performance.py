@@ -94,6 +94,6 @@ def monitor_system(interval=1):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Measure system-wide CPU, memory, disk, and network usage.")
-    parser.add_argument("--interval", type=int, default=1, help="Monitoring interval in seconds.")
+    parser.add_argument("--interval", type=float, default=1, help="Monitoring interval in seconds.")
     args = parser.parse_args()   
     monitor_system(args.interval)
