@@ -1,19 +1,19 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: app-c-allow-frontend-backend
+  name: app-c-allow-backend-frontend
   namespace: test-thesis
 spec:
   podSelector:
     matchLabels:
       app: app-c
-      role: frontend
+      role: backend
   ingress:
     - from:
         - podSelector:
             matchLabels:
               app: app-c
-              role: backend
+              role: frontend
       ports:
         - protocol: TCP
           port: 80 
@@ -22,7 +22,7 @@ spec:
         - podSelector:
             matchLabels:
               app: app-c
-              role: backend
+              role: frontend
       ports:
         - protocol: TCP
           port: 80 

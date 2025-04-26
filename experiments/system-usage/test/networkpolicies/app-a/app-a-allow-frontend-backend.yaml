@@ -7,13 +7,13 @@ spec:
   podSelector:
     matchLabels:
       app: app-a
-      role: backend
+      role: frontend
   ingress:
     - from:
         - podSelector:
             matchLabels:
               app: app-a
-              role: frontend
+              role: backend
         
       ports:
         - protocol: TCP
