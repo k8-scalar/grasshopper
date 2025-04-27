@@ -3,11 +3,18 @@ source ~/kube_venv/bin/activate
 
 NAMESPACE=test-thesis
 
+
+
+
 # Burst test parameters.
 ITERATIONS=10 # Number of iterations to run.
-NUM_PODS=10   # Number of pods to burst in each iteration.
 SLEEP_TIME=5 # time to sleep between iterations
-INTERVAL=0.2  # Interval in which to take measurements.
+
+# NUM_PODS=10   # Number of pods to burst in each iteration.
+# INTERVAL=0.2  # Interval in which to take measurements.
+
+NUM_PODS=$1
+INTERVAL=$2
 
 check_if_cluster_is_clean(){
     # Check for pods
@@ -28,7 +35,7 @@ check_if_cluster_is_clean(){
 
 for ((i=1; i<=ITERATIONS; i++)) do
     echo "Starting iteration $i"
-    ./test/test-burst.sh "$NUM_PODS" "$SLEEP_TIME" "$INTERVAL"
+    ./test/test-burst.sh "$NUM_PODS" "$INTERVAL"
     echo "Iteration $i done. "
 
     echo "Sleeping for 5 seconds to let everything balance out."

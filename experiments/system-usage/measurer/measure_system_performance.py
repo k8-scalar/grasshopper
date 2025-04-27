@@ -9,7 +9,7 @@ import os
 RESULTS_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../results"))
 
 
-def monitor_system(interval=1):
+def monitor_system(interval, num_pods_burst):
     """
     Monitors system-wide CPU, memory, disk, and network usage.
     """
@@ -33,7 +33,7 @@ def monitor_system(interval=1):
 
     # Create results file path.
     date_of_measurement = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    results_file_path = os.path.join(RESULTS_FOLDER, f"system_usage_{date_of_measurement}.csv")
+    results_file_path = os.path.join(RESULTS_FOLDER, f"system_usage_{date_of_measurement}_burst-{num_pods_burst}.csv")
 
     try:
         while True:
@@ -94,6 +94,7 @@ def monitor_system(interval=1):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Measure system-wide CPU, memory, disk, and network usage.")
-    parser.add_argument("--interval", type=float, default=1, help="Monitoring interval in seconds.")
+    parser.add_argument("--interval", type=float, default=1, required=True, help="Monitoring interval in seconds.")
+    parser.add_argument("--num-pods-burst", type=int, required=True, help="Number of pods that were bursted in experiment.")
     args = parser.parse_args()   
-    monitor_system(args.interval)
+    monitor_system(args.interval, args.num_pods_burst)
