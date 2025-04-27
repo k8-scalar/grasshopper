@@ -3,6 +3,7 @@ from labels import *
 import random 
 import time
 import argparse
+import sys
 
 
 NAMESPACE = 'test-thesis'
@@ -65,7 +66,7 @@ class ClusterSimulator:
         print(f"Creating a burst of {nb_pods} pods.")
         
         # Cycle through all possible combinations of labels.
-        while True:
+        while created_pods_index < nb_pods:
             for app_label_value in app_label_values:
                 for role_label_value in role_label_values:
 
@@ -101,9 +102,15 @@ def parse_args():
 
 
 if __name__ == "__main__":
+    # Reading arguments.
     args = parse_args()
     namespace = args.namespace
     num_pods = args.num_pods
 
+    # Creating clusterSimulator and creating burst.
     clusterSimulator = ClusterSimulator(namespace)
     clusterSimulator.create_pod_burst(num_pods)
+
+    # Exiting the script after finishing the burst.
+    sys.exit(0)
+

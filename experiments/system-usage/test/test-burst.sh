@@ -4,8 +4,7 @@
 #              CPU-usage and memory-usage and write the results to the results/ directory.
 #  Params:
 #    - NUMPODS: 1    - Number of pods to burst.
-#    - SLEEP_TIME: 2 - Time to sleep after the burst.
-#    - INTERVAL : 3  - Interval in which the measurer will write measurements.
+#    - INTERVAL : 2  - Interval in which the measurer will write measurements.
 
 
 # Function to clean up background processes
@@ -37,15 +36,14 @@ NAMESPACE=test-thesis
 # =========================== ARGUMENTS ======================================
 
 # Check if the required arguments are provided
-if [ "$#" -lt 3 ]; then
-    echo "Usage: $0 <num-pods> <sleep-time> <interval>"
+if [ "$#" -lt 2 ]; then
+    echo "Usage: $0 <num-pods> <interval>"
     exit 1
 fi
 
-# Read arguments
-NUM_PODS=$1
-SLEEP_TIME=$2
-INTERVAL=$3
+# Reading arguments.
+NUM_PODS=$1 # Number of pods to burst.
+INTERVAL=$2 # Interval in which the measurer will write measurements.
 
 echo "Experiment: Creating a burst of $NUM_PODS pods in namespace $NAMESPACE."
 
@@ -82,13 +80,13 @@ echo "Measurer started with PID $MEASURER_PID."
 
 # 3) Running the cluster simulator.
 echo "----------- Running the Cluster Simulator as a background process ----------"
-python3 simulator/cluster_simulator.py --namespace $NAMESPACE --num-pods $NUM_PODS &
+python3 simulator/cluster_simulator.py --namespace $NAMESPACE --num-pods $NUM_PODS 2>&1 &
 SIMULATOR_PID=$!  # Store the PID of the measurer process
 echo "Simulator started with PID $SIMULATOR_PID."
 echo "TEST: Burst of X amount of pods created."
 
 
-# Sleeping a a bit to let everything balance out, before cleaning up the cluster.
-echo "Sleeping for $SLEEP_TIME seconds to let Grasshopper be in peace."
-sleep $SLEEP_TIME
-
+# Wait for the simulator to complete its task
+echo "Waiting for the cluster simulator to finish..."
+wait $SIMULATOR_PID
+echo "Cluster simulator has finished. Proceeding to cleanup."
