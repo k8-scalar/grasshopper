@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: app-c-allow-backend-database
+  namespace: test-thesis
+spec:
+  podSelector:
+    matchLabels:
+      app: app-c
+      role: backend
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: app-c
+              role: database
+      ports:
+        - protocol: TCP
+          port: 80 
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: app-c
+              role: database
+      ports:
+        - protocol: TCP
+          port: 80 
+  policyTypes:
+    - Ingress
+    - Egress
