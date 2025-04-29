@@ -7,6 +7,7 @@ import argparse
 import sys
 import csv
 import pandas as pd
+from datetime import datetime
 
 
 NAMESPACE = 'test-thesis'
@@ -22,20 +23,27 @@ class ClusterSimulator:
     """
 
 
-    def __init__(self, namespace, num_pods):
+    def __init__(self, namespace, num_pods, iteration):
         self.namespace = namespace
         self.num_pods = num_pods
+        self.iteration = iteration
         self.initialize_cluster_config()
         self.api = client.CoreV1Api()
-        self.output_path = RESULTS_FOLDER + f"pod_creation_times_burst_{self.num_pods}.csv"
-        self.initialize_timings_csv_file()
+        self.initialize_output_file()
 
 
+    def initialize_output_file(self):
+        output_folder_path = os.path.join(RESULTS_FOLDER, f"burst-{self.num_pods}")
+        output_file_path = os.path.join(output_folder_path, f"{self.iteration}-pod_creation_times_burst_{self.num_pods}.csv")
 
-    def initialize_timings_csv_file(self):
+        if not os.path.isdir(output_folder_path):
+            os.mkdir(output_folder_path)
+
         timings_df = pd.DataFrame(columns=['pod_name', 'creation_time'])
-        timings_df.to_csv(self.output_path)
+        timings_df.to_csv(output_file_path)
 
+        self.output_path = output_file_path
+        
     def initialize_cluster_config(self):
         """ Initializes the cluster configuration. """
         config.load_kube_config()
@@ -124,6 +132,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Simulate a burst of pod creation in a Kubernetes cluster.")
     parser.add_argument("--namespace", type=str, required=True, help="Namespace you want to create the pods in.")
     parser.add_argument("--num-pods", type=int, required=True, help="Number of pods to create in the burst.")
+    parser.add_argument("--iteration", type=int, required=True, help="Iteration of the experiment")
+
     return parser.parse_args()
 
 
@@ -132,9 +142,10 @@ if __name__ == "__main__":
     args = parse_args()
     namespace = args.namespace
     num_pods = args.num_pods
+    iteration = args.iteration
 
     # Creating clusterSimulator and creating burst.
-    clusterSimulator = ClusterSimulator(namespace, num_pods)
+    clusterSimulator = ClusterSimulator(namespace, num_pods, iteration)
     clusterSimulator.create_pod_burst_with_timings(num_pods)
 
     # Exiting the script after finishing the burst.
