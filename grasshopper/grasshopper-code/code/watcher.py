@@ -1,6 +1,17 @@
 from kubernetes import watch, client, config
 from watchdog import WatchDog
 from classes import *
+import time
+import os
+import pandas as pd
+import csv
+
+
+RESULTS_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../experiments/latency/results/handle-times/")
+OUTPUT_FOLDER = None
+BURST = 100
+ITERATION = 1
+
 
 
 class Watcher:
@@ -15,6 +26,26 @@ class Watcher:
         self.networking_api = client.NetworkingV1Api()
         self.networking_v1 = client.NetworkingV1Api()
         self.k8s_watcher: watch.Watch = watch.Watch()
+        self.initialize_output_file()
+
+    def initialize_output_file(self):
+        global OUTPUT_FOLDER
+        output_folder_path = os.path.join(RESULTS_FOLDER, f"burst-{BURST}")
+        output_file_path = os.path.join(output_folder_path, f"{ITERATION}-pod-handle-time-iteration.csv")
+
+        if not os.path.isdir(output_folder_path):
+            os.mkdir(output_folder_path)
+
+        if not os.path.isfile(output_file_path):
+            timings_df = pd.DataFrame(columns=['pod_name', 'handle_time'])
+            timings_df.to_csv(output_file_path)
+
+        OUTPUT_FOLDER = output_file_path
+
+    def write_pod_handle_time(self, pod_name, handle_time):
+        with open(OUTPUT_FOLDER, mode='a', newline='') as timings_csv:
+            writer = csv.writer(timings_csv)
+            writer.writerow([pod_name, handle_time])
 
     def watch_pods(self):
         print(f"Watching pods now in namespace {self.namespace} ...")
@@ -50,6 +81,11 @@ class Watcher:
             pod = Watcher.create_pod_from_pod_event(event)
             self.watchdog.handle_new_pod(pod)
             print(pod)
+
+            # Also log the handle event time.
+            pod_name = pod.name
+            handle_time = time.time()
+            self.write_pod_handle_time(pod_name, handle_time)
 
         elif event_type == "DELETED":
             # Create the corresponding Pod-object from k8s-event.
