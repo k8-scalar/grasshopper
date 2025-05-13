@@ -83,9 +83,9 @@ class Watcher:
             print(pod)
 
             # Also log the handle event time.
-            pod_name = pod.name
-            handle_time = time.time()
-            self.write_pod_handle_time(pod_name, handle_time)
+            # pod_name = pod.name
+            # handle_time = time.time()
+            # self.write_pod_handle_time(pod_name, handle_time)
 
         elif event_type == "DELETED":
             # Create the corresponding Pod-object from k8s-event.
