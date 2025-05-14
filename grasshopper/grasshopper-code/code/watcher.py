@@ -18,7 +18,6 @@ class Watcher:
         self.networking_api = client.NetworkingV1Api()
         self.networking_v1 = client.NetworkingV1Api()
         self.k8s_watcher: watch.Watch = watch.Watch()
-        self.initialize_output_file()
 
     def watch_pods(self):
         print(f"Watching pods now in namespace {self.namespace} ...")
