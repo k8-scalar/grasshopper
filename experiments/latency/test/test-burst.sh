@@ -1,7 +1,7 @@
 
-# Test script: Sets up the cluster, the measurer and calls the cluster simulator
-#              in order to simulate a burst of pods being created. The measurer will measure
-#              CPU-usage and memory-usage and write the results to the results/ directory.
+# Test script: Sets up the cluster, calls the cluster simulator
+#              in order to simulate a burst of pods being created. Grasshopper will
+#              detect event and handle times and write to output file latency_results/latency_results.csv
 #  Params:
 #    - NUMPODS:    1  - Number of pods to burst.
 #    - ITERATION : 2  - Iteration of the experiment.
@@ -10,18 +10,9 @@
 # Function to clean up background processes
 cleanup() {
     echo "------------------ Cleaning up the cluster. -----------------"
-    # Killing all background processes created (measurer and simulator)
-    # echo "Cleaning up all created background processes."
-    # kill $(jobs -p) 2>/dev/null
-
-    echo "Killing the measurer process."
-    kill $MEASURER_PID
-
-    # echo "Killing the simulator process."
-    # kill $SIMULATOR_PID
 
     echo "TEST: Removing network policies and pods created ... "
-    ./scripts/reset_cluster.sh 
+    # ./scripts/reset_cluster.sh 
 
     echo "------------------ Cluster cleanup done. --------------------"
 }
@@ -33,6 +24,7 @@ trap cleanup EXIT
 # =========================== CONSTANTS ======================================
 NAMESPACE=test-thesis
 
+GH_OUTPUT_FILE_LOCATION="/mnt/nfs_share/latency_results/latency_results.csv"
 # =========================== ARGUMENTS ======================================
 
 # Check if the required arguments are provided
@@ -44,11 +36,15 @@ fi
 # Reading arguments.
 NUM_PODS=$1 # Number of pods to burst.
 ITERATION=$2 # Interval in which the measurer will write measurements.
-REST_TIME=30
+REST_TIME=40
 
 echo "Experiment: Creating a burst of $NUM_PODS pods in namespace $NAMESPACE."
 
 # =========================== CLUSTER SETUP ======================================
+
+# Clearing output file.
+echo "Clearing output file..."
+> $GH_OUTPUT_FILE_LOCATION
 
 # 1) Setting up the cluster.
 # 1.1) Applying network policies.
