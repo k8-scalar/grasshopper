@@ -6,6 +6,8 @@ import threading
 from kubernetes import config, client, watch
 import os
 
+RESULTS_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../experiments/latency/results/handle-times/")
+
 NAMESPACE = None
 BURST = None
 ITERATION = None
