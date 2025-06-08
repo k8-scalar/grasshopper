@@ -1,0 +1,1 @@
+kubectl delete networkpolicies -n default --all
