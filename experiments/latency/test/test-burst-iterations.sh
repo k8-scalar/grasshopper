@@ -1,6 +1,3 @@
-
-source ~/kube_venv/bin/activate
-
 NAMESPACE=test-thesis
 
 # Burst test parameters.
@@ -9,8 +6,12 @@ SLEEP_TIME=5 # time to sleep between iterations
 NUM_PODS=$1
 ITERATIONS=$2 # Number of iterations to run.
 
-
 GH_OUTPUT_FILE_LOCATION="/mnt/nfs_share/latency_results/latency_results.csv"
+GH_LOG_FILE="/home/ubuntu/master-thesis-quinten-lauwaert/experiments/latency/results/logs/gh_og_burst_${NUM_PODS}_iters_${ITERATIONS}.log"
+GH_LOCATION="/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper/grasshopper-code/code/main_with_timing.py"
+
+# Create log folder if not exists.
+mkdir -p "/home/ubuntu/master-thesis-quinten-lauwaert/experiments/latency/results/logs"
 
 # Create output directory if not exists.
 TARGET_DIR="/home/ubuntu/master-thesis-quinten-lauwaert/experiments/latency/results/event-latency-times/burst-$NUM_PODS"
@@ -31,9 +32,13 @@ check_if_cluster_is_clean(){
     fi
 }
 
+# Start grasshopper.py in background and log output
+echo "Starting grasshopper.py..."
+python3 $GH_LOCATION --mode PLS > "$GH_LOG_FILE" 2>&1 &
+GH_PID=$!
+echo "Grasshopper started with PID $GH_PID"
+
 # Iterations loop.
-# start_iteration=4
-# ITERATIONS=$((start_iteration + ITERATIONS))
 for ((i=1; i<=ITERATIONS; i++)) do
     echo "Starting iteration $i"
     ./test/test-burst.sh "$NUM_PODS" "$i"
@@ -58,6 +63,11 @@ for ((i=1; i<=ITERATIONS; i++)) do
     echo "Sleeping for $SLEEP_TIME seconds before starting the next iteration."
     sleep $SLEEP_TIME    
 done
+
+# Stop grasshopper.py
+echo "Stopping grasshopper.py with PID $GH_PID"
+kill "$GH_PID"
+wait "$GH_PID" 2>/dev/null
 
 
 echo "ITERATION TEST DONE: Did $ITERATIONS iterations with burst of $NUM_PODS pods."
