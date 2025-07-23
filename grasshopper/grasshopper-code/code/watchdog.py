@@ -152,7 +152,7 @@ class WatchDog:
             print(f"Reporting policy {pol.name}...")
             self.report_policy(pol)
         
-        print(ClusterState())
+        # print(ClusterState())
 
     def handle_removed_policy(self, pol: Policy):
         if pol in ClusterState.get_offenders():
@@ -166,7 +166,7 @@ class WatchDog:
                 ClusterState.remove_policy(spol)
 
         print("Succesfully removed policy from ClusterState")
-        print(ClusterState())
+        # print(ClusterState())
 
 
     # Remove a splitted policy.
@@ -221,7 +221,7 @@ class WatchDog:
                 ClusterState().add_match_node_to_map_entry(label_set, pod.node)
                 self.matcher.SG_config_new_pod(label_set, pod.node)
         
-        print(ClusterState())
+        # print(ClusterState())
 
 
     def handle_removed_pod(self, pod: Pod):
@@ -242,4 +242,4 @@ class WatchDog:
                 ClusterState().remove_match_node_from_map_entry(label_set, n)
                 self.matcher.SG_config_remove_pod(label_set, n)
 
-        print(ClusterState())
+        # print(ClusterState())

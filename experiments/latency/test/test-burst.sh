@@ -36,7 +36,7 @@ fi
 # Reading arguments.
 NUM_PODS=$1 # Number of pods to burst.
 ITERATION=$2 # Interval in which the measurer will write measurements.
-REST_TIME=40
+REST_TIME=5
 
 echo "Experiment: Creating a burst of $NUM_PODS pods in namespace $NAMESPACE."
 

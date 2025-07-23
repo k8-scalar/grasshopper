@@ -42,6 +42,16 @@ class Watcher:
             name = event_object.metadata.name
             print(f"Service: {name}")
 
+    def get_pod_scheduled_time(self, pod_event):
+        event_type = pod_event["type"]
+        pod = pod_event["object"]
+
+        if event_type == "MODIFIED" and pod.spec.node_name and pod.status.conditions:
+            for condition in pod.status.conditions:
+                if condition.type == "PodScheduled" and condition.status == "True":
+                    print(f"Pod {pod.metadata.name} scheduled at {condition.last_transition_time}")
+                    return condition.last_transition_time
+
 
     def handle_pod_event(self, event):
         # Get the event type.
@@ -51,6 +61,7 @@ class Watcher:
         # Here, the pod will be assigned to a node. (So we're handling this as a new-pod-event)
         if event_type == "MODIFIED" and pod.spec.node_name:
             pod = Watcher.create_pod_from_pod_event(event)
+            self.get_pod_scheduled_time(event)
             self.watchdog.handle_new_pod(pod)
             print(pod)
 

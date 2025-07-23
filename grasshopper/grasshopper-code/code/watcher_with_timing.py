@@ -5,13 +5,15 @@ import time
 import os
 import pandas as pd
 import csv
+from dateutil.parser import isoparse
+
 
 
 RESULTS_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../experiments/latency/results/handle-times/")
 OUTPUT_FOLDER = None
 BURST = 100
 ITERATION = 1
-
+scheduled_times = set()
 
 
 class Watcher:
@@ -70,6 +72,21 @@ class Watcher:
             name = event_object.metadata.name
             print(f"Service: {name}")
 
+    def get_pod_scheduled_time(self, pod_event):
+        event_type = pod_event["type"]
+        pod = pod_event["object"]
+        global scheduled_times
+
+        if event_type == "MODIFIED" and pod.spec.node_name and pod.status.conditions:
+            for condition in pod.status.conditions:
+                if condition.type == "PodScheduled" and condition.status == "True":
+                    timestamp = condition.last_transition_time
+                    scheduled_times.add(timestamp)
+                    time_millies = timestamp.isoformat(timespec='milliseconds')
+                    print(f"Pod {pod.metadata.name} scheduled at {time_millies}")
+                    print(f"Scheduled times: {scheduled_times}")
+                    return time_millies
+
 
     def handle_pod_event(self, event):
         # Get the event type.
@@ -79,7 +96,14 @@ class Watcher:
         # Here, the pod will be assigned to a node. (So we're handling this as a new-pod-event)
         if event_type == "MODIFIED" and pod.spec.node_name:
             pod = Watcher.create_pod_from_pod_event(event)
+            self.get_pod_scheduled_time(event)
             self.watchdog.handle_new_pod(pod)
+            # try:
+            #     self.watchdog.handle_new_pod(pod)
+            # except Exception:
+            #     print("Exception, moving on...")
+            #     return
+
             print(pod)
 
             # Also log the handle event time.
