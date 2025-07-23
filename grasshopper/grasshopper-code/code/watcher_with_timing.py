@@ -5,16 +5,9 @@ import time
 import os
 import pandas as pd
 import csv
-from dateutil.parser import isoparse
 
 
-
-RESULTS_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../experiments/latency/results/handle-times/")
-OUTPUT_FOLDER = None
-BURST = 100
-ITERATION = 1
-scheduled_times = set()
-
+RESULTS_FOLDER = "/mnt/nfs_share/latency_results/latency_results.csv"
 
 class Watcher:
     """
@@ -28,7 +21,7 @@ class Watcher:
         self.networking_api = client.NetworkingV1Api()
         self.networking_v1 = client.NetworkingV1Api()
         self.k8s_watcher: watch.Watch = watch.Watch()
-        self.initialize_output_file()
+        # self.handled_scheduled_pods = set()
 
     def initialize_output_file(self):
         global OUTPUT_FOLDER
@@ -45,7 +38,7 @@ class Watcher:
         OUTPUT_FOLDER = output_file_path
 
     def write_pod_handle_time(self, pod_name, handle_time):
-        with open(OUTPUT_FOLDER, mode='a', newline='') as timings_csv:
+        with open(RESULTS_FOLDER, mode='a', newline='') as timings_csv:
             writer = csv.writer(timings_csv)
             writer.writerow([pod_name, handle_time])
 
@@ -72,44 +65,41 @@ class Watcher:
             name = event_object.metadata.name
             print(f"Service: {name}")
 
-    def get_pod_scheduled_time(self, pod_event):
-        event_type = pod_event["type"]
-        pod = pod_event["object"]
-        global scheduled_times
+    # def get_pod_scheduled_time(self, pod_event):
+    #     event_type = pod_event["type"]
+    #     pod = pod_event["object"]
+    #     global scheduled_times
 
-        if event_type == "MODIFIED" and pod.spec.node_name and pod.status.conditions:
-            for condition in pod.status.conditions:
-                if condition.type == "PodScheduled" and condition.status == "True":
-                    timestamp = condition.last_transition_time
-                    scheduled_times.add(timestamp)
-                    time_millies = timestamp.isoformat(timespec='milliseconds')
-                    print(f"Pod {pod.metadata.name} scheduled at {time_millies}")
-                    print(f"Scheduled times: {scheduled_times}")
-                    return time_millies
+    #     if event_type == "MODIFIED" and pod.spec.node_name and pod.status.conditions:
+    #         for condition in pod.status.conditions:
+    #             if condition.type == "PodScheduled" and condition.status == "True":
+    #                 timestamp = condition.last_transition_time
+    #                 scheduled_times.add(timestamp)
+    #                 time_millies = timestamp.isoformat(timespec='milliseconds')
+    #                 print(f"Pod {pod.metadata.name} scheduled at {time_millies}")
+    #                 print(f"Scheduled times: {scheduled_times}")
+    #                 return time_millies
 
 
     def handle_pod_event(self, event):
         # Get the event type.
         event_type = event["type"]
         pod = event["object"]
+        pod_name = pod.metadata.name
 
         # Here, the pod will be assigned to a node. (So we're handling this as a new-pod-event)
         if event_type == "MODIFIED" and pod.spec.node_name:
             pod = Watcher.create_pod_from_pod_event(event)
-            self.get_pod_scheduled_time(event)
             self.watchdog.handle_new_pod(pod)
-            # try:
-            #     self.watchdog.handle_new_pod(pod)
-            # except Exception:
-            #     print("Exception, moving on...")
-            #     return
-
             print(pod)
 
             # Also log the handle event time.
-            # pod_name = pod.name
-            # handle_time = time.time()
-            # self.write_pod_handle_time(pod_name, handle_time)
+            pod_name = pod.name
+            handle_time = time.time()
+            self.write_pod_handle_time(pod_name, handle_time)
+
+            # Add to already seen pods, so we can get only 1 event for each pod.
+            # self.handled_scheduled_pods.add(pod_name)
 
         elif event_type == "DELETED":
             # Create the corresponding Pod-object from k8s-event.

@@ -8,16 +8,16 @@ import os
 
 RESULTS_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../experiments/latency/results/handle-times/")
 
-NAMESPACE = None
+NAMESPACE = "test-thesis"
 BURST = None
 ITERATION = None
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices=['PNS', 'PLS'], required=True)
-    parser.add_argument('--namespace', type=str, required=True)
-    parser.add_argument('--burst', type=int, required=True)
-    parser.add_argument('--iteration', type=int, required=True)
+    # parser.add_argument('--namespace', type=str, required=True)
+    # parser.add_argument('--burst', type=int, required=True)
+    # parser.add_argument('--iteration', type=int, required=True)
 
 
     return parser.parse_args()
@@ -67,11 +67,11 @@ def main():
 
     initialize_cluster_configuration()
 
-    global NAMESPACE, BURST
+    # global NAMESPACE, BURST
 
-    NAMESPACE = args.namespace
-    BURST = args.burst
-    ITERATION = args.iteration
+    # NAMESPACE = args.namespace
+    # BURST = args.burst
+    # ITERATION = args.iteration
     
     if args.mode == 'PNS':
         print("🐝 Starting GrassHopper in PNS mode")
