@@ -21,7 +21,6 @@ class Watcher:
         self.networking_api = client.NetworkingV1Api()
         self.networking_v1 = client.NetworkingV1Api()
         self.k8s_watcher: watch.Watch = watch.Watch()
-        # self.handled_scheduled_pods = set()
 
     def initialize_output_file(self):
         global OUTPUT_FOLDER
@@ -37,10 +36,15 @@ class Watcher:
 
         OUTPUT_FOLDER = output_file_path
 
-    def write_pod_handle_time(self, pod_name, handle_time):
-        with open(RESULTS_FOLDER, mode='a', newline='') as timings_csv:
-            writer = csv.writer(timings_csv)
-            writer.writerow([pod_name, handle_time])
+    # def write_pod_handle_time(self, pod_name, handle_time):
+    #     with open(RESULTS_FOLDER, mode='a', newline='') as timings_csv:
+    #         writer = csv.writer(timings_csv)
+    #         writer.writerow([pod_name, handle_time])
+
+    def write_pod_handle_time(self, pod_name, event_time, handle_time):
+        with open(RESULTS_FOLDER, mode='a', newline='') as latency_results:
+            writer = csv.writer(latency_results)
+            writer.writerow([pod_name, event_time, handle_time])
 
     def watch_pods(self):
         print(f"Watching pods now in namespace {self.namespace} ...")
@@ -63,25 +67,11 @@ class Watcher:
         ):
             event_object = event["object"]
             name = event_object.metadata.name
-            print(f"Service: {name}")
-
-    # def get_pod_scheduled_time(self, pod_event):
-    #     event_type = pod_event["type"]
-    #     pod = pod_event["object"]
-    #     global scheduled_times
-
-    #     if event_type == "MODIFIED" and pod.spec.node_name and pod.status.conditions:
-    #         for condition in pod.status.conditions:
-    #             if condition.type == "PodScheduled" and condition.status == "True":
-    #                 timestamp = condition.last_transition_time
-    #                 scheduled_times.add(timestamp)
-    #                 time_millies = timestamp.isoformat(timespec='milliseconds')
-    #                 print(f"Pod {pod.metadata.name} scheduled at {time_millies}")
-    #                 print(f"Scheduled times: {scheduled_times}")
-    #                 return time_millies
-
-
+            print(f"Service: {name}")             
+            
     def handle_pod_event(self, event):
+        tic = time.time()
+
         # Get the event type.
         event_type = event["type"]
         pod = event["object"]
@@ -94,12 +84,8 @@ class Watcher:
             print(pod)
 
             # Also log the handle event time.
-            pod_name = pod.name
-            handle_time = time.time()
-            self.write_pod_handle_time(pod_name, handle_time)
-
-            # Add to already seen pods, so we can get only 1 event for each pod.
-            # self.handled_scheduled_pods.add(pod_name)
+            toc = time.time()
+            self.write_pod_handle_time(pod_name, tic, toc)
 
         elif event_type == "DELETED":
             # Create the corresponding Pod-object from k8s-event.
