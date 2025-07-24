@@ -69,7 +69,6 @@ SIMULATOR_PID=$!  # Store the PID of the measurer process
 echo "Simulator started with PID $SIMULATOR_PID."
 echo "TEST: Burst of X amount of pods created."
 
-
 # Sleeping, in order to give the simulator time to do it's bursts.
 echo "Sleeping for $REST_TIME, in order to give simulator time to finish burst."
 sleep $REST_TIME
