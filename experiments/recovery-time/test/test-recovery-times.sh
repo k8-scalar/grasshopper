@@ -31,6 +31,8 @@ cleanup() {
     echo "Resetting cluster..."
     ./scripts/reset_cluster.sh
 
+    python3 "/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper/grasshopper-code/code/openstackfiles/remove_excess_sgs.py"
+
     echo "Cleanup completed."
 }
 
