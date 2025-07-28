@@ -23,13 +23,12 @@ class ClusterSimulator:
     """
 
 
-    def __init__(self, namespace, num_pods, iteration):
+    def __init__(self, namespace, num_pods):
         self.namespace = namespace
         self.num_pods = num_pods
-        self.iteration = iteration
         self.initialize_cluster_config()
         self.api = client.CoreV1Api()
-        self.initialize_output_file()
+        # self.initialize_output_file()
 
 
     def initialize_output_file(self):
@@ -112,7 +111,7 @@ class ClusterSimulator:
                     label_dict = {'app': app_label_value, 'role': role_label_value}
 
                     # Create the test-pod with the generated labelset.
-                    self.create_pod_with_timing(created_pods_index, label_dict)
+                    self.create_test_pod(created_pods_index, label_dict)
 
                     # Increment pod index.
                     created_pods_index += 1
@@ -132,8 +131,6 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Simulate a burst of pod creation in a Kubernetes cluster.")
     parser.add_argument("--namespace", type=str, required=True, help="Namespace you want to create the pods in.")
     parser.add_argument("--num-pods", type=int, required=True, help="Number of pods to create in the burst.")
-    parser.add_argument("--iteration", type=int, required=True, help="Iteration of the experiment")
-
     return parser.parse_args()
 
 
@@ -142,10 +139,9 @@ if __name__ == "__main__":
     args = parse_args()
     namespace = args.namespace
     num_pods = args.num_pods
-    iteration = args.iteration
 
     # Creating clusterSimulator and creating burst.
-    clusterSimulator = ClusterSimulator(namespace, num_pods, iteration)
+    clusterSimulator = ClusterSimulator(namespace, num_pods)
     clusterSimulator.create_pod_burst_with_timings(num_pods)
 
     # Exiting the script after finishing the burst.
