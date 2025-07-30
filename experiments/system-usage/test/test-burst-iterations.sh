@@ -3,15 +3,9 @@ source ~/kube_venv/bin/activate
 
 NAMESPACE=test-thesis
 
-
-
-
 # Burst test parameters.
-ITERATIONS=10 # Number of iterations to run.
-SLEEP_TIME=5 # time to sleep between iterations
-
-# NUM_PODS=10   # Number of pods to burst in each iteration.
-# INTERVAL=0.2  # Interval in which to take measurements.
+ITERATIONS=5 # Number of iterations to run.
+SLEEP_TIME=10 # time to sleep between iterations
 
 NUM_PODS=$1
 INTERVAL=$2

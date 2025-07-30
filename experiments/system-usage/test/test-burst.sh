@@ -5,6 +5,7 @@
 #  Params:
 #    - NUMPODS:   1  - Number of pods to burst.
 #    - INTERVAL : 2  - Interval in which the measurer will write measurements.
+#    - ITERATION: 3  - Iteration number of the experiment.
 
 
 # Function to clean up background processes
@@ -16,6 +17,13 @@ cleanup() {
 
     echo "Killing the measurer process."
     kill $MEASURER_PID
+
+    # Kill Grasshopper process if running
+    if [ ! -z "$GH_PID" ] && kill -0 "$GH_PID" 2>/dev/null; then
+        echo "Killing the Grasshopper process."
+        kill $GH_PID
+        wait "$GH_PID" 2>/dev/null
+    fi
 
     # echo "Killing the simulator process."
     # kill $SIMULATOR_PID
@@ -32,19 +40,27 @@ trap cleanup EXIT
 
 # =========================== CONSTANTS ======================================
 NAMESPACE=test-thesis
+GH_LOCATION="/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper/grasshopper-code/code/main.py"
 
 # =========================== ARGUMENTS ======================================
 
 # Check if the required arguments are provided
-if [ "$#" -lt 2 ]; then
-    echo "Usage: $0 <num-pods> <interval>"
+if [ "$#" -lt 3 ]; then
+    echo "Usage: $0 <num-pods> <interval> <iteration>"
     exit 1
 fi
 
 # Reading arguments.
 NUM_PODS=$1 # Number of pods to burst.
 INTERVAL=$2 # Interval in which the measurer will write measurements.
+ITERATION=$3 # Iteration number of the experiment.
 REST_TIME=30
+
+# Create log file path for Grasshopper
+GH_LOG_FILE="/home/ubuntu/master-thesis-quinten-lauwaert/experiments/system-usage/results/logs/gh_burst_${NUM_PODS}_iteration_${ITERATION}.log"
+
+# Create log directory if not exists
+mkdir -p "/home/ubuntu/master-thesis-quinten-lauwaert/experiments/system-usage/results/logs"
 
 echo "Experiment: Creating a burst of $NUM_PODS pods in namespace $NAMESPACE."
 
@@ -67,19 +83,34 @@ fi
 echo "----------------------- Cluster setup done. ---------------------------"
 
 
+# =========================== GRASSHOPPER SETUP =====================================
+
+# 3) Setting up Grasshopper.
+echo "----------- Running Grasshopper as a background process ---------------"
+python3 $GH_LOCATION --mode PLS --namespace $NAMESPACE > "$GH_LOG_FILE" 2>&1 &
+GH_PID=$!  # Store the PID of the Grasshopper process
+echo "Grasshopper started with PID $GH_PID."
+
+# Give Grasshopper time to initialize
+echo "Waiting 5 seconds for Grasshopper to initialize..."
+sleep 5
+echo "Grasshopper initialization complete."
+
+
+
+
 # =========================== MEASURER SETUP =====================================
 
-# 2) Setting up the measurer (to measure CPU- and mem-usage) and write to file.
+# 4) Setting up the measurer (to measure CPU- and mem-usage) and write to file.
 echo "----------- Running the Measurer as a background process ---------------"
 python3 measurer/measure_system_performance.py --interval $INTERVAL --num-pods-burst $NUM_PODS > measurer.log 2>&1 &
 MEASURER_PID=$!  # Store the PID of the measurer process
 echo "Measurer started with PID $MEASURER_PID."
 
 
-
 # =========================== CLUSTER SIMULATOR SETUP ===============================
 
-# 3) Running the cluster simulator.
+# 5) Running the cluster simulator.
 echo "----------- Running the Cluster Simulator as a background process ----------"
 python3 simulator/cluster_simulator.py --namespace $NAMESPACE --num-pods $NUM_PODS 2>&1 &
 SIMULATOR_PID=$!  # Store the PID of the measurer process
