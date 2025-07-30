@@ -1,0 +1,978 @@
+Running locally. Using kubeconfig.
+🌿 Starting GrassHopper in PLS mode
+Running in PLS-mode...
+================================= FRESH INITIALISATION DONE =====================================
+Watching policies now in namespace test-thesis ...
+Watching pods now in namespace test-thesis ...
+Handling policy event
+Handling new policy event in Watchdog: app-c-deny-all
+Successfully added policy app-c-deny-all to ClusterState
+Handling policy event
+Handling new policy event in Watchdog: app-c-allow-frontend-backend
+PLS: Configuring new spol Policy(name=app-c-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-c-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-c-allow-frontend-backend to ClusterState
+Handling policy event
+Handling new policy event in Watchdog: app-c-allow-database-backend
+PLS: Configuring new spol Policy(name=app-c-allow-database-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-c-allow-database-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-c-allow-database-backend to ClusterState
+Handling policy event
+Handling new policy event in Watchdog: app-c-allow-backend-frontend
+PLS: Configuring new spol Policy(name=app-c-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-c-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-c-allow-backend-frontend to ClusterState
+Handling policy event
+Handling new policy event in Watchdog: app-c-allow-backend-database
+PLS: Configuring new spol Policy(name=app-c-allow-backend-database, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-c-allow-backend-database, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-c-allow-backend-database to ClusterState
+Handling policy event
+Handling new policy event in Watchdog: app-b-allow-backend-database
+PLS: Configuring new spol Policy(name=app-b-allow-backend-database, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-b-allow-backend-database, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-b-allow-backend-database to ClusterState
+Handling policy event
+Handling new policy event in Watchdog: app-b-allow-database-backend
+PLS: Configuring new spol Policy(name=app-b-allow-database-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-b-allow-database-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-b-allow-database-backend to ClusterState
+Handling policy event
+Handling new policy event in Watchdog: app-b-allow-frontend-backend
+PLS: Configuring new spol Policy(name=app-b-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-b-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-b-allow-frontend-backend to ClusterState
+Handling policy event
+Handling new policy event in Watchdog: app-b-deny-all
+Successfully added policy app-b-deny-all to ClusterState
+Handling policy event
+Handling new policy event in Watchdog: app-b-allow-backend-frontend
+PLS: Configuring new spol Policy(name=app-b-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-b-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-b-allow-backend-frontend to ClusterState
+Handling policy event
+Handling new policy event in Watchdog: app-a-allow-backend-database
+PLS: Configuring new spol Policy(name=app-a-allow-backend-database, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-a-allow-backend-database, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-a-allow-backend-database to ClusterState
+Handling policy event
+Handling new policy event in Watchdog: app-a-allow-frontend-backend
+PLS: Configuring new spol Policy(name=app-a-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-a-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-a-allow-frontend-backend to ClusterState
+Handling policy event
+Handling new policy event in Watchdog: app-a-allow-backend-frontend
+PLS: Configuring new spol Policy(name=app-a-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-a-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-a-allow-backend-frontend to ClusterState
+Handling policy event
+Handling new policy event in Watchdog: app-a-deny-all
+Successfully added policy app-a-deny-all to ClusterState
+Handling policy event
+Handling new policy event in Watchdog: app-a-allow-database-backend
+PLS: Configuring new spol Policy(name=app-a-allow-database-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-a-allow-database-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-a-allow-database-backend to ClusterState
+Pod test-pod-0 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-0, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-a-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-a-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-a-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+Initializing Openstack Client!
+Creating security group: SG-app:app-arole:frontend
+Attaching security group SG-app:app-arole:frontend to instance worker-1
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Creating security group: SG-app:app-arole:backend
+SGMod: Adding rule to SG-app:app-arole:frontend, remote SG-app:app-arole:backend, port 80, type ingress
+PLS: Configuring new spol Policy(name=app-a-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-arole:frontend, remote SG-app:app-arole:backend, port 80, type egress
+SG-app:app-arole:frontend already attached to worker-1
+Pod(name=test-pod-0, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-1 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-1, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-a-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:frontend, port 80, type egress
+PLS: Configuring new spol Policy(name=app-a-allow-database-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-a-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-arole:frontend, remote SG-app:app-arole:backend, port 80, type egress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 246158b9-df74-4ab4-ab39-87eab902fad8.
+Neutron server returns request_ids: ['req-aeb9d9a0-e6a7-4be3-88e3-be8b6a324b33']
+PLS: Configuring new spol Policy(name=app-a-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:frontend, port 80, type ingress
+PLS: Configuring new spol Policy(name=app-a-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-arole:frontend, remote SG-app:app-arole:backend, port 80, type ingress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 66064bf6-b3f6-4750-ba5d-1b6eff3eef4f.
+Neutron server returns request_ids: ['req-ee0a488b-1e11-4a9c-8568-5e8b42a5d10e']
+PLS: Configuring new spol Policy(name=app-a-allow-backend-database, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+Creating security group: SG-app:app-arole:database
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:database, port 80, type egress
+PLS: Configuring new spol Policy(name=app-a-allow-database-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-a-allow-backend-database, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:database, port 80, type ingress
+Attaching security group SG-app:app-arole:backend to instance worker-1
+Pod(name=test-pod-1, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-0 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-0 already exists in the cluster.
+Pod(name=test-pod-0, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-2 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-2, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-a-allow-database-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-arole:database, remote SG-app:app-arole:backend, port 80, type egress
+PLS: Configuring new spol Policy(name=app-a-allow-backend-database, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:database, port 80, type egress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 92f93078-eda2-4cc0-8156-bae3a90427c7.
+Neutron server returns request_ids: ['req-aadfbeaa-1a81-4655-ae09-f1600887a93c']
+PLS: Configuring new spol Policy(name=app-a-allow-backend-database, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:database, port 80, type ingress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 3b5566f8-befe-42a9-93ef-550ce3c21082.
+Neutron server returns request_ids: ['req-4280bba9-d054-4264-9a9b-f9133bf112e1']
+PLS: Configuring new spol Policy(name=app-a-allow-database-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-arole:database, remote SG-app:app-arole:backend, port 80, type ingress
+Attaching security group SG-app:app-arole:database to instance worker-1
+Pod(name=test-pod-2, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-3 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-3, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-b-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-b-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+Creating security group: SG-app:app-brole:frontend
+Attaching security group SG-app:app-brole:frontend to instance worker-1
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Creating security group: SG-app:app-brole:backend
+SGMod: Adding rule to SG-app:app-brole:frontend, remote SG-app:app-brole:backend, port 80, type ingress
+PLS: Configuring new spol Policy(name=app-b-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-b-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:frontend, remote SG-app:app-brole:backend, port 80, type egress
+SG-app:app-brole:frontend already attached to worker-1
+Pod(name=test-pod-3, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-1 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-1 already exists in the cluster.
+Pod(name=test-pod-1, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-4 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-4, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-b-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:frontend, remote SG-app:app-brole:backend, port 80, type ingress
+Cannot add rule to remotes: Security group rule already exists. Rule id is f05f1735-ca64-4313-9d02-664915da3983.
+Neutron server returns request_ids: ['req-df1231af-3b1b-46df-a331-8736db8ea442']
+PLS: Configuring new spol Policy(name=app-b-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:frontend, port 80, type ingress
+PLS: Configuring new spol Policy(name=app-b-allow-database-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-b-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:frontend, port 80, type egress
+PLS: Configuring new spol Policy(name=app-b-allow-database-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-b-allow-backend-database, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+Creating security group: SG-app:app-brole:database
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:database, port 80, type ingress
+PLS: Configuring new spol Policy(name=app-b-allow-backend-database, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:database, port 80, type egress
+PLS: Configuring new spol Policy(name=app-b-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:frontend, remote SG-app:app-brole:backend, port 80, type egress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 7761df3b-e1f7-4dea-ace6-598c526c869f.
+Neutron server returns request_ids: ['req-46ebff80-b76d-4fbb-94b9-34e2fea09fe7']
+Attaching security group SG-app:app-brole:backend to instance worker-1
+Pod(name=test-pod-4, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-3 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-3 already exists in the cluster.
+Pod(name=test-pod-3, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-5 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-5, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-b-allow-backend-database, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:database, port 80, type egress
+Cannot add rule to remotes: Security group rule already exists. Rule id is c15e2bdc-1edb-488c-851f-7e629abb345f.
+Neutron server returns request_ids: ['req-685e6863-225d-47cb-a690-092d9a7b0bd7']
+PLS: Configuring new spol Policy(name=app-b-allow-database-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:database, remote SG-app:app-brole:backend, port 80, type ingress
+PLS: Configuring new spol Policy(name=app-b-allow-backend-database, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:database, port 80, type ingress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 5dad44f0-45a2-4d74-b040-41120ea3c540.
+Neutron server returns request_ids: ['req-1ceb1922-211d-4cd2-849d-48a6a39a9261']
+PLS: Configuring new spol Policy(name=app-b-allow-database-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:database, remote SG-app:app-brole:backend, port 80, type egress
+Attaching security group SG-app:app-brole:database to instance worker-1
+Pod(name=test-pod-5, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-6 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-6, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-c-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-c-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-c-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+Creating security group: SG-app:app-crole:frontend
+Attaching security group SG-app:app-crole:frontend to instance worker-1
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Creating security group: SG-app:app-crole:backend
+SGMod: Adding rule to SG-app:app-crole:frontend, remote SG-app:app-crole:backend, port 80, type egress
+PLS: Configuring new spol Policy(name=app-c-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-crole:frontend, remote SG-app:app-crole:backend, port 80, type ingress
+SG-app:app-crole:frontend already attached to worker-1
+Pod(name=test-pod-6, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-2 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-2 already exists in the cluster.
+Pod(name=test-pod-2, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-7 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-7, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-c-allow-backend-database, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'database'})
+Creating security group: SG-app:app-crole:database
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:database, port 80, type ingress
+PLS: Configuring new spol Policy(name=app-c-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-crole:frontend, remote SG-app:app-crole:backend, port 80, type ingress
+Cannot add rule to remotes: Security group rule already exists. Rule id is a30ae2e3-3afb-4ae8-9c93-5c1c2267851a.
+Neutron server returns request_ids: ['req-a4c71cda-e36e-4215-a4a1-3603bf96f7a7']
+PLS: Configuring new spol Policy(name=app-c-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:frontend, port 80, type ingress
+PLS: Configuring new spol Policy(name=app-c-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:frontend, port 80, type egress
+PLS: Configuring new spol Policy(name=app-c-allow-database-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-c-allow-backend-database, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:database, port 80, type egress
+PLS: Configuring new spol Policy(name=app-c-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-crole:frontend, remote SG-app:app-crole:backend, port 80, type egress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 5aa76655-ad5d-4adc-bfc9-af7ff17d9d5b.
+Neutron server returns request_ids: ['req-b49888d4-9508-419d-a5b0-647df0842fe8']
+PLS: Configuring new spol Policy(name=app-c-allow-database-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Attaching security group SG-app:app-crole:backend to instance worker-1
+Pod(name=test-pod-7, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-5 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-5 already exists in the cluster.
+Pod(name=test-pod-5, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-8 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-8, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-c-allow-backend-database, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:database, port 80, type ingress
+Cannot add rule to remotes: Security group rule already exists. Rule id is f89ea1dd-ba02-4d1a-99d2-45f9c62dce2a.
+Neutron server returns request_ids: ['req-8a454034-64a6-49be-8cb3-c32bfcc513d6']
+PLS: Configuring new spol Policy(name=app-c-allow-database-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-crole:database, remote SG-app:app-crole:backend, port 80, type egress
+PLS: Configuring new spol Policy(name=app-c-allow-backend-database, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:database, port 80, type egress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 29930f7a-cc0c-481a-aab0-1d9dbcb14682.
+Neutron server returns request_ids: ['req-0268b319-cb62-43b2-a5ff-6a6a3e9b2f29']
+PLS: Configuring new spol Policy(name=app-c-allow-database-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-crole:database, remote SG-app:app-crole:backend, port 80, type ingress
+Attaching security group SG-app:app-crole:database to instance worker-1
+Pod(name=test-pod-8, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-4 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-4 already exists in the cluster.
+Pod(name=test-pod-4, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-9 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-9, on node: worker-1
+Pod(name=test-pod-9, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-7 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-7 already exists in the cluster.
+Pod(name=test-pod-7, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-10 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-10, on node: worker-1
+Pod(name=test-pod-10, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-11 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-11, on node: worker-1
+Pod(name=test-pod-11, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-6 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-6 already exists in the cluster.
+Pod(name=test-pod-6, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-12 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-12, on node: worker-1
+Pod(name=test-pod-12, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-8 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-8 already exists in the cluster.
+Pod(name=test-pod-8, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-13 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-13, on node: worker-1
+Pod(name=test-pod-13, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-14 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-14, on node: worker-1
+Pod(name=test-pod-14, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-12 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-12 already exists in the cluster.
+Pod(name=test-pod-12, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-15 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-15, on node: worker-1
+Pod(name=test-pod-15, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-10 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-10 already exists in the cluster.
+Pod(name=test-pod-10, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-16 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-16, on node: worker-1
+Pod(name=test-pod-16, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-17 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-17, on node: worker-1
+Pod(name=test-pod-17, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-11 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-11 already exists in the cluster.
+Pod(name=test-pod-11, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-18 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-18, on node: worker-1
+Pod(name=test-pod-18, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-9 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-9 already exists in the cluster.
+Pod(name=test-pod-9, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-19 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-19, on node: worker-1
+Pod(name=test-pod-19, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-20 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-20, on node: worker-1
+Pod(name=test-pod-20, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-21 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-21, on node: worker-1
+Pod(name=test-pod-21, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-18 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-18 already exists in the cluster.
+Pod(name=test-pod-18, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-22 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-22, on node: worker-1
+Pod(name=test-pod-22, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-16 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-16 already exists in the cluster.
+Pod(name=test-pod-16, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-23 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-23, on node: worker-1
+Pod(name=test-pod-23, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-24 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-24, on node: worker-1
+Pod(name=test-pod-24, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-13 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-13 already exists in the cluster.
+Pod(name=test-pod-13, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-25 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-25, on node: worker-1
+Pod(name=test-pod-25, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-17 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-17 already exists in the cluster.
+Pod(name=test-pod-17, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-26 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-26, on node: worker-1
+Pod(name=test-pod-26, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-27 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-27, on node: worker-1
+Pod(name=test-pod-27, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-14 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-14 already exists in the cluster.
+Pod(name=test-pod-14, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-28 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-28, on node: worker-1
+Pod(name=test-pod-28, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-15 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-15 already exists in the cluster.
+Pod(name=test-pod-15, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-29 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-29, on node: worker-1
+Pod(name=test-pod-29, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-30 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-30, on node: worker-1
+Pod(name=test-pod-30, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-31 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-31, on node: worker-1
+Pod(name=test-pod-31, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-32 scheduled at 2025-07-30 17:16:43+00:00
+New pod: test-pod-32, on node: worker-1
+Pod(name=test-pod-32, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-19 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-19 already exists in the cluster.
+Pod(name=test-pod-19, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-33 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-33, on node: worker-1
+Pod(name=test-pod-33, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-34 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-34, on node: worker-1
+Pod(name=test-pod-34, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-35 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-35, on node: worker-1
+Pod(name=test-pod-35, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-20 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-20 already exists in the cluster.
+Pod(name=test-pod-20, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-36 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-36, on node: worker-1
+Pod(name=test-pod-36, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-37 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-37, on node: worker-1
+Pod(name=test-pod-37, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-38 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-38, on node: worker-1
+Pod(name=test-pod-38, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-39 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-39, on node: worker-1
+Pod(name=test-pod-39, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-23 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-23 already exists in the cluster.
+Pod(name=test-pod-23, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-40 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-40, on node: worker-1
+Pod(name=test-pod-40, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-41 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-41, on node: worker-1
+Pod(name=test-pod-41, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-42 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-42, on node: worker-1
+Pod(name=test-pod-42, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-43 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-43, on node: worker-1
+Pod(name=test-pod-43, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-28 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-28 already exists in the cluster.
+Pod(name=test-pod-28, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-44 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-44, on node: worker-1
+Pod(name=test-pod-44, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-45 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-45, on node: worker-1
+Pod(name=test-pod-45, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-27 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-27 already exists in the cluster.
+Pod(name=test-pod-27, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-46 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-46, on node: worker-1
+Pod(name=test-pod-46, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-24 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-24 already exists in the cluster.
+Pod(name=test-pod-24, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-47 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-47, on node: worker-1
+Pod(name=test-pod-47, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-0 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-0 already exists in the cluster.
+Pod(name=test-pod-0, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-21 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-21 already exists in the cluster.
+Pod(name=test-pod-21, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-48 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-48, on node: worker-1
+Pod(name=test-pod-48, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-49 scheduled at 2025-07-30 17:16:44+00:00
+New pod: test-pod-49, on node: worker-1
+Pod(name=test-pod-49, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-26 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-26 already exists in the cluster.
+Pod(name=test-pod-26, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-25 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-25 already exists in the cluster.
+Pod(name=test-pod-25, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-22 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-22 already exists in the cluster.
+Pod(name=test-pod-22, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-49 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-49 already exists in the cluster.
+Pod(name=test-pod-49, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-2 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-2 already exists in the cluster.
+Pod(name=test-pod-2, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-32 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-32 already exists in the cluster.
+Pod(name=test-pod-32, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-39 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-39 already exists in the cluster.
+Pod(name=test-pod-39, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-40 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-40 already exists in the cluster.
+Pod(name=test-pod-40, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-38 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-38 already exists in the cluster.
+Pod(name=test-pod-38, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-43 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-43 already exists in the cluster.
+Pod(name=test-pod-43, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-45 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-45 already exists in the cluster.
+Pod(name=test-pod-45, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-4 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-4 already exists in the cluster.
+Pod(name=test-pod-4, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-3 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-3 already exists in the cluster.
+Pod(name=test-pod-3, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-41 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-41 already exists in the cluster.
+Pod(name=test-pod-41, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-30 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-30 already exists in the cluster.
+Pod(name=test-pod-30, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-37 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-37 already exists in the cluster.
+Pod(name=test-pod-37, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-31 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-31 already exists in the cluster.
+Pod(name=test-pod-31, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-34 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-34 already exists in the cluster.
+Pod(name=test-pod-34, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-47 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-47 already exists in the cluster.
+Pod(name=test-pod-47, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-48 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-48 already exists in the cluster.
+Pod(name=test-pod-48, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-44 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-44 already exists in the cluster.
+Pod(name=test-pod-44, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-42 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-42 already exists in the cluster.
+Pod(name=test-pod-42, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-46 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-46 already exists in the cluster.
+Pod(name=test-pod-46, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-36 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-36 already exists in the cluster.
+Pod(name=test-pod-36, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-33 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-33 already exists in the cluster.
+Pod(name=test-pod-33, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-29 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-29 already exists in the cluster.
+Pod(name=test-pod-29, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-35 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-35 already exists in the cluster.
+Pod(name=test-pod-35, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-6 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-6 already exists in the cluster.
+Pod(name=test-pod-6, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-5 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-5 already exists in the cluster.
+Pod(name=test-pod-5, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-7 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-7 already exists in the cluster.
+Pod(name=test-pod-7, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-8 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-8 already exists in the cluster.
+Pod(name=test-pod-8, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-11 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-11 already exists in the cluster.
+Pod(name=test-pod-11, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-9 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-9 already exists in the cluster.
+Pod(name=test-pod-9, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-27 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-27 already exists in the cluster.
+Pod(name=test-pod-27, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-13 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-13 already exists in the cluster.
+Pod(name=test-pod-13, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-12 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-12 already exists in the cluster.
+Pod(name=test-pod-12, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-16 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-16 already exists in the cluster.
+Pod(name=test-pod-16, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-14 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-14 already exists in the cluster.
+Pod(name=test-pod-14, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-18 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-18 already exists in the cluster.
+Pod(name=test-pod-18, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-15 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-15 already exists in the cluster.
+Pod(name=test-pod-15, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-17 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-17 already exists in the cluster.
+Pod(name=test-pod-17, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-24 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-24 already exists in the cluster.
+Pod(name=test-pod-24, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-21 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-21 already exists in the cluster.
+Pod(name=test-pod-21, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-26 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-26 already exists in the cluster.
+Pod(name=test-pod-26, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-25 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-25 already exists in the cluster.
+Pod(name=test-pod-25, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-28 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-28 already exists in the cluster.
+Pod(name=test-pod-28, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-20 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-20 already exists in the cluster.
+Pod(name=test-pod-20, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-22 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-22 already exists in the cluster.
+Pod(name=test-pod-22, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-38 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-38 already exists in the cluster.
+Pod(name=test-pod-38, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-40 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-40 already exists in the cluster.
+Pod(name=test-pod-40, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-35 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-35 already exists in the cluster.
+Pod(name=test-pod-35, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-37 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-37 already exists in the cluster.
+Pod(name=test-pod-37, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-23 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-23 already exists in the cluster.
+Pod(name=test-pod-23, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-41 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-41 already exists in the cluster.
+Pod(name=test-pod-41, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-36 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-36 already exists in the cluster.
+Pod(name=test-pod-36, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-39 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-39 already exists in the cluster.
+Pod(name=test-pod-39, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-10 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-10 already exists in the cluster.
+Pod(name=test-pod-10, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-1 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-1 already exists in the cluster.
+Pod(name=test-pod-1, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-29 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-29 already exists in the cluster.
+Pod(name=test-pod-29, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-32 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-32 already exists in the cluster.
+Pod(name=test-pod-32, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-31 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-31 already exists in the cluster.
+Pod(name=test-pod-31, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-30 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-30 already exists in the cluster.
+Pod(name=test-pod-30, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-33 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-33 already exists in the cluster.
+Pod(name=test-pod-33, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-19 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-19 already exists in the cluster.
+Pod(name=test-pod-19, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-34 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-34 already exists in the cluster.
+Pod(name=test-pod-34, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-47 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-47 already exists in the cluster.
+Pod(name=test-pod-47, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-48 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-48 already exists in the cluster.
+Pod(name=test-pod-48, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-46 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-46 already exists in the cluster.
+Pod(name=test-pod-46, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-42 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-42 already exists in the cluster.
+Pod(name=test-pod-42, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-43 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-43 already exists in the cluster.
+Pod(name=test-pod-43, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-49 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-49 already exists in the cluster.
+Pod(name=test-pod-49, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-45 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-45 already exists in the cluster.
+Pod(name=test-pod-45, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-44 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-44 already exists in the cluster.
+Pod(name=test-pod-44, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-2 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-2 already exists in the cluster.
+Pod(name=test-pod-2, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-0 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-0 already exists in the cluster.
+Pod(name=test-pod-0, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-3 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-3 already exists in the cluster.
+Pod(name=test-pod-3, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-7 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-7 already exists in the cluster.
+Pod(name=test-pod-7, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-4 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-4 already exists in the cluster.
+Pod(name=test-pod-4, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-6 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-6 already exists in the cluster.
+Pod(name=test-pod-6, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-5 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-5 already exists in the cluster.
+Pod(name=test-pod-5, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-8 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-8 already exists in the cluster.
+Pod(name=test-pod-8, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-9 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-9 already exists in the cluster.
+Pod(name=test-pod-9, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-11 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-11 already exists in the cluster.
+Pod(name=test-pod-11, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-16 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-16 already exists in the cluster.
+Pod(name=test-pod-16, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-18 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-18 already exists in the cluster.
+Pod(name=test-pod-18, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-27 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-27 already exists in the cluster.
+Pod(name=test-pod-27, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-13 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-13 already exists in the cluster.
+Pod(name=test-pod-13, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-12 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-12 already exists in the cluster.
+Pod(name=test-pod-12, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-15 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-15 already exists in the cluster.
+Pod(name=test-pod-15, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-14 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-14 already exists in the cluster.
+Pod(name=test-pod-14, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-17 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-17 already exists in the cluster.
+Pod(name=test-pod-17, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-24 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-24 already exists in the cluster.
+Pod(name=test-pod-24, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-28 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-28 already exists in the cluster.
+Pod(name=test-pod-28, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-35 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-35 already exists in the cluster.
+Pod(name=test-pod-35, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-40 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-40 already exists in the cluster.
+Pod(name=test-pod-40, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-25 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-25 already exists in the cluster.
+Pod(name=test-pod-25, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-21 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-21 already exists in the cluster.
+Pod(name=test-pod-21, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-26 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-26 already exists in the cluster.
+Pod(name=test-pod-26, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-23 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-23 already exists in the cluster.
+Pod(name=test-pod-23, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-20 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-20 already exists in the cluster.
+Pod(name=test-pod-20, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-29 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-29 already exists in the cluster.
+Pod(name=test-pod-29, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-22 scheduled at 2025-07-30 17:16:43+00:00
+Pod test-pod-22 already exists in the cluster.
+Pod(name=test-pod-22, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+Pod test-pod-38 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-38 already exists in the cluster.
+Pod(name=test-pod-38, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-39 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-39 already exists in the cluster.
+Pod(name=test-pod-39, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+Pod test-pod-41 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-41 already exists in the cluster.
+Pod(name=test-pod-41, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+Pod test-pod-37 scheduled at 2025-07-30 17:16:44+00:00
+Pod test-pod-37 already exists in the cluster.

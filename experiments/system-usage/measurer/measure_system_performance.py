@@ -3,13 +3,13 @@ import time
 import pandas as pd
 from datetime import datetime
 import os
+import signal
+import sys
 
-# RESULTS_FOLDER = "./results"
+# Use absolute path to results folder
+RESULTS_FOLDER = "/home/ubuntu/master-thesis-quinten-lauwaert/experiments/system-usage/results"
 
-RESULTS_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../results"))
-
-
-def monitor_system(interval, num_pods_burst):
+def monitor_system(interval, num_pods_burst, iteration):
     """
     Monitors system-wide CPU, memory, disk, and network usage.
     """
@@ -31,12 +31,51 @@ def monitor_system(interval, num_pods_burst):
     net_sent_list = []
     net_recv_list = []
 
+    # Ensure results directory exists
+    os.makedirs(RESULTS_FOLDER, exist_ok=True)
+    
     # Create results file path.
     date_of_measurement = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    results_file_path = os.path.join(RESULTS_FOLDER, f"system_usage_{date_of_measurement}_burst-{num_pods_burst}.csv")
+    results_file_path = os.path.join(RESULTS_FOLDER, f"system_usage_burst-{num_pods_burst}_iter-{iteration}.csv")
+
+    # Flag to indicate graceful shutdown
+    shutdown_requested = False
+
+    def save_and_exit(reason="Unknown"):
+        """Save data and exit gracefully"""
+        nonlocal shutdown_requested
+        shutdown_requested = True
+        print(f"\nMonitoring stopped: {reason}")
+        if time_list:  # Only save if we have data
+            system_usage_df = pd.DataFrame({
+                "Time": time_list,
+                "CPU Usage (%)": cpu_usage_list,
+                "Memory Used (MB)": memory_used_list,
+                "Memory Total (MB)": memory_total_list,
+                "Memory (%)": memory_percent_list,
+                "Disk Used (GB)": disk_used_list,
+                "Network Sent (KB)": net_sent_list,
+                "Network Received (KB)": net_recv_list
+            })
+            system_usage_df.to_csv(results_file_path, index=False)
+            print(f"Final metrics saved to {results_file_path}.")
+        else:
+            print("No data to save.")
+        sys.exit(0)
+
+    def signal_handler(signum, frame):
+        """Handle SIGTERM and SIGINT signals"""
+        if signum == signal.SIGTERM:
+            save_and_exit("SIGTERM received")
+        elif signum == signal.SIGINT:
+            save_and_exit("SIGINT received (Ctrl+C)")
+
+    # Register signal handlers
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
 
     try:
-        while True:
+        while not shutdown_requested:
             # CPU usage
             cpu_usage = psutil.cpu_percent(interval=interval)
 
@@ -71,24 +110,10 @@ def monitor_system(interval, num_pods_burst):
             net_sent_list.append(net_sent)
             net_recv_list.append(net_recv)
 
-            # Storing to csv-file.
-            system_usage_df = pd.DataFrame({
-                "Time": time_list,
-                "CPU Usage (%)": cpu_usage_list,
-                "Memory Used (MB)": memory_used_list,
-                "Memory Total (MB)": memory_total_list,
-                "Memory (%)": memory_percent_list,
-                "Disk Used (GB)": disk_used_list,
-                "Network Sent (KB)": net_sent_list,
-                "Network Received (KB)": net_recv_list
-            })
-
-            # Save the metrics to the CSV file.
-            system_usage_df.to_csv(results_file_path, index=False)
-            print(f"Metrics saved to {results_file_path}.")
+            # Note: CSV file will be written only when the script shuts down
     
-    except Exception:
-        print("\nMonitoring stopped.")
+    except Exception as e:
+        save_and_exit(f"Exception occurred: {e}")
         
 
 if __name__ == "__main__":
@@ -96,5 +121,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Measure system-wide CPU, memory, disk, and network usage.")
     parser.add_argument("--interval", type=float, default=1, required=True, help="Monitoring interval in seconds.")
     parser.add_argument("--num-pods-burst", type=int, required=True, help="Number of pods that were bursted in experiment.")
+    parser.add_argument("--iteration", type=int, required=True, help="Iteration number for this measurement run.")
     args = parser.parse_args()   
-    monitor_system(args.interval, args.num_pods_burst)
+    monitor_system(args.interval, args.num_pods_burst, args.iteration)

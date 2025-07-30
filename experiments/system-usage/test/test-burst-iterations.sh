@@ -1,14 +1,17 @@
 
-source ~/kube_venv/bin/activate
-
 NAMESPACE=test-thesis
 
-# Burst test parameters.
-ITERATIONS=5 # Number of iterations to run.
-SLEEP_TIME=10 # time to sleep between iterations
+# Check if the required arguments are provided
+if [ "$#" -lt 3 ]; then
+    echo "Usage: $0 <num-pods> <interval> <iterations>"
+    exit 1
+fi
 
+# Burst test parameters from arguments
 NUM_PODS=$1
 INTERVAL=$2
+ITERATIONS=$3 # Number of iterations to run (now from argument)
+SLEEP_TIME=10 # time to sleep between iterations
 
 check_if_cluster_is_clean(){
     # Check for pods
@@ -29,7 +32,7 @@ check_if_cluster_is_clean(){
 
 for ((i=1; i<=ITERATIONS; i++)) do
     echo "Starting iteration $i"
-    ./test/test-burst.sh "$NUM_PODS" "$INTERVAL"
+    ./test/test-burst.sh "$NUM_PODS" "$INTERVAL" "$i"
     echo "Iteration $i done. "
 
     echo "Sleeping for 5 seconds to let everything balance out."
