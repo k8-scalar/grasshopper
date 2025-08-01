@@ -21,7 +21,6 @@ sleep 10
     # Go to your machine, where the cass-operator pod is running,
     # and run the reverse_shell/reverse_shell_attack.sh script.
 
-
 # Step 4: Cleanup - Terminate Grasshopper process
 echo "Terminating Grasshopper process..."
 if kill -0 $GH_PID 2>/dev/null; then
