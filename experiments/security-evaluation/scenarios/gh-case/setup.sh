@@ -13,13 +13,14 @@ echo "Setting up Grasshopper."
 python3 -u "/home/ubuntu//master-thesis-quinten-lauwaert/grasshopper/grasshopper-code/code/main.py" --mode PLS --namespace default > logs/gh-case-setup.log 2>&1 &
 GH_PID=$!
 
-echo "Giving GH 5 seconds to initialize."
-sleep 5
+echo "Giving GH 10 seconds to initialize."
+sleep 10
 
 # Step 3: Perform reverse shell attack
 
     # Go to your machine, where the cass-operator pod is running,
     # and run the reverse_shell/reverse_shell_attack.sh script.
+
 
 # Step 4: Cleanup - Terminate Grasshopper process
 echo "Terminating Grasshopper process..."

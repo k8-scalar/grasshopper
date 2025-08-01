@@ -9,42 +9,21 @@ PLS: Configuring new spol Policy(name=allow-application-pods, sel=LabelSet(label
 ])
 Adding Security Group for select labelset: LabelSet(labels={'app': 'example-app'})
 Initializing Openstack Client!
-Traceback (most recent call last):
-  File "/home/ubuntu//master-thesis-quinten-lauwaert/grasshopper/grasshopper-code/code/main.py", line 74, in <module>
-    main()
-  File "/home/ubuntu//master-thesis-quinten-lauwaert/grasshopper/grasshopper-code/code/main.py", line 71, in main
-    start_watch_PLS()
-  File "/home/ubuntu//master-thesis-quinten-lauwaert/grasshopper/grasshopper-code/code/main.py", line 42, in start_watch_PLS
-    ClusterState().initialize(PNS_scenario=False, namespace=NAMESPACE)
-  File "/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper/grasshopper-code/code/cluster_state.py", line 77, in initialize
-    watchdog.handle_new_policy(policy)
-  File "/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper/grasshopper-code/code/watchdog.py", line 147, in handle_new_policy
-    self.matcher.SG_config_new_pol(spol)
-  File "/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper/grasshopper-code/code/matcher.py", line 144, in SG_config_new_pol
-    SecurityGroupModulePLS.add_sg(spol.sel)
-  File "/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper/grasshopper-code/code/security_group_module.py", line 124, in add_sg
-    sg = SecurityGroupModulePLS.create_security_group(L)
-  File "/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper/grasshopper-code/code/security_group_module.py", line 108, in create_security_group
-    sg = create_security_group_if_not_exists(name, description)
-  File "/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper/grasshopper-code/code/openstackfiles/security_group_operations.py", line 7, in create_security_group_if_not_exists
-    existing_sgs = neutron.list_security_groups(name=sg_name)
-  File "/home/ubuntu/.local/lib/python3.10/site-packages/neutronclient/v2_0/client.py", line 1063, in list_security_groups
-    return self.list('security_groups', self.security_groups_path,
-  File "/home/ubuntu/.local/lib/python3.10/site-packages/neutronclient/v2_0/client.py", line 372, in list
-    for r in self._pagination(collection, path, **params):
-  File "/home/ubuntu/.local/lib/python3.10/site-packages/neutronclient/v2_0/client.py", line 387, in _pagination
-    res = self.get(path, params=params)
-  File "/home/ubuntu/.local/lib/python3.10/site-packages/neutronclient/v2_0/client.py", line 356, in get
-    return self.retry_request("GET", action, body=body,
-  File "/home/ubuntu/.local/lib/python3.10/site-packages/neutronclient/v2_0/client.py", line 333, in retry_request
-    return self.do_request(method, action, body=body,
-  File "/home/ubuntu/.local/lib/python3.10/site-packages/neutronclient/v2_0/client.py", line 297, in do_request
-    self._handle_fault_response(status_code, replybody, resp)
-  File "/home/ubuntu/.local/lib/python3.10/site-packages/neutronclient/v2_0/client.py", line 272, in _handle_fault_response
-    exception_handler_v20(status_code, error_body)
-  File "/home/ubuntu/.local/lib/python3.10/site-packages/neutronclient/v2_0/client.py", line 90, in exception_handler_v20
-    raise client_exc(message=error_message,
-neutronclient.common.exceptions.NeutronClientException: <html><body><h1>429 Too Many Requests</h1>
-You have sent too many requests in a given amount of time.
-</body></html>
-
+Creating security group: SG-app:example-app
+Attaching security group SG-app:example-app to instance worker
+Attaching security group SG-app:example-app to instance worker-1
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'example-app'})
+SGMod: Adding rule to SG-app:example-app, remote SG-app:example-app, port 8080, type ingress
+PLS: Configuring new spol Policy(name=allow-application-pods, sel=LabelSet(labels={'app': 'example-app'}), allow=[
+(LabelSet(labels={'app': 'example-app'}), Traffic(direction=egress, port=8080, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'example-app'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'example-app'})
+SGMod: Adding rule to SG-app:example-app, remote SG-app:example-app, port 8080, type egress
+Successfully added policy allow-application-pods to ClusterState
+================================= FRESH INITIALISATION DONE =====================================
+Watching policies now in namespace default ...
+Watching pods now in namespace default ...
+Handling policy event
+Handling new policy event in Watchdog: allow-application-pods
+Policy allow-application-pods already exists in the cluster.
