@@ -16,5 +16,7 @@ The setup should be the same as for the original GH version.
 
     > python3 main.py --mode PLS --namespace test-thesis
 
-    Possible modes (PLS, PLS). For the namespace, make sure it exists by creating it in the K8s system.
+    Possible modes (PLS, PLS). Make sure the namespace exists by creating it in the K8s system.
+
+
 
