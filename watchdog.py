@@ -97,7 +97,7 @@ class WatchDog:
         Checks whether or not a given policy is overly permissive.
         I.e.:
             - It has the empty selector in it's selected-attribute. (Selects all pods)
-            - If it has an allow-rule, which selects all pods. (empty selector or 0.0.0.0/24
+            - If it has an allow-rule, which selects all pods. (empty selector or 0.0.0.0/0)
 
             Is only called on splitted policies, so we assume the allow-list has only 1 element.
         """
@@ -112,7 +112,7 @@ class WatchDog:
                 return True
 
         if isinstance(spol.allow[0][0], CIDR):
-            if spol.allow[0][0].cidr == "0.0.0.0/24":
+            if spol.allow[0][0].cidr == "0.0.0.0/0":
                 return True
 
         return False
