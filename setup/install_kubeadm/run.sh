@@ -1,7 +1,8 @@
+#!/bin/bash
 export kubeadm_version=1.31
-export kubernetes_master_node=172.22.8.143
-export subnetmask=172.22.8
-export nodes="146 28"
+export kubernetes_master_node=172.22.14.30
+export subnetmask=172.22.14
+export nodes="34 32 124 208 23 229 196 118 246 146 61 97 177 71 201 136 66 167 62 18 53 125 151 154 110"
 export calico_version=3.28.2
 export containerd_version=1.7.22
 export runc_version=1.1.14
