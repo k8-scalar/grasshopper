@@ -2,16 +2,15 @@ from classes import CIDR, LabelSet, Node, Policy
 from cluster_state import ClusterState
 from security_group_module import SecurityGroupModulePNS, SecurityGroupModulePLS
 from abc import ABC, abstractmethod
-from locking.lockmanager2 import LockManager
+import logging
 
+logger = logging.getLogger(__name__)
 
 
 class Matcher(ABC):
 
     def __init__(self):
         self.set_security_group_module()
-        self._lockmanager = LockManager()
-
 
     """
     Defines an interface of a Matcher Class.
@@ -95,7 +94,7 @@ class PNSMatcher(Matcher):
             None
         """
 
-        print("Configuring new SG for new pod")
+        logger.info("Configuring new SG for new pod")
 
         mapping = ClusterState().get_map()
         for pol in mapping.get(L).select_pols:
@@ -141,14 +140,14 @@ class PLSMatcher(Matcher):
         self.security_group_module = SecurityGroupModulePLS()
 
     def SG_config_new_pol(self, spol):
-        print(f"PLS: Configuring new spol {spol}")
-        
+        logger.info(f"PLS: Configuring new spol {spol}")
+
         if len(ClusterState.get_map_entry(spol.sel).match_nodes) > 0:
-            print(f"Adding Security Group for select labelset: {spol.sel}" )
+            logger.info(f"Adding Security Group for select labelset: {spol.sel}" )
             SecurityGroupModulePLS.add_sg(spol.sel)
 
             if isinstance(spol.allow[0][0], LabelSet):
-                print(f"Adding Security Group for allow labelset: {spol.allow[0][0]}" )
+                logger.info(f"Adding Security Group for allow labelset: {spol.allow[0][0]}" )
                 SecurityGroupModulePLS.add_sg(spol.allow[0][0])
 
             sg = ClusterState.get_security_group(SecurityGroupModulePLS.SGn(spol.sel))
@@ -157,7 +156,7 @@ class PLSMatcher(Matcher):
             SecurityGroupModulePLS.add_rule_to_remotes(sg, rule)
 
     def SG_config_new_pod(self, L, n):
-        print("PLS: Configuring new pod with labelset: {L}")
+        logger.info("PLS: Configuring new pod with labelset: {L}")
 
         for spol in ClusterState.get_map_entry(L).select_pols | ClusterState.get_map_entry(L).allow_pols:
             self.SG_config_new_pol(spol)
@@ -167,12 +166,12 @@ class PLSMatcher(Matcher):
             SecurityGroupModulePLS.attach_security_group_to_node(sg, n)
 
     def SG_config_remove_pol(self, spol):
-        print(f"PLS: SG_config: removing spol: {spol}")
+        logger.info(f"PLS: SG_config: removing spol: {spol}")
         sg = ClusterState.get_security_group(SecurityGroupModulePLS.SGn(spol.sel))
         rule = SecurityGroupModulePLS.rule_from(spol)
         
         if sg:
-            print(f"Removing rule {rule.id} from sg {sg.name}")
+            logger.info(f"Removing rule {rule.id} from sg {sg.name}")
             SecurityGroupModulePLS.remove_rule_from_remotes(sg, rule)
 
         if ClusterState.get_map().get(spol.sel).select_pols == {spol} and len(ClusterState.get_map().get(spol.sel).allow_pols) == 0:
@@ -183,7 +182,7 @@ class PLSMatcher(Matcher):
 
 
     def SG_config_remove_pod(self, L, n):
-        print(f"PLS: SG_config: removing pod with labelset: {L}")
+        logger.info(f"PLS: SG_config: removing pod with labelset: {L}")
         sg = ClusterState.get_security_group(SecurityGroupModulePLS.SGn(L))
         if sg:
             SecurityGroupModulePLS.detach_security_group(sg, n)

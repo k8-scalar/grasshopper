@@ -4,12 +4,6 @@ from contextlib import contextmanager
 
 
 class LockManager:
-    """
-    This is per-labelset lock manager class, using the Singleton pattern. 
-    This class is used as a manager for acquiring and releasing per-labelset locks,
-    throughout the entire program.
-    """
-    
     _instance = None
     _instance_lock = threading.Lock()
 

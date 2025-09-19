@@ -1,3 +1,19 @@
+
+class Node:
+    def __init__(self, name: str):
+        self.name = name
+
+    def __str__(self):
+        return f"Node(name={self.name})"
+
+    def __eq__(self, other):
+        if isinstance(other, Node):
+            return self.name == other.name
+        return False
+
+    def __hash__(self):
+        return hash(self.name)
+
 class Traffic:
     def __init__(self, direction: str, port: int, protocol: str):
         self.direction = direction
@@ -76,6 +92,15 @@ class Policy:
         self.sel: LabelSet = sel
         self.allow: list[tuple[LabelSet | CIDR, Traffic]] = allow
 
+    def __eq__(self, other):
+        if not isinstance(other, Policy):
+            return False
+        return (self.name, self.sel, tuple(self.allow)) == (
+            other.name,
+            other.sel,
+            tuple(other.allow),
+        )
+        
     def get_string_repr(self):
         labelsets = {self.sel}
         labelsets.update([rule[0] for rule in self.allow])
@@ -85,15 +110,6 @@ class Policy:
 
     def get_involved_labelsets(self):
         return [self.sel] + [ls for (ls, _) in self.allow]
-
-    def __eq__(self, other):
-        if not isinstance(other, Policy):
-            return False
-        return (self.name, self.sel, tuple(self.allow)) == (
-            other.name,
-            other.sel,
-            tuple(other.allow),
-        )
 
     def __hash__(self):
         return hash((self.name, self.sel, tuple(self.allow)))
@@ -106,23 +122,6 @@ class Policy:
             allow_str += f"{allow_tuple_str} \n"
 
         return f"Policy(name={self.name}, sel={self.sel}, allow=[{allow_str}])"
-
-
-
-class Node:
-    def __init__(self, name: str):
-        self.name = name
-
-    def __str__(self):
-        return f"Node(name={self.name})"
-
-    def __eq__(self, other):
-        if isinstance(other, Node):
-            return self.name == other.name
-        return False
-
-    def __hash__(self):
-        return hash(self.name)
 
 
 class SecurityGroup:
@@ -143,7 +142,7 @@ class SecurityGroup:
         self.attached_nodes.remove(n)
 
     def is_attached(self) -> bool:
-        return len(self.attach_nodes) > 0
+        return len(self.attached_nodes) > 0
 
     def get_attached_nodes_string(self):
         attached_nodes_str = ""
@@ -161,7 +160,13 @@ class SecurityGroup:
         return False
 
     def __hash__(self):
-        return hash((self.id, self.name, frozenset(self.remotes)))
+        # Hash should only depend on attributes used in __eq__ to maintain hash/equality contract
+        if hasattr(self, 'id') and hasattr(self, 'name'):
+            return hash((self.id, self.name))
+        else:
+            # Fallback for objects without proper attributes
+            name = getattr(self, 'name', 'unknown')
+            return hash(name)
 
 class Pod:
     def __init__(self, name: str, label_set: LabelSet, node: Node):
@@ -209,7 +214,7 @@ class Rule:
 
     def __str__(self):
         if isinstance(self.target, SecurityGroup):
-            target_str = self.target.name
+            target_str = getattr(self.target, 'name', 'unknown_sg')
         else:
             target_str = str(self.target)
         return f"Rule(id={self.id}, target={target_str}, traffic={self.traffic})"
@@ -222,7 +227,10 @@ class Rule:
         return False
 
     def __hash__(self):
-        return hash((self.id, self.target, self.traffic))
+        # Since __eq__ can match on either id OR (target, traffic), 
+        # we need to use a hash that's consistent with this logic
+        # We'll use (target, traffic) as the primary hash since that's the fallback comparison
+        return hash((self.target, self.traffic))
 
 
 class MapEntry:

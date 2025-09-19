@@ -133,7 +133,7 @@ class WatchDog:
         """
         involved_labelsets = set(pol.get_involved_labelsets())
         return involved_labelsets
-        
+
     # functions to handle added / removed / modified policies.
     def handle_new_policy(self, pol: Policy):
 

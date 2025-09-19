@@ -4,6 +4,9 @@ from keystoneauth1 import session
 from neutronclient.v2_0 import client as neutclient
 from novaclient import client as novaclient
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class OpenStackClient:
@@ -19,7 +22,7 @@ class OpenStackClient:
 
     @staticmethod
     def _initialize():
-        print("Initializing Openstack Client!")
+        logging.info("Initializing Openstack Client!")
 
         # Getting environment variables.
         load_dotenv()

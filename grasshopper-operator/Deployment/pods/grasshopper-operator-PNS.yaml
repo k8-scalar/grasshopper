@@ -10,11 +10,18 @@ spec:
     kubernetes.io/hostname: worker
   containers:
     - name: grasshopper
-      image: grasshopper:v2
+      image: grasshopper:v3
       imagePullPolicy: Never     
-      command: ["python3", "main_operator.py"]
+      command: ["python3", "code/main_operator.py"]
       args: ["--mode", "PNS"]
       envFrom:
         - secretRef:
             name: grasshopper-openstack-creds
+      volumeMounts:
+        - mountPath: "/mnt/nfs_share"  # Path where volume will be mounted in the container.
+          name: nfs-storage
+  volumes:
+  - name: nfs-storage
+    persistentVolumeClaim:
+      claimName: nfs-pvc
   restartPolicy: Never

@@ -4,6 +4,58 @@ See [setup/install_kubeadm/readme.md](setup/install_kubeadm/readme.md)
 
 Make sure your kubernetes cluster is properly setup.
 
+## NFS Setup.
+
+1) Make sure all your nodes have the NFS Client software installed:
+
+   For every node in your cluster, do the following:
+
+      > sudo apt update
+      > sudo apt install -y nfs-common
+
+2) Make sure the node where you want to run your Cluster State Database on, has NFS-server installed:
+
+   For your nfs-server node, do the following:
+
+      > sudo apt install -y nfs-kernel-server
+
+3) Creating and exporting your NFS-share.
+
+   Create the share.
+
+      > sudo mkdir -p /mnt/nfs_share
+      > sudo chmod 777 /mnt/nfs_share
+
+   Add the share to the exports file.
+
+      > sudo nano /etc/exports
+      
+      Add the following line to the file: (Change the subnet with your subnet)
+
+         /mnt/nfs_share 172.23.24.0/25(rw,sync,no_subtree_check,no_root_squash)
+
+   Export and restart the nfs-service.
+
+      > sudo exportfs -rav
+      > sudo systemctl restart nfs-kernel-server
+
+   Check if the share is being exported properly:
+
+      > sudo exportfs -v
+
+4) Create PersistentVolume and PersistentVolumeClaim in cluster. (This allows K8s to mount the share into the GH pod's filesystem)
+
+   In the Deployment/peristentvolumes/nfs-pv.yaml file, change the nfs-server to the IP-address
+   of your NFS-server.
+
+   Then do the following:
+
+      > kubectl apply -f Deployment/persistentvolumes/nfs-pv.yaml
+      > kubectl apply -f Deployment/persistentvolumes/nfs-pvc.yaml
+
+   => Now your cluster should be setup to let the grasshopper-operator, write the cluster-state to 
+      permanent storage.
+
 ## Providing Openstack Credentials to your Grasshopper Pod (through a kubernetes secret).
 
 1) First make sure you have downloaded your Openstack application credentials through the 
@@ -25,11 +77,12 @@ Make sure your kubernetes cluster is properly setup.
 4) Verify that the secret was successfully created:
     kubectl get secret grasshopper-openstack-creds 
 
-5) The environment variables should get be injected by kubernetes into the grasshopper pod
-   upon startup. (make sure the secret is named grasshopper-openstack-creds in the gh-v2.yaml file, otherwise change the name in the "secretRef:" field to your given name. This field is found under the "envFrom:" field under the "containers:" field)
+5) The environment variables should get be injected by kuberenetes into the grasshopper pod
+   upon startup.
 
 # Setup cluster Security Groups.
    See V1 README for setting up appropriate security group configuration.
+
 
 # Building the Grasshopper image.
 
@@ -60,7 +113,8 @@ Make sure your kubernetes cluster is properly setup.
 
    2) Make sure you name the secret regcred, otherwise change the name in the "imagePullSecrets" to your given name.
 
-5)  change the "image:" field in the gh-v2.yaml file to the repository where your GH image is stored
+
+   3) change the "image:" field in the gh-v3.yaml file to the  repository where your GH image is stored
     
 ## Deploying the Grasshopper pod
 

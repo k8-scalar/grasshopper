@@ -1,15 +1,17 @@
 from openstackfiles.openstack_client import OpenStackClient
+import logging
 
+logger = logging.getLogger(__name__)
 
 def create_security_group_if_not_exists(sg_name, description):
     neutron = OpenStackClient().get_neutron()
 
     existing_sgs = neutron.list_security_groups(name=sg_name)
     if existing_sgs["security_groups"]:
-        print(f"Security group '{sg_name}' already exists.")
+        logging.info(f"Security group '{sg_name}' already exists.")
         return existing_sgs["security_groups"][0]
 
-    print(f"Creating security group: {sg_name}")
+    logging.info(f"Creating security group: {sg_name}")
     sg = neutron.create_security_group(
         {"security_group": {"name": sg_name, "description": description}}
     )
@@ -53,7 +55,7 @@ def add_rules_to_security_group(sg_id, rules, remote_sg_id):
                     }
                 }
             )
-            print(
+            logging.info(
                 f"Added {rule['direction']} rule for {rule['protocol']} on ports {rule.get('port_range_min')} - {rule.get('port_range_max')} to security group {sg_id}"
             )
 
@@ -67,10 +69,10 @@ def attach_security_group_to_instance(instance_id, security_group):
 
     # Check if security group is already attached
     if any(sg.name == security_group_name for sg in security_groups):
-        print(
+        logging.info(
             f"Security group {security_group_name} already attached to instance {instance_id}"
         )
         return
 
-    print(f"Attaching security group {security_group_name} to instance {instance_id}")
+    logging.info(f"Attaching security group {security_group_name} to instance {instance_id}")
     server.add_security_group(security_group_name)

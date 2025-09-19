@@ -54,6 +54,9 @@ cleanup() {
     echo "Removing security groups..."
     python3 "/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper-operator/grasshopper-pod/code/openstackfiles/remove_excess_sgs.py"
 
+    echo "Cleaning database ..."
+    python3  "/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper-operator/grasshopper-pod/code/database_helpers.py"
+
     echo "------------------ Cluster cleanup done. --------------------"
 }
 # Trap script termination (e.g., CTRL+C or exit) and call cleanup
@@ -62,7 +65,7 @@ trap cleanup EXIT
 
 # =========================== CONSTANTS ======================================
 NAMESPACE=test-thesis
-GH_POD_YAML="/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper-operator/Deployment/pods/gh-v2.yaml"
+GH_POD_YAML="/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper-operator/Deployment/pods/gh-v3.yaml"
 
 # =========================== ARGUMENTS ======================================
 

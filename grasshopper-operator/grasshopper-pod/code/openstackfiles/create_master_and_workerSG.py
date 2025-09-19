@@ -5,6 +5,9 @@ from openstackfiles.security_group_operations import (
     attach_security_group_to_instance,
     create_security_group_if_not_exists,
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Master node label
 master_node_label = "node-role.kubernetes.io/control-plane"
@@ -269,18 +272,18 @@ def create_master_and_workerSG():
         if instance_id:
             # Check if the node is a control-plane node
             if master_node_label in node.metadata.labels:
-                print(
+                logging.info(
                     f"Attaching {MASTER_SG_NAME} to control-plane node: {node.metadata.name}"
                 )
                 attach_security_group_to_instance(instance_id, master_sg)
             else:
-                print(
+                logging.info(
                     f"Attaching {WORKER_SG_NAME} to worker node: {node.metadata.name}"
                 )
                 attach_security_group_to_instance(instance_id, worker_sg)
         else:
-            print(f"Could not determine instance ID for node: {node.metadata.name}")
+            logging.info(f"Could not determine instance ID for node: {node.metadata.name}")
 
-    print(
+    logging.info(
         "Security groups successfully created, rules added, and attached to Kubernetes nodes."
     )

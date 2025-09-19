@@ -1,12 +1,13 @@
 from kubernetes import watch, client, config
 from watchdog import WatchDog
 from classes import *
-import kopf
+import logging
 
+logger = logging.getLogger(__name__)
 
 class Watcher:
     def __init__(self, PNS_scenario):
-        print("Watcher class for Kopf Operator!")
+        logger.info("Watcher class for Kopf Operator!")
         self.watchdog = WatchDog(PNS_scenario)
 
 
@@ -16,16 +17,17 @@ class Watcher:
 
         if event_type == "MODIFIED" and node_name:
             pod = Watcher.create_pod_from_pod_dict(pod_dict)
-            print(f"Handling new pod (MODIFIED) on node {node_name}: {pod_name}")
+            logger.info(f"Handling new pod (MODIFIED) on node {node_name}: {pod_name}")
             self.watchdog.handle_new_pod(pod)
 
         elif event_type == "DELETED":
             pod = Watcher.create_pod_from_pod_dict(pod_dict)
-            print(f"Handling pod deletion: {pod_name}")
+            logger.info(f"Handling pod deletion: {pod_name}")
             self.watchdog.handle_removed_pod(pod)
 
     def handle_policy_event(self, event_type, policy_dict):
         policy = Watcher.create_policy_from_policy_dict(policy_dict)
+
         if event_type == "ADDED":
             self.watchdog.handle_new_policy(policy)
         elif event_type == "DELETED":

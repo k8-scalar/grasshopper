@@ -6,8 +6,8 @@ ITERATION="1"
 REST_TIME=40
 SLEEP_TIME=10
 GH_OUTPUT_FILE_LOCATION="/mnt/nfs_share/recovery_times/startup_time.txt"
-GH_POD_YAML="/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper-operator/Deployment/pods/gh-v2.yaml"
-GH_RECOVERY_POD_YAML="/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper-operator/Deployment/pods/gh-v2-recovery-times.yaml"
+GH_SETUP_POD_YAML="/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper-operator/Deployment/pods/gh-v3-setup.yaml"
+GH_RECOVERY_POD_YAML="/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper-operator/Deployment/pods/gh-v3-recovery-times.yaml"
 
 GH_SETUP_LOG_FILE="/home/ubuntu/master-thesis-quinten-lauwaert/experiments/recovery-time/logs/setup-logs/cluster-$NUM_PODS-pods-3-apps.log"
 
@@ -44,13 +44,16 @@ cleanup() {
 
     python3 "/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper-operator/grasshopper-pod/code/openstackfiles/remove_excess_sgs.py"
 
+    echo "RECOVERY TEST V3: Clearing Database."
+    python3 "/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper-operator/grasshopper-pod/code/database_helpers.py"
+
     echo "Cleanup completed."
 }
 
 # Set up trap to call cleanup function on script exit or interruption
 trap cleanup EXIT INT TERM
 
-TARGET_DIR="/home/ubuntu/master-thesis-quinten-lauwaert/experiments/recovery-time/results/cluster-$NUM_PODS-3-apps"
+TARGET_DIR="/home/ubuntu/master-thesis-quinten-lauwaert/experiments/recovery-time/results/cluster-$NUM_PODS-pods-3-apps"
 
 # Making sure the results and logs directories exist.
 mkdir -p "$TARGET_DIR"
@@ -66,7 +69,7 @@ kubectl delete pod grasshopper-pod --ignore-not-found
 kubectl delete pod grasshopper-pod-recovery-times --ignore-not-found
 
 echo "2: Starting Grasshopper setup pod..."
-kubectl apply -f $GH_POD_YAML
+kubectl apply -f $GH_SETUP_POD_YAML
 
 echo "3: Waiting for Grasshopper pod to be ready..."
 kubectl wait --for=condition=Ready pod/grasshopper-pod --timeout=600s
@@ -187,6 +190,18 @@ for ((i=1; i<=ITERATIONS; i++)) do
     # Stop log collection for this iteration
     if [ ! -z "$RECOVERY_LOG_PID" ]; then
         kill $RECOVERY_LOG_PID 2>/dev/null || true
+    fi
+
+    # Ensure the results file has content before copying
+    echo "Verifying results file has content..."
+    if [ ! -s "$GH_OUTPUT_FILE_LOCATION" ]; then
+        echo "WARNING: Results file is empty or missing. Waiting a bit longer..."
+        sleep 5
+        if [ ! -s "$GH_OUTPUT_FILE_LOCATION" ]; then
+            echo "ERROR: Results file is still empty after waiting. Skipping copy for iteration $i."
+            echo "File status: $(ls -l $GH_OUTPUT_FILE_LOCATION 2>/dev/null || echo 'File not found')"
+            continue
+        fi
     fi
 
     # Grasshopper has now written test-results to output-file, so copying this file to proper location.

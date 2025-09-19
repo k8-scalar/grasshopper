@@ -2,8 +2,8 @@
 #!/bin/bash
 
 # Configuration
-num_pods_to_burst=("10" "25" "50" "100")
-intervals=("1" "1" "1" "1") 
+num_pods_to_burst=( "25" "50" "100")
+intervals=("1" "1" "1") 
 iterations=5  # Number of iterations to run for each experiment
 
 # Get the absolute path of the script directory and parent directory

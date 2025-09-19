@@ -64,7 +64,7 @@ echo "----------------------- Cluster setup done. ---------------------------"
 
 # 2) Running the cluster simulator.
 echo "----------- Running the Cluster Simulator as a background process ----------"
-python3 simulator/cluster_simulator.py --namespace $NAMESPACE --num-pods $NUM_PODS --iteration $ITERATION 2>&1 &
+python3 simulator/cluster_simulator.py --namespace $NAMESPACE --num-pods $NUM_PODS 2>&1 &
 SIMULATOR_PID=$!  # Store the PID of the measurer process
 echo "Simulator started with PID $SIMULATOR_PID."
 echo "TEST: Burst of X amount of pods created."

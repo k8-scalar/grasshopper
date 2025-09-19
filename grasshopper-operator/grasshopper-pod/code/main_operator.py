@@ -1,6 +1,7 @@
 import kopf
 import argparse
 import os
+import time
 from cluster_state import ClusterState
 from openstackfiles.create_sg_per_node import create_sg_per_node
 from openstackfiles.openstack_client import OpenStackClient
@@ -8,11 +9,7 @@ from kubernetes import config
 from operator_code.watcher_operator import Watcher
 from watchdog import WatchDog
 import logging
-import time
-import pandas as pd
-import csv
 import threading
-
 
 # Specify the namespace you want to manage.
 NAMESPACE = 'test-thesis'
@@ -36,7 +33,6 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__file__)
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices=['PNS', 'PLS'], required=True)
@@ -53,16 +49,16 @@ def startup():
     args = parse_args()
     MODE = args.mode
 
-    print(f"🚀 Starting Kopf operator in mode: {MODE}, watching the {NAMESPACE} namespace.")
-
-    # Initialising OpenStack Client.
-    OpenStackClient()
+    logger.info(f"🚀 Starting Kopf operator in mode: {MODE}, watching the {NAMESPACE} namespace.")
     
     # Initializing cluster configuration.
     initialize_cluster_configuration()
 
+    # Initialising Openstack Client.
+    OpenStackClient()
+
     # Initializing Cluster State.
-    ClusterState().initialize_light(PNS_scenario=(MODE == "PNS"), namespace=NAMESPACE)
+    ClusterState().startup(PNS_scenario=(MODE == "PNS"), namespace=NAMESPACE)
 
     # If mode is PNS, create a sg for every node.
     if MODE == "PNS":
@@ -71,6 +67,7 @@ def startup():
     # Create Watcher.
     watcher = Watcher(PNS_scenario=(MODE == "PNS"))
     watchdog = WatchDog(PNS_scenario=(MODE == "PNS"))
+
 
 @kopf.on.startup()
 def startup_handler(settings: kopf.OperatorSettings, **kwargs):
@@ -81,16 +78,7 @@ def startup_handler(settings: kopf.OperatorSettings, **kwargs):
 
 @kopf.on.resume('v1', 'pods')
 def handle_existing_pod(body, name, namespace, **kwargs):
-    node = body.get("spec", {}).get("nodeName")
-    if node:
-        pod_name = body.get('metadata', {}).get('name')
-        print(f"Handling existing pod {pod_name}, scheduled on node {node}.")
-
-        # Reconstruct pod object and pass to handler
-        pod_object = Watcher.create_pod_from_pod_dict(body)
-        print(f"Handling already existing pod object: {pod_object}")
-        watchdog.handle_new_pod(pod_object)
-
+    pass # ignore existing pods, since they're getting loaded in by the database.
 
 # Handler for when a pod gets scheduled on a node. (handler specifically looks for changes in the spec.nodeName field)
 @kopf.on.field('v1', 'pods', field='spec.nodeName')
@@ -116,6 +104,9 @@ def handle_removed_pod(body, **kwargs):
     watchdog.handle_removed_pod(pod_object)
 
 @kopf.on.resume('networking.k8s.io', 'v1', 'networkpolicies')
+def handle_existing_policy(body, **kwargs):
+    pass # Ignore existing policies, since they're loaded in by the database.
+
 @kopf.on.create('networking.k8s.io', 'v1', 'networkpolicies')
 def handle_new_policy(body, **kwargs):
     policy = Watcher.create_policy_from_policy_dict(body)
@@ -143,9 +134,17 @@ def handle_removed_policy(body, **kwargs):
         except Exception as e:
             raise kopf.TemporaryError(f"There was a problem removing the policy {policy.name} \n {e}", delay=2)
 
+
+
 @kopf.on.cleanup()
-def show_cluster_state(**kwargs):
-    print(ClusterState())
+def cleanup(**kwargs):
+    logger.info("Cleanup handler being called!")
+    logger.info("Currently doing nothing. Leaving database as it is.")
+    # logger.info("================== STATE OF CLUSTER STATE WHEN GRASSHOPPER IS BEING TERMINATED =============")
+    logger.info(ClusterState().load_cluster_state_from_database())
+    logger.info("Now cleaning up database.")
+    ClusterState.clean_database() # Comment this out to simulate a "failure", and it load the cluster state from database.
+
 
 if __name__ == "__main__":
     kopf.run(

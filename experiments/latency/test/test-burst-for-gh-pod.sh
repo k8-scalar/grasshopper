@@ -18,11 +18,12 @@ cleanup() {
     fi
 
     echo "TEST: Deleting Grasshopper pod..."
-    kubectl delete pod grasshopper-pod-timed --ignore-not-found
+    kubectl delete pod grasshopper-pod-latency --ignore-not-found
 
     echo "TEST: Removing network policies and pods created ... "
     ./scripts/reset_cluster_all.sh > /dev/null 
 
+    python3 /home/ubuntu/master-thesis-quinten-lauwaert/grasshopper-operator/grasshopper-pod/code/openstackfiles/remove_excess_sgs.py
 
     echo "------------------ Cleanup done. --------------------"
 }
@@ -32,7 +33,7 @@ trap cleanup EXIT
 # =========================== CONSTANTS ======================================
 NAMESPACE=test-thesis
 GH_OUTPUT_FILE_LOCATION="/mnt/nfs_share/latency_results/latency_results.csv"
-GH_POD_YAML="/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper-operator/Deployment/pods/gh-v2-timed.yaml"
+GH_POD_YAML="/home/ubuntu/master-thesis-quinten-lauwaert/grasshopper-operator/Deployment/pods/gh-v3-latency.yaml"
 # =========================== ARGUMENTS ======================================
 
 # Check if the required arguments are provided
@@ -44,7 +45,7 @@ fi
 # Reading arguments.
 NUM_PODS=$1 # Number of pods to burst.
 ITERATION=$2 # Interval in which the measurer will write measurements.
-REST_TIME=20
+REST_TIME=40
 
 # Create output directory if not exists.
 TARGET_DIR="/home/ubuntu/master-thesis-quinten-lauwaert/experiments/latency/results/event-latency-times/burst-$NUM_PODS"
@@ -63,15 +64,15 @@ echo "----------------------- Starting Grasshopper Pod -------------------------
 
 # 1) Delete any existing Grasshopper pod
 echo "1: Deleting any existing Grasshopper pod..."
-kubectl delete pod grasshopper-pod-timed --ignore-not-found
+kubectl delete pod grasshopper-pod-latency --ignore-not-found
 
-# 3) Start the Grasshopper pod
-echo "3: Starting Grasshopper pod..."
+# 2) Start the Grasshopper pod
+echo "2: Starting Grasshopper pod..."
 kubectl apply -f $GH_POD_YAML
 
-# 4) Wait for the pod to be ready
-echo "4: Waiting for Grasshopper pod to be ready..."
-kubectl wait --for=condition=Ready pod/grasshopper-pod-timed --timeout=600s
+# 3) Wait for the pod to be ready
+echo "3: Waiting for Grasshopper pod to be ready..."
+kubectl wait --for=condition=Ready pod/grasshopper-pod-latency --timeout=600s
 
 if [ $? -eq 0 ]; then
     echo "Grasshopper pod is ready!"
@@ -80,13 +81,13 @@ else
     exit 1
 fi
 
-# 5) Give Grasshopper a moment to initialize
-echo "5: Giving Grasshopper 5 seconds to initialize..."
+# 4) Give Grasshopper a moment to initialize
+echo "4: Giving Grasshopper 5 seconds to initialize..."
 sleep 5
 
-# 6) Start collecting Grasshopper pod logs in background
-echo "6: Starting log collection for Grasshopper pod..."
-kubectl logs -f grasshopper-pod-timed > "$GH_LOG_FILE" 2>&1 &
+# 5) Start collecting Grasshopper pod logs in background
+echo "5: Starting log collection for Grasshopper pod..."
+kubectl logs -f grasshopper-pod-latency > "$GH_LOG_FILE" 2>&1 &
 LOG_PID=$!
 echo "Log collection started with PID $LOG_PID, saving to $GH_LOG_FILE"
 

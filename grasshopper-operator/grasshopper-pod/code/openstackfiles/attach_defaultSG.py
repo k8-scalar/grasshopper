@@ -1,5 +1,8 @@
 from openstackfiles.openstack_client import OpenStackClient
 from kubernetes import client, config
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def attach_defaultSG():
@@ -18,7 +21,7 @@ def attach_defaultSG():
             try:
                 instance.add_security_group("default")
             except Exception as e:
-                print(
+                logging.info(
                     f"Failed to attach security group 'default' to node {node_name}: {e}"
                 )
 
