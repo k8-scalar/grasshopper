@@ -1,0 +1,153 @@
+from kubernetes import client, config
+from labels import *
+import os
+import random 
+import time
+import argparse
+import sys
+import csv
+import pandas as pd
+from datetime import datetime
+
+
+NAMESPACE = 'test-thesis'
+RESULTS_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../results/creation-times/")
+
+
+class ClusterSimulator:
+    """
+    A class to simulate a cluster environment for testing purposes.
+
+    Attributes:
+        - namespace (str): The namespace in which to create the test pod.
+    """
+
+
+    def __init__(self, namespace, num_pods, iteration):
+        self.namespace = namespace
+        self.num_pods = num_pods
+        self.iteration = iteration
+        self.initialize_cluster_config()
+        self.api = client.CoreV1Api()
+        self.initialize_output_file()
+
+
+    def initialize_output_file(self):
+        output_folder_path = os.path.join(RESULTS_FOLDER, f"burst-{self.num_pods}")
+        output_file_path = os.path.join(output_folder_path, f"iteration-{self.iteration}.csv")
+
+        if not os.path.isdir(output_folder_path):
+            os.mkdir(output_folder_path)
+
+        timings_df = pd.DataFrame(columns=['pod_name', 'creation_time'])
+        timings_df.to_csv(output_file_path)
+
+        self.output_path = output_file_path
+        
+    def initialize_cluster_config(self):
+        """ Initializes the cluster configuration. """
+        config.load_kube_config()
+
+    def write_pod_creation_timing(self, pod_name, creation_time):
+        with open(self.output_path, mode='a', newline='') as timings_csv:
+            writer = csv.writer(timings_csv)
+            writer.writerow([pod_name, creation_time])
+
+    def create_pod_with_timing(self, index: int, labelset: dict):
+        pod_name = f"test-pod-{index}"
+        self.create_test_pod(index, labelset)
+        creation_time = time.time()
+
+        self.write_pod_creation_timing(pod_name, creation_time)
+
+    def create_test_pod(self, index: int, labelset: dict): 
+        """ Creates a test-pod in the cluster with a random labelset."""
+
+        pod_name = f"test-pod-{index}"
+
+        pod_manifest = {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {"namespace" : self.namespace, "name": pod_name, "labels": labelset},
+            "spec": {
+                "containers": [{
+                    "name": "busy-container",
+                    "image": "busybox",
+                    "command": ["sleep", "30"]  # Simulating work
+                }]
+            }
+        }
+
+        try:
+            self.api.create_namespaced_pod(namespace=self.namespace, body=pod_manifest)
+            print(f"[+] Created pod: {pod_name}")
+        except Exception as e:
+            print(f"[!] Failed to create pod {pod_name}: {e}")
+
+    
+    def create_pod_burst_with_timings(self, nb_pods):
+        """ 
+        Function to create a burst of pods. It cycles through all possible combinations of labelsets,
+        resulting in pods where the labelsets are uniformly distributed.
+
+        Args:
+            nb_pods (int): The number of pods to create.
+        
+        """
+
+        created_pods_index = 0
+
+        print(f"Creating a burst of {nb_pods} pods.")
+        
+        # Cycle through all possible combinations of labels.
+        while created_pods_index < (nb_pods - 1):
+            for app_label_value in app_label_values:
+                for role_label_value in role_label_values:
+
+                    # Break when amount of created pods has reached it's limit.
+                    if created_pods_index >= nb_pods:
+                        break
+                        
+                    # Create the labelset (which is a dictionary for the python framework)
+                    label_dict = {'app': app_label_value, 'role': role_label_value}
+
+                    # Create the test-pod with the generated labelset.
+                    self.create_pod_with_timing(created_pods_index, label_dict)
+
+                    # Increment pod index.
+                    created_pods_index += 1
+
+        print(f"Pod burst done. Created {created_pods_index} pods.")
+
+
+    def remove_test_pod(self, pod_name): 
+        """ Removes a pod by name."""
+        try:
+            self.api.delete_namespaced_pod(name=pod_name, namespace=self.namespace)
+            print(f"[-] Deleted pod: {pod_name}")
+        except Exception as e:
+            print(f"[!] Failed to delete pod {pod_name}: {e}")
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Simulate a burst of pod creation in a Kubernetes cluster.")
+    parser.add_argument("--namespace", type=str, required=True, help="Namespace you want to create the pods in.")
+    parser.add_argument("--num-pods", type=int, required=True, help="Number of pods to create in the burst.")
+    parser.add_argument("--iteration", type=int, required=True, help="Iteration of the experiment")
+
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    # Reading arguments.
+    args = parse_args()
+    namespace = args.namespace
+    num_pods = args.num_pods
+    iteration = args.iteration
+
+    # Creating clusterSimulator and creating burst.
+    clusterSimulator = ClusterSimulator(namespace, num_pods, iteration)
+    clusterSimulator.create_pod_burst_with_timings(num_pods)
+
+    # Exiting the script after finishing the burst.
+    sys.exit(0)
+

