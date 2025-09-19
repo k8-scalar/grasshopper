@@ -124,32 +124,3 @@ These files appear to be new entry points for running the application, including
 ## 5. Final Conclusion
 
 The recommended approach is a **manual, careful merge** led by the superior architecture of Quinten's version. The process should involve adopting the refactored files while diligently re-integrating critical logic and error handling from the original version to create a final codebase that is both robust and well-designed.
-
----
-
-## 6. Commit-to-File Mapping Analysis (Updated)
-
-This section maps the key file differences identified in the report to the git commits that likely introduced them. This analysis connects the "what" (the code change) with the "why" and "when" (the commit history).
-
-### 1. `classes.py` (More Precise Hashing and Equality)
-
-*   **Change:** Quinten's version uses more advanced `__eq__` and `__hash__` methods that incorporate object IDs and other attributes for more precise comparisons.
-*   **Source:** This is a key feature of **Quinten's version**.
-*   **Correction:** My previous analysis incorrectly attributed this change to commit `60f87ef` in the `ghv4-robbe` branch. In fact, that commit *removes* this advanced logic from `ghv4-robbe`, reverting it to a simpler form. This confirms that the more precise data model is a unique feature of Quinten's refactoring.
-
-### 2. `security_group_module.py` (Error Handling & Connection Logic)
-
-*   **Change:** The original code had robust error handling (`try...except`) and a check to prevent a node from connecting to itself (`if n == m`). Quinten's version was missing these.
-*   **Source Commits:** These robustness features were explicitly added or preserved in the **`ghv4-robbe`** branch by two key commits:
-    *   `574da3a Refactor security group rule creation to include error handling...`
-    *   `ecfcfc6 Prevent adding a connection from a node to itself in PNS mode`
-*   **Conclusion:** This mapping confirms why a hybrid merge is necessary for this file—to re-introduce the critical safety and error-handling features from `ghv4-robbe` that were lost during Quinten's refactoring.
-
-### 3. `watcher.py` (Diverging Architectures)
-
-*   **Change:** The `watcher.py` file evolved in two different directions after forking from `ghv4`.
-*   **`ghv4-robbe`'s Path (Increased Complexity for Robustness):** This branch made the watcher more scalable by adding threaded, asynchronous event processing.
-    *   `43c8565 Implement threaded processing of pod events to improve event handling efficiency`
-*   **Quinten's `v1` Path (Increased Simplicity):** This branch refactored the watcher to be much simpler (synchronous), likely to improve maintainability and focus on experimental goals.
-    *   `3a1f536 Cleaned files again, main and watcher clean...`
-*   **Conclusion:** This historical divergence justifies the report's recommendation to adopt Quinten's simpler architecture for maintainability, while being aware of the performance trade-off.
