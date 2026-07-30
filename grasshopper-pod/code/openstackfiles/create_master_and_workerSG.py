@@ -1,7 +1,9 @@
 from kubernetes import client, config
+from classes import node_project_from_labels, node_internal_ip_from_addresses
 from openstackfiles.openstack_client import OpenStackClient
 from openstackfiles.security_group_operations import (
     add_rules_to_security_group,
+    add_cidr_rules_to_security_group,
     attach_security_group_to_instance,
     create_security_group_if_not_exists,
 )
@@ -244,42 +246,76 @@ def get_instance_id_from_k8s_node(k8s_node):
 
 
 def create_master_and_workerSG():
+    """
+    Creates masterSG/workerSG and wires up the control-plane <-> worker
+    connectivity every k8s cluster needs (API server, kubelet, etcd, BGP, DNS).
+
+    Nodes can belong to different OpenStack projects (multi-domain). Neutron
+    does not allow attaching a security group to an instance in a different
+    project, nor referencing a remote_group_id across projects - so:
+      - masterSG/workerSG are created and attached PER PROJECT (only in
+        projects that actually have a matching node).
+      - Same-project master<->worker rules keep using remote_group_id,
+        unchanged from the single-project case.
+      - Cross-project master<->worker rules use CIDR of each individual peer
+        node's real IP instead (control-plane services listen on the node's
+        own network stack, not a Calico pod overlay, so no VXLAN/encapsulation
+        concern applies here - this is a plain node-to-node CIDR rule).
+    """
     # Kubernetes client configuration
     config.load_kube_config()
     v1 = client.CoreV1Api()
+    node_list = v1.list_node().items
 
-    # Create or get security groups
-    master_sg = create_security_group_if_not_exists(
-        MASTER_SG_NAME, "Master security group"
-    )
-    worker_sg = create_security_group_if_not_exists(
-        WORKER_SG_NAME, "Worker security group"
-    )
-
-    # Add rules to security groups
-    add_rules_to_security_group(master_sg["id"], MASTER_SG_RULES, worker_sg["id"])
-    add_rules_to_security_group(worker_sg["id"], WORKER_SG_RULES, master_sg["id"])
-
-    # Retrieve the Kubernetes node list
-    node_list = v1.list_node()
-
-    # Loop over all Kubernetes nodes
-    for node in node_list.items:
+    # Group nodes by (project, role).
+    masters_by_project = {}
+    workers_by_project = {}
+    for node in node_list:
         instance_id = get_instance_id_from_k8s_node(node)
-        if instance_id:
-            # Check if the node is a control-plane node
-            if master_node_label in node.metadata.labels:
-                print(
-                    f"Attaching {MASTER_SG_NAME} to control-plane node: {node.metadata.name}"
-                )
-                attach_security_group_to_instance(instance_id, master_sg)
-            else:
-                print(
-                    f"Attaching {WORKER_SG_NAME} to worker node: {node.metadata.name}"
-                )
-                attach_security_group_to_instance(instance_id, worker_sg)
-        else:
+        if not instance_id:
             print(f"Could not determine instance ID for node: {node.metadata.name}")
+            continue
+        project = node_project_from_labels(node.metadata.labels)
+        ip = node_internal_ip_from_addresses(node.status.addresses)
+        entry = (instance_id, ip)
+        if master_node_label in (node.metadata.labels or {}):
+            masters_by_project.setdefault(project, []).append(entry)
+        else:
+            workers_by_project.setdefault(project, []).append(entry)
+
+    # Create masterSG/workerSG in every project that actually has a matching
+    # node, and attach each node to its OWN project's SG.
+    master_sgs = {}
+    worker_sgs = {}
+    for project, masters in masters_by_project.items():
+        master_sgs[project] = create_security_group_if_not_exists(
+            MASTER_SG_NAME, "Master security group", project_key=project
+        )
+        for instance_id, _ in masters:
+            print(f"Attaching {MASTER_SG_NAME} to control-plane node: {instance_id} (project {project})")
+            attach_security_group_to_instance(instance_id, master_sgs[project], project_key=project)
+
+    for project, workers in workers_by_project.items():
+        worker_sgs[project] = create_security_group_if_not_exists(
+            WORKER_SG_NAME, "Worker security group", project_key=project
+        )
+        for instance_id, _ in workers:
+            print(f"Attaching {WORKER_SG_NAME} to worker node: {instance_id} (project {project})")
+            attach_security_group_to_instance(instance_id, worker_sgs[project], project_key=project)
+
+    # Wire up every master-project x worker-project pair that needs rules.
+    for master_project, masters in masters_by_project.items():
+        master_sg = master_sgs[master_project]
+        for worker_project, workers in workers_by_project.items():
+            worker_sg = worker_sgs[worker_project]
+            if master_project == worker_project:
+                add_rules_to_security_group(master_sg["id"], MASTER_SG_RULES, worker_sg["id"], project_key=master_project)
+                add_rules_to_security_group(worker_sg["id"], WORKER_SG_RULES, master_sg["id"], project_key=worker_project)
+            else:
+                master_ips = [f"{ip}/32" for _, ip in masters if ip]
+                worker_ips = [f"{ip}/32" for _, ip in workers if ip]
+                add_cidr_rules_to_security_group(master_sg["id"], MASTER_SG_RULES, worker_ips, project_key=master_project)
+                add_cidr_rules_to_security_group(worker_sg["id"], WORKER_SG_RULES, master_ips, project_key=worker_project)
 
     print(
         "Security groups successfully created, rules added, and attached to Kubernetes nodes."
