@@ -1,0 +1,34 @@
+
+Locking mechanism works, but now there are redundant locks. What I need is a way to check if the current thread
+holds the necessary lock for the operation, without increasing the lock count.
+
+    --> Solution: Create a _lock_is_held_by_thread() function, in the LockManager class.
+
+
+
+Progress: 
+
+    * Locking mechanism works for addition of pods and policies
+
+Todo: 
+
+    * Look at removal of policies and pods
+
+
+    --> Maybe: also lock matching labelsets..
+
+
+
+Problem: 
+
+    * Still concurrency issues on removal of policies --> Lots of quick requests
+
+Diagnosis:
+
+    * I think i've narrowed the problem down to the fact that the program makes a lot of very rapid sequential requests,
+      and maybe the requests arrive at a different order on the openstack server, and it carries out the requests in the wrong 
+      order.
+
+Possible solution:
+
+    * Implement clean OpenStackAPI class, in order to moderate request rate. 

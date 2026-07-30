@@ -1,0 +1,1191 @@
+2025-07-28 16:14:50,678 [INFO] /app/main_operator_recovery_time.py - 🚀 Operator startup timer started at 2025-07-28 16:14:50
+2025-07-28 16:14:50,679 [INFO] /app/main_operator_recovery_time.py - Starting Operator with 20 workers.
+2025-07-28 16:14:50,791 [INFO] kopf.activities.startup - Activity 'startup_handler' succeeded.
+2025-07-28 16:14:50,794 [INFO] kopf._core.engines.activities - Initial authentication has been initiated.
+2025-07-28 16:14:50,798 [INFO] kopf.activities.authentication - Activity 'login_via_client' succeeded.
+2025-07-28 16:14:50,798 [INFO] kopf._core.engines.activities - Initial authentication has finished.
+2025-07-28 16:14:50,838 [WARNING] kopf._core.reactor.observation - Not enough permissions to list namespaces. Falling back to a list of namespaces which are assumed to exist: {'test-thesis'}
+2025-07-28 16:14:50,841 [WARNING] kopf._core.reactor.observation - Not enough permissions to watch for namespaces: changes (deletion/creation) will not be noticed; the namespaces are only refreshed on operator restarts.
+2025-07-28 16:14:50,963 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:50
+2025-07-28 16:14:50,964 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:50
+2025-07-28 16:14:50,973 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:50
+2025-07-28 16:14:50,974 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:50
+2025-07-28 16:14:50,974 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:50
+2025-07-28 16:14:50,985 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:50
+2025-07-28 16:14:50,986 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:50
+2025-07-28 16:14:50,987 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:50
+2025-07-28 16:14:50,999 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:50
+🚀 Starting Kopf operator in mode: PLS, watching the test-thesis namespace.
+Initializing Openstack Client!
+================================= FRESH (Light) INITIALISATION DONE =====================================
+Watcher class for Kopf Operator!
+[124007326992064] Handling new policy app-a-allow-backend-database, locking app:app-arole:database, app:app-arole:backend,  ...
+PLS: Configuring new spol Policy(name=app-a-allow-backend-database, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-a-allow-backend-database, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-a-allow-backend-database to ClusterState
+[124007326992064] Handled new policy app-a-allow-backend-database, Released app:app-arole:database, app:app-arole:backend,  ...
+⏰ Resume handler executed, updating startup timer
+[124007326992064] Handling new policy app-a-allow-backend-frontend, locking app:app-arole:backend, app:app-arole:frontend,  ...
+PLS: Configuring new spol Policy(name=app-a-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-a-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-a-allow-backend-frontend to ClusterState
+[124007326992064] Handled new policy app-a-allow-backend-frontend, Released app:app-arole:backend, app:app-arole:frontend,  ...
+⏰ Resume handler executed, updating startup timer
+[124007326992064] Handling new policy app-a-allow-database-backend, locking app:app-arole:database, app:app-arole:backend,  ...
+PLS: Configuring new spol Policy(name=app-a-allow-database-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-a-allow-database-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-a-allow-database-backend to ClusterState
+[124007326992064] Handled new policy app-a-allow-database-backend, Released app:app-arole:database, app:app-arole:backend,  ...
+⏰ Resume handler executed, updating startup timer
+[124007326992064] Handling new policy app-a-allow-frontend-backend, locking app:app-arole:backend, app:app-arole:frontend,  ...
+PLS: Configuring new spol Policy(name=app-a-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-a-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-a-allow-frontend-backend to ClusterState
+[124007326992064] Handled new policy app-a-allow-frontend-backend, Released app:app-arole:backend, app:app-arole:frontend,  ...
+⏰ Resume handler executed, updating startup timer
+[124007326992064] Handling new policy app-a-deny-all, locking app:app-a,  ...
+Successfully added policy app-a-deny-all to ClusterState
+[124007326992064] Handled new policy app-a-deny-all, Released app:app-a,  ...
+⏰ Resume handler executed, updating startup timer
+[124007326992064] Handling new policy app-b-allow-backend-database, locking app:app-brole:backend, app:app-brole:database,  ...
+PLS: Configuring new spol Policy(name=app-b-allow-backend-database, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-b-allow-backend-database, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-b-allow-backend-database to ClusterState
+[124007326992064] Handled new policy app-b-allow-backend-database, Released app:app-brole:backend, app:app-brole:database,  ...
+⏰ Resume handler executed, updating startup timer
+[124007326992064] Handling new policy app-b-allow-backend-frontend, locking app:app-brole:backend, app:app-brole:frontend,  ...
+PLS: Configuring new spol Policy(name=app-b-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-b-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-b-allow-backend-frontend to ClusterState
+[124007326992064] Handled new policy app-b-allow-backend-frontend, Released app:app-brole:backend, app:app-brole:frontend,  ...
+⏰ Resume handler executed, updating startup timer
+[124007227578048] Handling new policy app-b-allow-database-backend, locking app:app-brole:backend, app:app-brole:database,  ...
+PLS: Configuring new spol Policy(name=app-b-allow-database-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-b-allow-database-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-b-allow-database-backend to ClusterState
+[124007227578048] Handled new policy app-b-allow-database-backend, Released app:app-brole:backend, app:app-brole:database,  ...
+[124007235970752] Handling new policy app-b-allow-frontend-backend, locking app:app-brole:backend, app:app-brole:frontend,  ...
+PLS: Configuring new spol Policy(name=app-b-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-b-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-b-allow-frontend-backend to ClusterState
+[124007235970752] Handled new policy app-b-allow-frontend-backend, Released app:app-brole:backend, app:app-brole:frontend,  ...
+[124007219185344] Handling new policy app-b-deny-all, locking app:app-b,  ...
+Successfully added policy app-b-deny-all to ClusterState
+[124007219185344] Handled new policy app-b-deny-all, Released app:app-b,  ...
+⏰ Resume handler executed, updating startup timer
+⏰ Resume handler executed, updating startup timer
+[124007235970752] Handling new policy app-c-allow-backend-database, locking app:app-crole:backend, app:app-crole:database,  ...
+PLS: Configuring new spol Policy(name=app-c-allow-backend-database, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+2025-07-28 16:14:51,002 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:51
+(LabelSet(labels={'app': 'app-c', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+2025-07-28 16:14:51,007 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:51
+2025-07-28 16:14:51,066 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:51
+2025-07-28 16:14:51,069 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:51
+2025-07-28 16:14:51,073 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:51
+2025-07-28 16:14:51,077 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:51
+2025-07-28 16:14:51,079 [INFO] kopf.objects - Handler 'handle_existing_policy' succeeded.
+2025-07-28 16:14:51,079 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:51,079 [INFO] kopf.objects - Handler 'handle_existing_policy' succeeded.
+2025-07-28 16:14:51,080 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:51,080 [INFO] kopf.objects - Handler 'handle_existing_policy' succeeded.
+2025-07-28 16:14:51,080 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:51,081 [INFO] kopf.objects - Handler 'handle_existing_policy' succeeded.
+2025-07-28 16:14:51,081 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:51,081 [INFO] kopf.objects - Handler 'handle_existing_policy' succeeded.
+2025-07-28 16:14:51,081 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:51,082 [INFO] kopf.objects - Handler 'handle_existing_policy' succeeded.
+2025-07-28 16:14:51,082 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:51,082 [INFO] kopf.objects - Handler 'handle_existing_policy' succeeded.
+2025-07-28 16:14:51,082 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:51,083 [INFO] kopf.objects - Handler 'handle_existing_policy' succeeded.
+2025-07-28 16:14:51,083 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:51,083 [INFO] kopf.objects - Handler 'handle_existing_policy' succeeded.
+2025-07-28 16:14:51,084 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:51,084 [INFO] kopf.objects - Handler 'handle_existing_policy' succeeded.
+2025-07-28 16:14:51,084 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+PLS: Configuring new spol Policy(name=app-c-allow-backend-database, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-c-allow-backend-database to ClusterState
+[124007235970752] Handled new policy app-c-allow-backend-database, Released app:app-crole:backend, app:app-crole:database,  ...
+[124007227578048] Handling new policy app-c-allow-frontend-backend, locking app:app-crole:backend, app:app-crole:frontend,  ...
+[124007326992064] Handling new policy app-c-deny-all, locking app:app-c,  ...
+Successfully added policy app-c-deny-all to ClusterState
+[124007326992064] Handled new policy app-c-deny-all, Released app:app-c,  ...
+Handling existing pod test-pod-0, scheduled on node worker.
+Handling already existing pod object: Pod(name=test-pod-0, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker)
+[124007202399936] Handling pod test-pod-0, locking app:app-arole:backend, app:app-arole:frontend,  ...
+New pod: test-pod-0, on node: worker
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-a-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-a-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+PLS: Configuring new spol Policy(name=app-c-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-c-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-c-allow-backend-frontend to ClusterState
+[124007219185344] Handled new policy app-c-allow-backend-frontend, Released app:app-crole:backend, app:app-crole:frontend,  ...
+PLS: Configuring new spol Policy(name=app-c-allow-database-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-c-allow-database-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-c-allow-database-backend to ClusterState
+[124007210792640] Handled new policy app-c-allow-database-backend, Released app:app-crole:database, app:app-crole:backend,  ...
+⏰ Resume handler executed, updating startup timer
+PLS: Configuring new spol Policy(name=app-c-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-c-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Successfully added policy app-c-allow-frontend-backend to ClusterState
+[124007227578048] Handled new policy app-c-allow-frontend-backend, Released app:app-crole:backend, app:app-crole:frontend,  ...
+⏰ Resume handler executed, updating startup timer
+⏰ Resume handler executed, updating startup timer
+Handling existing pod test-pod-1, scheduled on node worker-1.
+Handling already existing pod object: Pod(name=test-pod-1, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker-1)
+[124007219185344] Handling pod test-pod-1, locking app:app-arole:database, app:app-arole:backend, app:app-arole:frontend,  ...
+Handling existing pod test-pod-10, scheduled on node worker.
+Handling already existing pod object: Pod(name=test-pod-10, label_set=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), node=Node(name=worker)
+[124007194007232] Handling pod test-pod-10, locking app:app-arole:database, app:app-arole:backend, app:app-arole:frontend,  ...
+Handling existing pod test-pod-11, scheduled on node worker-1.
+Handling already existing pod object: Pod(name=test-pod-11, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+[124007235970752] Handling pod test-pod-11, locking app:app-arole:database, app:app-arole:backend,  ...
+⏰ Resume handler executed, updating startup timer
+Handling existing pod test-pod-12, scheduled on node worker.
+Handling already existing pod object: Pod(name=test-pod-12, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker)
+[124007326992064] Handling pod test-pod-12, locking app:app-brole:backend, app:app-brole:frontend,  ...
+New pod: test-pod-12, on node: worker
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-b-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+Handling existing pod test-pod-13, scheduled on node worker-1.
+Handling already existing pod object: Pod(name=test-pod-13, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+[124006711686848] Handling pod test-pod-13, locking app:app-brole:backend, app:app-brole:frontend, app:app-brole:database,  ...
+⏰ Resume handler executed, updating startup timer
+Handling existing pod test-pod-14, scheduled on node worker.
+Handling already existing pod object: Pod(name=test-pod-14, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker)
+[124006703294144] Handling pod test-pod-14, locking app:app-brole:backend, app:app-brole:database,  ...
+Handling existing pod test-pod-15, scheduled on node worker-1.
+Handling already existing pod object: Pod(name=test-pod-15, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+[124007210792640] Handling pod test-pod-15, locking app:app-crole:backend, app:app-crole:frontend,  ...
+New pod: test-pod-15, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-c-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+Handling existing pod test-pod-16, scheduled on node worker.
+Handling already existing pod object: Pod(name=test-pod-16, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker)
+[124007227578048] Handling pod test-pod-16, locking app:app-crole:backend, app:app-crole:database, app:app-crole:frontend,  ...
+Handling existing pod test-pod-17, scheduled on node worker.
+Handling already existing pod object: Pod(name=test-pod-17, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker)
+[124006694901440] Handling pod test-pod-17, locking app:app-crole:database, app:app-crole:backend,  ...
+2025-07-28 16:14:51,118 [INFO] kopf.objects - Handler 'handle_existing_policy' succeeded.
+2025-07-28 16:14:51,119 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:51,121 [INFO] kopf.objects - Handler 'handle_existing_policy' succeeded.
+2025-07-28 16:14:51,122 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:51,124 [INFO] kopf.objects - Handler 'handle_existing_policy' succeeded.
+2025-07-28 16:14:51,125 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:51,126 [INFO] kopf.objects - Handler 'handle_existing_policy' succeeded.
+2025-07-28 16:14:51,126 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:51,128 [INFO] kopf.objects - Handler 'handle_existing_policy' succeeded.
+2025-07-28 16:14:51,128 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+                                                                                                                                                                                                                                                                                                                    Handling existing pod test-pod-18, scheduled on node worker-1.
+Handling already existing pod object: Pod(name=test-pod-18, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+[124006686508736] Handling pod test-pod-18, locking app:app-arole:backend, app:app-arole:frontend,  ...
+Handling existing pod test-pod-2, scheduled on node worker.
+Handling already existing pod object: Pod(name=test-pod-2, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker)
+[124006669723328] Handling pod test-pod-2, locking app:app-arole:database, app:app-arole:backend,  ...
+Handling existing pod test-pod-20, scheduled on node worker-1.
+Handling already existing pod object: Pod(name=test-pod-20, label_set=LabelSet(labels={'app': 'app-a', 'role': 'database'}), node=Node(name=worker-1)
+[124006661330624] Handling pod test-pod-20, locking app:app-arole:database, app:app-arole:backend,  ...
+Handling existing pod test-pod-21, scheduled on node worker-1.
+Handling already existing pod object: Pod(name=test-pod-21, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker-1)
+[124006174815936] Handling pod test-pod-21, locking app:app-brole:backend, app:app-brole:frontend,  ...
+Handling existing pod test-pod-22, scheduled on node worker.
+Handling already existing pod object: Pod(name=test-pod-22, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker)
+[124006166423232] Handling pod test-pod-22, locking app:app-brole:backend, app:app-brole:frontend, app:app-brole:database,  ...
+Handling existing pod test-pod-23, scheduled on node worker-1.
+Handling already existing pod object: Pod(name=test-pod-23, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker-1)
+[124006158030528] Handling pod test-pod-23, locking app:app-brole:backend, app:app-brole:database,  ...
+Handling existing pod test-pod-24, scheduled on node worker.
+Handling already existing pod object: Pod(name=test-pod-24, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker)
+[124006149637824] Handling pod test-pod-24, locking app:app-crole:backend, app:app-crole:frontend,  ...
+Handling existing pod test-pod-3, scheduled on node worker.
+Handling already existing pod object: Pod(name=test-pod-3, label_set=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), node=Node(name=worker)
+[124006141245120] Handling pod test-pod-3, locking app:app-brole:backend, app:app-brole:frontend,  ...
+Handling existing pod test-pod-4, scheduled on node worker-1.
+Handling already existing pod object: Pod(name=test-pod-4, label_set=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), node=Node(name=worker-1)
+[124006132852416] Handling pod test-pod-4, locking app:app-brole:backend, app:app-brole:frontend, app:app-brole:database,  ...
+Security group 'SG-app:app-crole:frontend' already exists.
+Security group 'SG-app:app-arole:frontend' already exists.
+Security group 'SG-app:app-brole:frontend' already exists.
+SG-app:app-crole:frontend already attached to worker-1
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Security group 'SG-app:app-crole:backend' already exists.
+SGMod: Adding rule to SG-app:app-crole:frontend, remote SG-app:app-crole:backend, port 80, type egress
+SG-app:app-arole:frontend already attached to worker
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Cannot add rule to remotes: Security group rule already exists. Rule id is 27db8fd5-9752-4720-98cd-57f396b59195.
+Neutron server returns request_ids: ['req-79e4e79e-e59f-4401-9e0a-dfa39d11579a']
+PLS: Configuring new spol Policy(name=app-c-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-c-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-c-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-crole:frontend, remote SG-app:app-crole:backend, port 80, type ingress
+Security group 'SG-app:app-arole:backend' already exists.
+SGMod: Adding rule to SG-app:app-arole:frontend, remote SG-app:app-arole:backend, port 80, type ingress
+SG-app:app-brole:frontend already attached to worker
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Cannot add rule to remotes: Security group rule already exists. Rule id is c6816d5a-e8ab-45f1-aaf3-1b7217b9f969.
+Neutron server returns request_ids: ['req-9f27afb9-9102-4697-815a-f65708a5ef36']
+Cannot add rule to remotes: Security group rule already exists. Rule id is 82ec29ee-209c-4d21-9bbb-ce0ad8ade275.
+Neutron server returns request_ids: ['req-6d5ae261-d43b-4174-a10f-b21017c1f627']
+PLS: Configuring new spol Policy(name=app-a-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-a-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-arole:frontend, remote SG-app:app-arole:backend, port 80, type egress
+Security group 'SG-app:app-brole:backend' already exists.
+SGMod: Adding rule to SG-app:app-brole:frontend, remote SG-app:app-brole:backend, port 80, type egress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 5dfa393c-b1e6-44d5-a408-8b14b72bf9a0.
+Neutron server returns request_ids: ['req-7e0b7084-32dc-45cd-b48a-5a0bc56c4360']
+Cannot add rule to remotes: Security group rule already exists. Rule id is 49443c8a-f17a-4c3e-97cd-45621187cade.
+Neutron server returns request_ids: ['req-18f66441-59c1-4c7e-9ecb-6ecdbd52ac18']
+PLS: Configuring new spol Policy(name=app-b-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-b-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:frontend, remote SG-app:app-brole:backend, port 80, type ingress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 92dad7c9-eed3-4e67-91ae-9b1de9e7ba23.
+Neutron server returns request_ids: ['req-cf030891-81f7-4a1d-a1df-288947579201']
+2025-07-28 16:14:53,025 [ERROR] kopf.objects - Handler 'handle_existing_pod' failed with an exception. Will retry.
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/kopf/_core/actions/execution.py", line 276, in execute_handler_once
+    result = await invoke_handler(
+  File "/usr/local/lib/python3.10/dist-packages/kopf/_core/actions/execution.py", line 371, in invoke_handler
+    result = await invocation.invoke(
+  File "/usr/local/lib/python3.10/dist-packages/kopf/_core/actions/invocation.py", line 139, in invoke
+    await asyncio.shield(future)  # slightly expensive: creates tasks
+  File "/usr/lib/python3.10/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/app/main_operator_recovery_time.py", line 155, in handle_existing_pod
+    watchdog.handle_new_pod(pod_object)
+  File "/app/watchdog.py", line 297, in handle_new_pod
+    for label_set in filter(
+RuntimeError: dictionary changed size during iteration
+2025-07-28 16:14:53,054 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:53
+2025-07-28 16:14:53,059 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:53,060 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:53,065 [WARNING] kopf.objects - Patching failed with inconsistencies: (('remove', ('status', 'kopf'), {'progress': {'handle_existing_pod': {'started': '2025-07-28T16:14:51.015368+00:00', 'stopped': None, 'delayed': '2025-07-28T16:15:53.027158+00:00', 'purpose': 'resume', 'retries': 1, 'success': False, 'failure': False, 'message': 'dictionary changed size during iteration', 'subrefs': None}}}, None),)
+2025-07-28 16:14:53,203 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:53
+2025-07-28 16:14:53,209 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:53,211 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+                                                                                                                                                                                                                                                                                                                                                PLS: Configuring new spol Policy(name=app-b-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+SG-app:app-arole:frontend already attached to worker
+Handling existing pod test-pod-5, scheduled on node worker.
+Handling already existing pod object: Pod(name=test-pod-5, label_set=LabelSet(labels={'app': 'app-b', 'role': 'database'}), node=Node(name=worker)
+[124007202399936] Handling pod test-pod-5, locking app:app-brole:backend, app:app-brole:database,  ...
+New pod: test-pod-1, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-a-allow-backend-database, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+SG-app:app-crole:frontend already attached to worker-1
+[124007210792640] Pod test-pod-15 handled. Released locks for: app:app-crole:backend, app:app-crole:frontend, 
+⏰ Resume handler executed, updating startup timer
+Handling existing pod test-pod-6, scheduled on node worker-1.
+Handling already existing pod object: Pod(name=test-pod-6, label_set=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), node=Node(name=worker-1)
+[124007210792640] Handling pod test-pod-6, locking app:app-crole:backend, app:app-crole:frontend,  ...
+New pod: test-pod-16, on node: worker
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-c-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:frontend, port 80, type egress
+Security group 'SG-app:app-arole:database' already exists.
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:database, port 80, type egress
+Cannot add rule to remotes: Security group rule already exists. Rule id is a23d8ed9-9f77-4d8c-8eab-fae428f7411d.
+Neutron server returns request_ids: ['req-29dc0ef0-6714-4e93-9fce-83e34b867965']
+PLS: Configuring new spol Policy(name=app-a-allow-backend-database, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:database, port 80, type ingress
+Cannot add rule to remotes: Security group rule already exists. Rule id is ef16295b-fbfd-40ed-9372-6d2f76d76b9a.
+Neutron server returns request_ids: ['req-7e164251-448c-4b86-b193-7cefced26c4e']
+PLS: Configuring new spol Policy(name=app-c-allow-database-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-c-allow-database-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-c-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-crole:frontend, remote SG-app:app-crole:backend, port 80, type ingress
+SG-app:app-brole:frontend already attached to worker
+[124007326992064] Pod test-pod-12 handled. Released locks for: app:app-brole:backend, app:app-brole:frontend, 
+⏰ Resume handler executed, updating startup timer
+Handling existing pod test-pod-7, scheduled on node worker-1.
+Handling already existing pod object: Pod(name=test-pod-7, label_set=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), node=Node(name=worker-1)
+[124007326992064] Handling pod test-pod-7, locking app:app-crole:backend, app:app-crole:database, app:app-crole:frontend,  ...
+New pod: test-pod-13, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-b-allow-database-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-b-allow-backend-database, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+Security group 'SG-app:app-brole:database' already exists.
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:database, port 80, type ingress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 7f635d6b-1fce-4c56-981c-0d21018187bd.
+Neutron server returns request_ids: ['req-5b77621b-a8e3-447c-9f32-ff31650e4999']
+PLS: Configuring new spol Policy(name=app-a-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:frontend, port 80, type egress
+Cannot add rule to remotes: Security group rule already exists. Rule id is c6816d5a-e8ab-45f1-aaf3-1b7217b9f969.
+Neutron server returns request_ids: ['req-b5c9ef4b-a673-455d-8ee3-0280581e4a8c']
+PLS: Configuring new spol Policy(name=app-c-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-crole:frontend, remote SG-app:app-crole:backend, port 80, type egress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 1d8ed2c3-1ae4-4539-9bd2-769bcecd2872.
+Neutron server returns request_ids: ['req-b2784ecd-eef1-4ec1-8d82-b5c715719a6c']
+PLS: Configuring new spol Policy(name=app-b-allow-database-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-b-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:frontend, remote SG-app:app-brole:backend, port 80, type ingress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 03de3067-3093-417c-aeef-aaffc5da13da.
+Neutron server returns request_ids: ['req-719fbe26-aa7c-4498-9cd4-4c26ee22e110']
+PLS: Configuring new spol Policy(name=app-a-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-arole:frontend, remote SG-app:app-arole:backend, port 80, type egress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 27db8fd5-9752-4720-98cd-57f396b59195.
+Neutron server returns request_ids: ['req-a52b736f-75cd-44e4-9aae-9d3cce6a67e0']
+PLS: Configuring new spol Policy(name=app-c-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:frontend, port 80, type ingress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 92dad7c9-eed3-4e67-91ae-9b1de9e7ba23.
+Neutron server returns request_ids: ['req-0eaf0fa3-e047-4dee-942a-426ddbcab4b0']
+PLS: Configuring new spol Policy(name=app-b-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:frontend, remote SG-app:app-brole:backend, port 80, type egress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 5dfa393c-b1e6-44d5-a408-8b14b72bf9a0.
+Neutron server returns request_ids: ['req-630bc76f-0129-4aec-ab32-9daecb29def5']
+PLS: Configuring new spol Policy(name=app-a-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:frontend, port 80, type ingress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 906aa1b0-dc22-4340-8bc7-f01b2897b44b.
+Neutron server returns request_ids: ['req-d94200dc-0f28-4482-9b76-c869d8896ebb']
+PLS: Configuring new spol Policy(name=app-c-allow-backend-database, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'database'})
+Cannot add rule to remotes: Security group rule already exists. Rule id is 80ab51fe-3f55-4445-8266-a4f1dbf6aefc.
+Neutron server returns request_ids: ['req-62a1446b-bf34-4c4d-87f3-46dffb2c01e8']
+PLS: Configuring new spol Policy(name=app-a-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-arole:frontend, remote SG-app:app-arole:backend, port 80, type ingress
+Security group 'SG-app:app-crole:database' already exists.
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:database, port 80, type egress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 49443c8a-f17a-4c3e-97cd-45621187cade.
+Neutron server returns request_ids: ['req-c57a50de-d8af-4386-a4d1-2d8c96624bc6']
+PLS: Configuring new spol Policy(name=app-b-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:frontend, port 80, type egress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 82ec29ee-209c-4d21-9bbb-ce0ad8ade275.
+Neutron server returns request_ids: ['req-e9f7873f-118f-445e-962f-de5225e6c081']
+PLS: Configuring new spol Policy(name=app-a-allow-database-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-a-allow-database-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Cannot add rule to remotes: Security group rule already exists. Rule id is 344f7b7e-e6cc-49e9-81f3-f05b1f3f16ca.
+Neutron server returns request_ids: ['req-80578fb8-9044-4164-86e7-68f3f1e46f43']
+PLS: Configuring new spol Policy(name=app-c-allow-backend-database, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:database, port 80, type ingress
+Cannot add rule to remotes: Security group rule already exists. Rule id is 1988cbe9-4212-4970-9286-04321e0a95b2.
+Neutron server returns request_ids: ['req-f46c746e-bac5-4d59-b987-4f1d0898071e']
+PLS: Configuring new spol Policy(name=app-b-allow-backend-database, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:database, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-b-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+2025-07-28 16:14:54,077 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:54
+2025-07-28 16:14:54,082 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:54,083 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:54,150 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:54
+2025-07-28 16:14:54,155 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:54,158 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:frontend, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+SG-app:app-arole:backend already attached to worker-1
+[124007219185344] Pod test-pod-1 handled. Released locks for: app:app-arole:database, app:app-arole:backend, app:app-arole:frontend, 
+⏰ Resume handler executed, updating startup timer
+Handling existing pod test-pod-8, scheduled on node worker.
+Handling already existing pod object: Pod(name=test-pod-8, label_set=LabelSet(labels={'app': 'app-c', 'role': 'database'}), node=Node(name=worker)
+[124007219185344] Handling pod test-pod-8, locking app:app-crole:database, app:app-crole:backend,  ...
+New pod: test-pod-10, on node: worker
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-a-allow-backend-database, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:database, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-a-allow-backend-database, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:database, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-a-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:frontend, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-a-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-arole:frontend, remote SG-app:app-arole:backend, port 80, type egress
+SG-app:app-brole:backend already attached to worker-1
+[124006711686848] Pod test-pod-13 handled. Released locks for: app:app-brole:backend, app:app-brole:frontend, app:app-brole:database, 
+⏰ Resume handler executed, updating startup timer
+New pod: test-pod-14, on node: worker
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-b-allow-database-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:database, remote SG-app:app-brole:backend, port 80, type egress
+Handling existing pod test-pod-9, scheduled on node worker-1.
+Handling already existing pod object: Pod(name=test-pod-9, label_set=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), node=Node(name=worker-1)
+[124006711686848] Handling pod test-pod-9, locking app:app-arole:backend, app:app-arole:frontend,  ...
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-a-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:frontend, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-b-allow-backend-database, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:database, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-a-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-arole:frontend, remote SG-app:app-arole:backend, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-b-allow-database-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:database, remote SG-app:app-brole:backend, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-a-allow-database-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+PLS: Configuring new spol Policy(name=app-a-allow-database-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+2025-07-28 16:14:54,281 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:54
+2025-07-28 16:14:54,289 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:54,290 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:54,555 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:54
+2025-07-28 16:14:54,560 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:54,563 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:54,610 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:54
+2025-07-28 16:14:54,618 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:54,619 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-b-allow-backend-database, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:database, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+SG-app:app-crole:backend already attached to worker
+[124007227578048] Pod test-pod-16 handled. Released locks for: app:app-crole:backend, app:app-crole:database, app:app-crole:frontend, 
+⏰ Resume handler executed, updating startup timer
+New pod: test-pod-17, on node: worker
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-c-allow-database-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-crole:database, remote SG-app:app-crole:backend, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-c-allow-backend-database, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:database, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-c-allow-database-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-crole:database, remote SG-app:app-crole:backend, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-c-allow-backend-database, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:database, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+SG-app:app-brole:database already attached to worker
+[124006703294144] Pod test-pod-14 handled. Released locks for: app:app-brole:backend, app:app-brole:database, 
+⏰ Resume handler executed, updating startup timer
+New pod: test-pod-21, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-b-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:frontend, remote SG-app:app-brole:backend, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-b-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:frontend, port 80, type egress
+SG-app:app-arole:backend already attached to worker
+[124007194007232] Pod test-pod-10 handled. Released locks for: app:app-arole:database, app:app-arole:backend, app:app-arole:frontend, 
+⏰ Resume handler executed, updating startup timer
+New pod: test-pod-11, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-a-allow-backend-database, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:database, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-b-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:frontend, remote SG-app:app-brole:backend, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-a-allow-database-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-arole:database, remote SG-app:app-arole:backend, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-b-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+2025-07-28 16:14:54,666 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:54
+2025-07-28 16:14:54,670 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:54,673 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:55,032 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:55
+2025-07-28 16:14:55,035 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:55,038 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:55,066 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:55
+2025-07-28 16:14:55,067 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:55
+2025-07-28 16:14:55,069 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:55,069 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:55,073 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:55,074 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:frontend, port 80, type ingress
+SG-app:app-crole:database already attached to worker
+[124006694901440] Pod test-pod-17 handled. Released locks for: app:app-crole:database, app:app-crole:backend, 
+⏰ Resume handler executed, updating startup timer
+New pod: test-pod-24, on node: worker
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-c-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-crole:frontend, remote SG-app:app-crole:backend, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-a-allow-backend-database, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:database, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-c-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:frontend, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-a-allow-database-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-arole:database, remote SG-app:app-arole:backend, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-c-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:frontend, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-c-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-crole:frontend, remote SG-app:app-crole:backend, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+SG-app:app-brole:frontend already attached to worker-1
+[124006174815936] Pod test-pod-21 handled. Released locks for: app:app-brole:backend, app:app-brole:frontend, 
+New pod: test-pod-22, on node: worker
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-b-allow-database-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:database, remote SG-app:app-brole:backend, port 80, type egress
+⏰ Resume handler executed, updating startup timer
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-b-allow-backend-database, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:database, port 80, type ingress
+SG-app:app-crole:frontend already attached to worker
+[124006149637824] Pod test-pod-24 handled. Released locks for: app:app-crole:backend, app:app-crole:frontend, 
+⏰ Resume handler executed, updating startup timer
+New pod: test-pod-6, on node: worker-1
+[124007210792640] Pod test-pod-6 handled. Released locks for: app:app-crole:backend, app:app-crole:frontend, 
+⏰ Resume handler executed, updating startup timer
+New pod: test-pod-7, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-c-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:frontend, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-b-allow-database-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:database, remote SG-app:app-brole:backend, port 80, type ingress
+2025-07-28 16:14:55,167 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:55
+2025-07-28 16:14:55,169 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:55,170 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:55,171 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:55
+2025-07-28 16:14:55,184 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:55,185 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-c-allow-database-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-crole:database, remote SG-app:app-crole:backend, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-b-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:frontend, remote SG-app:app-brole:backend, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-c-allow-database-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-crole:database, remote SG-app:app-crole:backend, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-b-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:frontend, remote SG-app:app-brole:backend, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-c-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-crole:frontend, remote SG-app:app-crole:backend, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-b-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:frontend, port 80, type egress
+SG-app:app-arole:database already attached to worker-1
+[124007235970752] Pod test-pod-11 handled. Released locks for: app:app-arole:database, app:app-arole:backend, 
+⏰ Resume handler executed, updating startup timer
+New pod: test-pod-19, on node: worker
+[124006678116032] Pod test-pod-19 handled. Released locks for: app:app-arole:database, app:app-arole:backend, app:app-arole:frontend, 
+New pod: test-pod-18, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-a-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:frontend, port 80, type ingress
+⏰ Resume handler executed, updating startup timer
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-c-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-crole:frontend, remote SG-app:app-crole:backend, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-c-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:frontend, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-a-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-arole:frontend, remote SG-app:app-arole:backend, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-b-allow-backend-database, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:database, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+2025-07-28 16:14:55,619 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:55
+2025-07-28 16:14:55,625 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:55,626 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:55,636 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:55
+2025-07-28 16:14:55,645 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:55
+2025-07-28 16:14:55,645 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:55
+2025-07-28 16:14:55,647 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:55,649 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:55,652 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:55,653 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:55,654 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:55,656 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+PLS: Configuring new spol Policy(name=app-c-allow-backend-database, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:database, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-a-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:frontend, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-b-allow-backend-frontend, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'frontend'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'frontend'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:frontend, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-c-allow-backend-database, sel=LabelSet(labels={'app': 'app-c', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-c', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-c', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-c', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-crole:backend, remote SG-app:app-crole:database, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-a-allow-frontend-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'frontend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'frontend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-arole:frontend, remote SG-app:app-arole:backend, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+SG-app:app-arole:frontend already attached to worker-1
+[124006686508736] Pod test-pod-18 handled. Released locks for: app:app-arole:backend, app:app-arole:frontend, 
+New pod: test-pod-2, on node: worker
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-a-allow-backend-database, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:database, port 80, type egress
+⏰ Resume handler executed, updating startup timer
+SG-app:app-brole:backend already attached to worker
+[124006166423232] Pod test-pod-22 handled. Released locks for: app:app-brole:backend, app:app-brole:frontend, app:app-brole:database, 
+⏰ Resume handler executed, updating startup timer
+New pod: test-pod-23, on node: worker-1
+PLS: Configuring new pod with labelset: {L}
+PLS: Configuring new spol Policy(name=app-b-allow-database-backend, sel=LabelSet(labels={'app': 'app-b', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-brole:database, remote SG-app:app-brole:backend, port 80, type egress
+SG-app:app-crole:backend already attached to worker-1
+[124007326992064] Pod test-pod-7 handled. Released locks for: app:app-crole:backend, app:app-crole:database, app:app-crole:frontend, 
+⏰ Resume handler executed, updating startup timer
+New pod: test-pod-8, on node: worker
+[124007219185344] Pod test-pod-8 handled. Released locks for: app:app-crole:database, app:app-crole:backend, 
+⏰ Resume handler executed, updating startup timer
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-a-allow-database-backend, sel=LabelSet(labels={'app': 'app-a', 'role': 'database'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'backend'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+SGMod: Adding rule to SG-app:app-arole:database, remote SG-app:app-arole:backend, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-b-allow-backend-database, sel=LabelSet(labels={'app': 'app-b', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-b', 'role': 'database'}), Traffic(direction=egress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-b', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-b', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-brole:backend, remote SG-app:app-brole:database, port 80, type egress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+PLS: Configuring new spol Policy(name=app-a-allow-backend-database, sel=LabelSet(labels={'app': 'app-a', 'role': 'backend'}), allow=[
+(LabelSet(labels={'app': 'app-a', 'role': 'database'}), Traffic(direction=ingress, port=80, protocol=TCP)) 
+])
+Adding Security Group for select labelset: LabelSet(labels={'app': 'app-a', 'role': 'backend'})
+Adding Security Group for allow labelset: LabelSet(labels={'app': 'app-a', 'role': 'database'})
+SGMod: Adding rule to SG-app:app-arole:backend, remote SG-app:app-arole:database, port 80, type ingress
+Cannot add rule to remotes: <html><body><h1>429 Too Many Requests</h1>
+You have sent too many requests in a given amount of time.
+</body></html>
+
+2025-07-28 16:14:56,009 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:56
+2025-07-28 16:14:56,011 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:56,011 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:56,014 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:56
+2025-07-28 16:14:56,015 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:56
+2025-07-28 16:14:56,018 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:56,019 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:56
+2025-07-28 16:14:56,019 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:56,024 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:56,025 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:56,027 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:56,028 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:56,137 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:56
+2025-07-28 16:14:56,138 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:56,139 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:56,143 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:56
+2025-07-28 16:14:56,145 [INFO] /app/main_operator_recovery_time.py - ⏰ Resume handler executed at 16:14:56
+2025-07-28 16:14:56,147 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:56,148 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:14:56,150 [INFO] kopf.objects - Handler 'handle_existing_pod' succeeded.
+2025-07-28 16:14:56,151 [INFO] kopf.objects - Resuming is processed: 1 succeeded; 0 failed.
+2025-07-28 16:15:06,819 [INFO] /app/main_operator_recovery_time.py - Startup time written to file: 5.467 seconds

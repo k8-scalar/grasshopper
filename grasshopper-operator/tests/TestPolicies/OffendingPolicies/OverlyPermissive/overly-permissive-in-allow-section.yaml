@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: overly-permissive-in-allow-section
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      role: cache
+  ingress:
+  - from:
+    - podSelector: {}  # This means all pods in the namespace
+    ports:
+    - protocol: TCP
+      port: 6379
+  policyTypes:
+  - Ingress

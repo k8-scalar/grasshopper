@@ -1,0 +1,68 @@
+Setting up static security group configuration.
+=== Setting up application security group for OpenStack nodes ===
+Security Group: example-app-sg
+Target Nodes: worker-1, worker-2, worker
+Application Port: 8080
+
+Starting security group setup...
+Creating security group: example-app-sg
++-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Field           | Value                                                                                                                                                                            |
++-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| created_at      | 2025-08-01T08:52:26Z                                                                                                                                                             |
+| description     | Security group for example application allowing port 8080 traffic                                                                                                                |
+| id              | 258f0a4d-0b5d-4f3e-8fa7-93ce8d5434cc                                                                                                                                             |
+| name            | example-app-sg                                                                                                                                                                   |
+| project_id      | 7d81d51b71b649d7b63af257a184a848                                                                                                                                                 |
+| revision_number | 1                                                                                                                                                                                |
+| rules           | created_at='2025-08-01T08:52:26Z', direction='egress', ethertype='IPv4', id='a18a4edf-7f15-49e8-9db4-514714433d1a', standard_attr_id='398691', updated_at='2025-08-01T08:52:26Z' |
+|                 | created_at='2025-08-01T08:52:26Z', direction='egress', ethertype='IPv6', id='c001e201-7937-4c7a-9308-bf6b8e0a1424', standard_attr_id='398688', updated_at='2025-08-01T08:52:26Z' |
+| shared          | False                                                                                                                                                                            |
+| stateful        | True                                                                                                                                                                             |
+| tags            | []                                                                                                                                                                               |
+| updated_at      | 2025-08-01T08:52:26Z                                                                                                                                                             |
++-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+✓ Security group 'example-app-sg' created successfully
+Deleting default security group rules...
+  Found default rules to delete:
+    Deleting rule: a18a4edf-7f15-49e8-9db4-514714433d1a
+    Deleting rule: c001e201-7937-4c7a-9308-bf6b8e0a1424
+✓ Default security group rules deleted
+Adding security group rules for port 8080...
+  Adding ingress rule for TCP port 8080 (from same security group)
+  Adding egress rule for TCP port 8080 (to same security group)
+  Adding ingress rule for UDP port 8080 (from same security group)
+  Adding egress rule for UDP port 8080 (to same security group)
+✓ Security group rules added successfully
+
+Attaching security group to nodes...
+Attaching security group 'example-app-sg' to node 'worker-1'
+✓ Security group attached to 'worker-1'
+Attaching security group 'example-app-sg' to node 'worker-2'
+✓ Security group attached to 'worker-2'
+Attaching security group 'example-app-sg' to node 'worker'
+✓ Security group attached to 'worker'
+
+=== Security Group Rules for 'example-app-sg' ===
++--------------------------------------+-------------+-----------+-----------+------------+-----------+--------------------------------------+----------------------+
+| ID                                   | IP Protocol | Ethertype | IP Range  | Port Range | Direction | Remote Security Group                | Remote Address Group |
++--------------------------------------+-------------+-----------+-----------+------------+-----------+--------------------------------------+----------------------+
+| 7de06cba-3be7-4de8-a504-9b97c499cd3d | udp         | IPv4      | 0.0.0.0/0 | 8080:8080  | ingress   | 258f0a4d-0b5d-4f3e-8fa7-93ce8d5434cc | None                 |
+| a472c558-3a79-475c-95d2-aac27b77189d | tcp         | IPv4      | 0.0.0.0/0 | 8080:8080  | egress    | 258f0a4d-0b5d-4f3e-8fa7-93ce8d5434cc | None                 |
+| c929694d-e954-4bbd-8d68-44d0cce433a5 | tcp         | IPv4      | 0.0.0.0/0 | 8080:8080  | ingress   | 258f0a4d-0b5d-4f3e-8fa7-93ce8d5434cc | None                 |
+| f6207f35-4340-4d85-87c8-e2546c587ce2 | udp         | IPv4      | 0.0.0.0/0 | 8080:8080  | egress    | 258f0a4d-0b5d-4f3e-8fa7-93ce8d5434cc | None                 |
++--------------------------------------+-------------+-----------+-----------+------------+-----------+--------------------------------------+----------------------+
+
+
+=== Setup completed successfully ===
+Security group 'example-app-sg' has been created and attached to:
+  - worker-1
+  - worker-2
+  - worker
+
+The security group allows traffic on port 8080 (both TCP and UDP)
+You can now test connectivity on port 8080 between these nodes.
+Setting up application pods and policy
+networkpolicy.networking.k8s.io/allow-application-pods created
+pod/application-pod-1 created
+pod/application-pod-2 created
