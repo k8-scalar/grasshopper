@@ -1,3 +1,4 @@
+import os
 from kubernetes import client, config
 
 from classes import node_project_from_labels, node_internal_ip_from_addresses
@@ -15,7 +16,7 @@ def initialize_cluster_configuration():
         config.load_kube_config()
 
 def get_k8s_nodes():
-    config.load_kube_config()
+    initialize_cluster_configuration()
     v1 = client.CoreV1Api()
 
     try:

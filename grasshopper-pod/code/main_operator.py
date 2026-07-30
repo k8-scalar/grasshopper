@@ -3,7 +3,6 @@ import argparse
 import os
 from cluster_state import ClusterState
 from openstackfiles.create_sg_per_node import create_sg_per_node
-from openstackfiles.openstack_client import OpenStackClient
 from kubernetes import config
 from operator_code.watcher_operator import Watcher
 from watchdog import WatchDog
@@ -67,8 +66,10 @@ def startup():
     print(f"🚀 Starting Kopf operator in mode: {MODE}, watching all namespaces. "
           f"intra-project encapsulation: {network_mode.intra_project_encapsulation}.")
 
-    # Initialising OpenStack Client.
-    OpenStackClient()
+    # Each OpenStackClient is now created lazily per-project (via for_project())
+    # by whatever code first needs that project's Neutron/Nova session - no
+    # eager single "default" warm-up here, since assuming a "default" project
+    # always exists is exactly what multi-domain support removes.
 
     # Initializing cluster configuration.
     initialize_cluster_configuration()
@@ -79,6 +80,13 @@ def startup():
     # If mode is PNS, create a sg for every node.
     if MODE == "PNS":
         create_sg_per_node(delete_existing_rules=True)
+        # initialize_light() (above) already listed existing SGs into
+        # ClusterState, but create_sg_per_node() may have just created brand
+        # new ones (e.g. first run against a fresh node) - re-list so every
+        # per-node SG is registered before any policy/pod event tries to look
+        # it up via SecurityGroupModulePNS.SGn(), which would otherwise return
+        # None for a freshly-created node's SG.
+        ClusterState.initialize_security_groups(PNS_scenario=True)
 
     # Create Watcher.
     watcher = Watcher(PNS_scenario=(MODE == "PNS"))
