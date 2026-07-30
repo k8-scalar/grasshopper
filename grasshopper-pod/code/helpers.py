@@ -1,4 +1,4 @@
-from classes import LabelSet, Node, Pod, Policy, Traffic
+from classes import CIDR, LabelSet, Node, Pod, Policy, Traffic
 from cluster_state import ClusterState
 
 
@@ -54,3 +54,27 @@ def traffic_pols(traffic: Traffic, n: Node, m: Node) -> Policy | None:
             ]
         ):
             return pol
+
+
+def other_policy_provides_traffic(excluded_pol: Policy, traffic: Traffic, n: Node, m: Node) -> bool:
+    """
+    True if some policy OTHER than excluded_pol currently justifies the n -> m
+    connection for this exact traffic. Used when tearing down a connection that
+    excluded_pol used to justify: unlike traffic_pols, this does not require
+    excluded_pol's own selector to still be satisfied on n - removal is usually
+    triggered by the very pod that made it match in the first place (already
+    removed from ClusterState by the time this runs), so re-deriving "is
+    excluded_pol still the (unique) governing policy" via traffic_pols would
+    always spuriously fail, misreporting "something else needs this" instead of
+    correctly recognizing "nothing does anymore".
+    """
+    for pol in ClusterState().get_policies():
+        if pol == excluded_pol:
+            continue
+        if isinstance(pol.allow[0][0], CIDR):
+            continue
+        if pol.allow[0][1] != traffic:
+            continue
+        if running(pol.sel, n) and running(pol.allow[0][0], m):
+            return True
+    return False

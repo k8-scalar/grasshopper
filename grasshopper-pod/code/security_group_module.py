@@ -1,6 +1,6 @@
 from classes import CIDR, Node, Policy, Rule, SecurityGroup, LabelSet, Traffic
 from cluster_state import ClusterState
-from helpers import traffic_pols, running
+from helpers import running, other_policy_provides_traffic
 from openstackfiles.openstack_client import OpenStackClient
 from abc import ABC, abstractmethod
 from openstackfiles.security_group_operations import create_security_group_if_not_exists, attach_security_group_to_instance
@@ -100,9 +100,14 @@ class SecurityGroupModulePNS(SecurityGroupModule):
     def SG_remove_conn(pol: Policy, n: Node, m: Node) -> None:
         print(f"SGMod: Removing connection from {n.name} to {m.name}")
         if not isinstance(pol.allow[0][0], CIDR):
-            if traffic_pols(pol.allow[0][1], n, m) != pol:
+            # Removal is usually triggered by the very pod that made pol match
+            # in the first place (already gone from ClusterState by now), so
+            # pol's own selector will typically no longer be "running" on n -
+            # that's expected, not a reason to skip removal. Only skip if some
+            # OTHER policy still needs this exact connection.
+            if other_policy_provides_traffic(pol, pol.allow[0][1], n, m):
                 print(
-                    f"SGMod: similar traffic for other policy detected from node {n.name} to node {m.name}"
+                    f"SGMod: another policy still requires traffic from node {n.name} to node {m.name}"
                 )
                 return
             SecurityGroupModule.remove_rule_from_remotes(
