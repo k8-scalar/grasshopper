@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: netperf-poda
+  namespace: test
+  labels:
+    keyA: valueA
+spec:
+  nodeName: worker-1
+  containers:
+  - image: leannet/k8s-netperf:latest
+    name: netperf-host
+    ports:
+    - containerPort: 12865
+    imagePullPolicy: IfNotPresent

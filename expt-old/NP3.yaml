@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: np3
+  namespace: test
+spec:
+  podSelector:
+    matchLabels:
+      keyX: valueX
+  policyTypes:
+  - Egress
+  - Ingress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          keyA: valueA
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          keyA: valueA
+          

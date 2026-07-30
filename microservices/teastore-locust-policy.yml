@@ -14,18 +14,21 @@ spec:
     - namespaceSelector:
         matchLabels:
          role: admin
+      podSelector:        
+        matchLabels:
+          k8s-app: kube-dns
     - podSelector:
         matchLabels:
           app: teastore
-    #ports:
-    #- protocol: TCP
-    #  port: 8080
-    #- protocol: TCP
-    #  port: 3306
-    #- protocol: TCP
-    # port: 53
-    #- protocol: UDP
-    #  port: 53
-    #- protocol: TCP
-    #  port: 9053
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 3306
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 9053
 

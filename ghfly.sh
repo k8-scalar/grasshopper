@@ -1,7 +1,5 @@
 #!/bin/bash
 
-rm data/*
-
 namespace="test"
 if kubectl get namespace "$namespace" &> /dev/null; then
     echo "Namespace $namespace already exists. Skipping creation."
