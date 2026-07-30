@@ -14,6 +14,11 @@ spec:
       imagePullPolicy: Never     
       command: ["python3", "main_operator.py"]
       args: ["--mode", "PNS"]
+      # For multi-domain clusters (nodes spanning multiple OpenStack projects) or
+      # if Calico itself uses VXLAN even within one project, add:
+      #   args: ["--mode", "PNS", "--intra-project-encapsulation", "vxlan", "--vxlan-port", "4789"]
+      # See .env.dist for the OS_PROJECTS_JSON multi-project credential format,
+      # and label nodes with grasshopper.io/openstack-project=<key>.
       envFrom:
         - secretRef:
             name: grasshopper-openstack-creds

@@ -15,6 +15,12 @@ class ClusterState:
     # Set of all nodes in the cluster
     nodes: set[Node] = []
 
+    # Canonical, name-indexed lookup of the same nodes - use this (not whatever
+    # Node instance happens to be threaded through matcher.py/watchdog.py, which
+    # may be a disposable ad hoc instance) whenever a node's real project or
+    # internal_ip is needed.
+    _nodes_by_name: dict[str, Node] = {}
+
     # Set of all pods in the cluster
     pods: set[Pod] = []
 
@@ -49,30 +55,33 @@ class ClusterState:
             print("Running locally. Using kubeconfig.")
             config.load_kube_config()  # Load kubeconfig for local development
 
-    @staticmethod 
+    @staticmethod
     def initialize_security_groups(PNS_scenario: bool):
         # necessary to make PNS-variant work.
         if PNS_scenario:
             from openstackfiles.openstack_client import OpenStackClient
 
-            neutron = OpenStackClient().get_neutron()
-            security_groups = neutron.list_security_groups()["security_groups"]
-            for sg in security_groups:
-                security_group = SecurityGroup(name=sg["name"], id=sg["id"])
-                rules_json = sg["security_group_rules"]
-                rules = [
-                    Rule(
-                        target=security_group,
-                        traffic=Traffic(
-                            direction=rule["direction"],
-                            port=rule["port_range_min"],  # TODO: handle port_range_max
-                            protocol=rule["protocol"],
-                        ),
-                    )
-                    for rule in rules_json
-                ]
-                security_group.remotes = set(rules)
-                ClusterState().security_groups[sg["name"]] = security_group
+            # List SGs from every configured OpenStack project, not just the
+            # default one - each per-node SG lives in its own node's project.
+            for project_key in OpenStackClient.known_project_keys():
+                neutron = OpenStackClient.for_project(project_key).get_neutron()
+                security_groups = neutron.list_security_groups()["security_groups"]
+                for sg in security_groups:
+                    security_group = SecurityGroup(name=sg["name"], id=sg["id"], project=project_key)
+                    rules_json = sg["security_group_rules"]
+                    rules = [
+                        Rule(
+                            target=security_group,
+                            traffic=Traffic(
+                                direction=rule["direction"],
+                                port=rule["port_range_min"],  # TODO: handle port_range_max
+                                protocol=rule["protocol"],
+                            ),
+                        )
+                        for rule in rules_json
+                    ]
+                    security_group.remotes = set(rules)
+                    ClusterState().security_groups[sg["name"]] = security_group
 
 
     @staticmethod
@@ -92,7 +101,11 @@ class ClusterState:
         # Put nodes in cluster state.
         nodes = v1.list_node().items
         for node in nodes:
-            ClusterState.add_node(Node(name=node.metadata.name))
+            ClusterState.add_node(Node(
+                name=node.metadata.name,
+                project=node_project_from_labels(node.metadata.labels),
+                internal_ip=node_internal_ip_from_addresses(node.status.addresses),
+            ))
 
         # Put namespaces in cluster state (needed before any pod/policy is matched
         # against a namespaceSelector).
@@ -137,7 +150,11 @@ class ClusterState:
         # Put nodes in cluster state.
         nodes = v1.list_node().items
         for node in nodes:
-            ClusterState.add_node(Node(name=node.metadata.name))
+            ClusterState.add_node(Node(
+                name=node.metadata.name,
+                project=node_project_from_labels(node.metadata.labels),
+                internal_ip=node_internal_ip_from_addresses(node.status.addresses),
+            ))
 
         # Put namespaces in cluster state (synchronously, before kopf dispatches any
         # pod/policy resume handler that could otherwise race ahead of namespace data).
@@ -172,8 +189,13 @@ class ClusterState:
         return ClusterState().nodes
 
     @staticmethod
+    def get_node(name: str) -> Node | None:
+        return ClusterState()._nodes_by_name.get(name)
+
+    @staticmethod
     def add_node(node: Node):
         ClusterState().nodes.append(node)
+        ClusterState()._nodes_by_name[node.name] = node
 
     @staticmethod
     def get_pods():

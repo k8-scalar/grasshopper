@@ -135,12 +135,38 @@ class Policy:
 
 
 
+DEFAULT_OPENSTACK_PROJECT = "default"
+
+# Node label used to record which OpenStack project a node belongs to.
+OPENSTACK_PROJECT_NODE_LABEL = "grasshopper.io/openstack-project"
+
+
+def node_project_from_labels(labels: dict) -> str:
+    return (labels or {}).get(OPENSTACK_PROJECT_NODE_LABEL, DEFAULT_OPENSTACK_PROJECT)
+
+
+def node_internal_ip_from_addresses(addresses) -> str | None:
+    for addr in addresses or []:
+        if getattr(addr, "type", None) == "InternalIP":
+            return addr.address
+    return None
+
+
 class Node:
-    def __init__(self, name: str):
+    def __init__(self, name: str, project: str = DEFAULT_OPENSTACK_PROJECT, internal_ip: str = None):
         self.name = name
+        # project/internal_ip are additive metadata, deliberately NOT part of
+        # __eq__/__hash__ (which stay name-only) - node names are already
+        # cluster-unique, and many places treat Node as a set/dict key by name
+        # alone. Ad hoc Node instances built elsewhere in the codebase (e.g. from
+        # a pod event) won't carry real values here - resolve the canonical
+        # instance via ClusterState.get_node(name) instead of trusting these
+        # fields on an arbitrary Node instance.
+        self.project = project
+        self.internal_ip = internal_ip
 
     def __str__(self):
-        return f"Node(name={self.name})"
+        return f"Node(name={self.name}, project={self.project}, internal_ip={self.internal_ip})"
 
     def __eq__(self, other):
         if isinstance(other, Node):
@@ -152,9 +178,12 @@ class Node:
 
 
 class SecurityGroup:
-    def __init__(self, id: str, name: str):
+    def __init__(self, id: str, name: str, project: str = DEFAULT_OPENSTACK_PROJECT):
         self.id = id
         self.name = name
+        # Which OpenStack project owns this SG - determines which project's
+        # OpenStackClient must be used for any Neutron/Nova call involving it.
+        self.project = project
         self.remotes: set[Rule] = set()
         self.attached_nodes = set()
 

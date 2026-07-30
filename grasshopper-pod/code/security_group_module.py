@@ -1,10 +1,11 @@
-from classes import CIDR, Node, Policy, Rule, SecurityGroup, LabelSet
+from classes import CIDR, Node, Policy, Rule, SecurityGroup, LabelSet, Traffic
 from cluster_state import ClusterState
 from helpers import traffic_pols, running
 from openstackfiles.openstack_client import OpenStackClient
 from abc import ABC, abstractmethod
 from openstackfiles.security_group_operations import create_security_group_if_not_exists, attach_security_group_to_instance
 from locking.lockmanager2 import LockManager
+import network_mode
 import threading
 
 
@@ -20,10 +21,20 @@ class SecurityGroupModule(ABC):
     
     @staticmethod
     def add_rule_to_remotes(SG: SecurityGroup, rule: Rule) -> None:
+        if isinstance(rule.target, CIDR):
+            remote = {"remote_ip_prefix": rule.target.cidr}
+            target_desc = rule.target.cidr
+        else:
+            remote = {"remote_group_id": rule.target.id}
+            target_desc = rule.target.name
+
         print(
-            f"SGMod: Adding rule to {SG.name}, remote {rule.target.name}, port {rule.traffic.port}, type {rule.traffic.direction}"
+            f"SGMod: Adding rule to {SG.name}, remote {target_desc}, port {rule.traffic.port}, type {rule.traffic.direction}"
         )
-        neutron = OpenStackClient().get_neutron()
+        # A rule always lives in its owning SG's own project - that's exactly why
+        # a CIDR target (no ownership constraint) is used for cross-project peers
+        # instead of remote_group_id (which Neutron only allows within one project).
+        neutron = OpenStackClient.for_project(SG.project).get_neutron()
         try:
             created_rule = neutron.create_security_group_rule(
                 {
@@ -33,7 +44,7 @@ class SecurityGroupModule(ABC):
                         "protocol": rule.traffic.protocol,
                         "port_range_min": rule.traffic.port,
                         "port_range_max": rule.traffic.port,
-                        "remote_group_id": rule.target.id,
+                        **remote,
                         "security_group_id": SG.id,
                     }
                 }
@@ -58,7 +69,7 @@ class SecurityGroupModule(ABC):
                     print(rule)
                 return
         print(f"SGMod: Removing rule {rule.id} from {SG.name}")
-        neutron = OpenStackClient().get_neutron()
+        neutron = OpenStackClient.for_project(SG.project).get_neutron()
         try:
             print(f"Removing rule: {rule} form security group: {SG.name} ({SG.id})")
             neutron.delete_security_group_rule(security_group_rule=rule.id)
@@ -81,7 +92,7 @@ class SecurityGroupModulePNS(SecurityGroupModule):
             print(f"SGMod: Cannot add connection from {n.name} to itself in PNS mode.")
             return
         print(f"SGMod: Adding connection from {n.name} to {m.name}")
-        rule: Rule = SecurityGroupModulePNS.rule_from(pol, m)
+        rule: Rule = SecurityGroupModulePNS.rule_from(pol, n, m)
         if rule not in SecurityGroupModulePNS.SGn(n).remotes:
             SecurityGroupModule.add_rule_to_remotes(SecurityGroupModulePNS.SGn(n), rule)
 
@@ -95,14 +106,50 @@ class SecurityGroupModulePNS(SecurityGroupModule):
                 )
                 return
             SecurityGroupModule.remove_rule_from_remotes(
-                SecurityGroupModulePNS.SGn(n), SecurityGroupModulePNS.rule_from(pol, m)
+                SecurityGroupModulePNS.SGn(n), SecurityGroupModulePNS.rule_from(pol, n, m)
             )
             print(f"SGMod: removed rule from {SecurityGroupModulePNS.SGn(n).name}")
 
     @staticmethod
-    def rule_from(pol: Policy, m: Node) -> Rule:
+    def rule_from(pol: Policy, n: Node, m: Node) -> Rule:
+        """
+        Builds the Rule for the connection n -> m allowed by pol. The target
+        (SG reference vs CIDR) and traffic (real port vs VXLAN port) depend on
+        whether n and m are in the same OpenStack project - see network_mode.py
+        and the rule-shape table in the design doc for this feature.
+        """
         A, traffic = pol.allow[0]
-        return Rule(A if isinstance(A, CIDR) else SecurityGroupModulePNS.SGn(m), traffic)
+        if isinstance(A, CIDR):
+            return Rule(A, traffic)
+
+        # Resolve the canonical Node instances - n/m as passed in may be disposable
+        # ad hoc instances (e.g. built fresh from a pod event) that never carry a
+        # real project/internal_ip.
+        n_canon = ClusterState.get_node(n.name) or n
+        m_canon = ClusterState.get_node(m.name) or m
+
+        if n_canon.project != m_canon.project:
+            # Cross-project: remote_group_id is not permitted across OpenStack
+            # projects, and this traffic is VXLAN-tunneled regardless of any
+            # setting - only the peer's real Node IP and the VXLAN port are ever
+            # visible to OpenStack's security-group enforcement at this hop.
+            if not m_canon.internal_ip:
+                raise Exception(
+                    f"Cannot build cross-project rule to node {m_canon.name}: no internal_ip known for it."
+                )
+            return Rule(CIDR(f"{m_canon.internal_ip}/32"), SecurityGroupModulePNS._vxlan_traffic(traffic))
+
+        if network_mode.intra_project_encapsulation == network_mode.ENCAPSULATION_VXLAN:
+            # Same project, but Calico itself is VXLAN-encapsulated: remote_group_id
+            # still works (a node's own IP is inherently a member of its own SG),
+            # but the real pod port is equally invisible here, so it's substituted too.
+            return Rule(SecurityGroupModulePNS.SGn(m), SecurityGroupModulePNS._vxlan_traffic(traffic))
+
+        return Rule(SecurityGroupModulePNS.SGn(m), traffic)
+
+    @staticmethod
+    def _vxlan_traffic(original: Traffic) -> Traffic:
+        return Traffic(direction=original.direction, port=network_mode.vxlan_port, protocol="udp")
         
 
 class SecurityGroupModulePLS(SecurityGroupModule):

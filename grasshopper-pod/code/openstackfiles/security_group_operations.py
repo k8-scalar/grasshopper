@@ -1,8 +1,8 @@
-from openstackfiles.openstack_client import OpenStackClient
+from openstackfiles.openstack_client import OpenStackClient, DEFAULT_PROJECT_KEY
 
 
-def create_security_group_if_not_exists(sg_name, description):
-    neutron = OpenStackClient().get_neutron()
+def create_security_group_if_not_exists(sg_name, description, project_key=DEFAULT_PROJECT_KEY):
+    neutron = OpenStackClient.for_project(project_key).get_neutron()
 
     existing_sgs = neutron.list_security_groups(name=sg_name)
     if existing_sgs["security_groups"]:
@@ -58,8 +58,8 @@ def add_rules_to_security_group(sg_id, rules, remote_sg_id):
             )
 
 
-def attach_security_group_to_instance(instance_id, security_group):
-    nova = OpenStackClient().get_nova()
+def attach_security_group_to_instance(instance_id, security_group, project_key=DEFAULT_PROJECT_KEY):
+    nova = OpenStackClient.for_project(project_key).get_nova()
 
     server = nova.servers.find(name=instance_id)
     security_groups = server.list_security_group()

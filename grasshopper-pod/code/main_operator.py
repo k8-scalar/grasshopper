@@ -7,6 +7,7 @@ from openstackfiles.openstack_client import OpenStackClient
 from kubernetes import config
 from operator_code.watcher_operator import Watcher
 from watchdog import WatchDog
+import network_mode
 import logging
 import time
 import pandas as pd
@@ -37,6 +38,18 @@ logger = logging.getLogger(__file__)
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices=['PNS', 'PLS'], required=True)
+    parser.add_argument(
+        '--intra-project-encapsulation',
+        choices=[network_mode.ENCAPSULATION_NATIVE, network_mode.ENCAPSULATION_VXLAN],
+        default=network_mode.ENCAPSULATION_NATIVE,
+        help="Whether same-OpenStack-project connections are native-routed (default) "
+             "or also VXLAN-encapsulated by Calico. Cross-project connections always "
+             "require VXLAN regardless of this setting - only relevant to PNS mode.",
+    )
+    parser.add_argument(
+        '--vxlan-port', type=int, default=network_mode.vxlan_port,
+        help="VXLAN encapsulation UDP port (Calico's default is 4789).",
+    )
     return parser.parse_args()
 
 def initialize_cluster_configuration():
@@ -49,8 +62,10 @@ def startup():
     global MODE, watcher, watchdog
     args = parse_args()
     MODE = args.mode
+    network_mode.configure(args.intra_project_encapsulation, args.vxlan_port)
 
-    print(f"🚀 Starting Kopf operator in mode: {MODE}, watching all namespaces.")
+    print(f"🚀 Starting Kopf operator in mode: {MODE}, watching all namespaces. "
+          f"intra-project encapsulation: {network_mode.intra_project_encapsulation}.")
 
     # Initialising OpenStack Client.
     OpenStackClient()
