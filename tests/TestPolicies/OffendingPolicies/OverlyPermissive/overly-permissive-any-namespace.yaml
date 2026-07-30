@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: overly-permissive-any-namespace
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      role: cache
+  ingress:
+  - from:
+    # Explicit, empty namespaceSelector -> any pod in ANY namespace. This is the
+    # genuinely-universal case (unlike NonOffendingPolicies/allow-any-pod-in-namespace.yaml,
+    # which has no namespaceSelector at all and is therefore scoped to this policy's
+    # own namespace only).
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 6379
+  policyTypes:
+  - Ingress

@@ -24,6 +24,9 @@ class ClusterState:
     # Mapping of security group names to their corresponding security group objects
     security_groups: dict[str, SecurityGroup] = {}
 
+    # Mapping of namespace name to that namespace's own labels
+    namespaces: dict[str, dict[str, str]] = {}
+
     # Set of all offending policies
     offenders = set()
 
@@ -91,6 +94,11 @@ class ClusterState:
         for node in nodes:
             ClusterState.add_node(Node(name=node.metadata.name))
 
+        # Put namespaces in cluster state (needed before any pod/policy is matched
+        # against a namespaceSelector).
+        for ns in v1.list_namespace().items:
+            ClusterState.add_namespace(ns.metadata.name, ns.metadata.labels or {})
+
         # Handle already existing pods.
         pods = v1.list_namespaced_pod(namespace).items
         for pod in pods:
@@ -111,8 +119,10 @@ class ClusterState:
         print("================================= FRESH INITIALISATION DONE =====================================")
 
     @staticmethod
-    def initialize_light(PNS_scenario: bool, namespace):
-        """ Function to initialize the cluster state."""
+    def initialize_light(PNS_scenario: bool, namespace=None):
+        """ Function to initialize the cluster state. `namespace` is unused here
+        (kept for backward compatibility with callers that still pass it) - pods
+        and policies are populated later via kopf resume handlers, cluster-wide."""
         
         # local imports to avoid circular imports.
         from watchdog import WatchDog
@@ -128,7 +138,12 @@ class ClusterState:
         nodes = v1.list_node().items
         for node in nodes:
             ClusterState.add_node(Node(name=node.metadata.name))
-        
+
+        # Put namespaces in cluster state (synchronously, before kopf dispatches any
+        # pod/policy resume handler that could otherwise race ahead of namespace data).
+        for ns in v1.list_namespace().items:
+            ClusterState.add_namespace(ns.metadata.name, ns.metadata.labels or {})
+
         ClusterState.initialize_security_groups(PNS_scenario)
 
         print("================================= FRESH (Light) INITIALISATION DONE =====================================")
@@ -238,6 +253,26 @@ class ClusterState:
         return ClusterState().map.keys()
 
     @staticmethod
+    def get_namespace_labels(name: str) -> dict[str, str]:
+        """
+        Returns the known labels of namespace `name`. Falls back to just the
+        auto-injected kubernetes.io/metadata.name label if the namespace hasn't
+        been registered yet (e.g. a resume race, or missing Namespace RBAC) -
+        this keeps the common "same namespace" case working even without full
+        Namespace watch data; namespaceSelectors on custom labels degrade
+        gracefully (no match) until the real data arrives.
+        """
+        return ClusterState().namespaces.get(name, {"kubernetes.io/metadata.name": name})
+
+    @staticmethod
+    def add_namespace(name: str, labels: dict[str, str]):
+        ClusterState().namespaces[name] = labels or {}
+
+    @staticmethod
+    def remove_namespace(name: str):
+        ClusterState().namespaces.pop(name, None)
+
+    @staticmethod
     def get_security_groups():
         return ClusterState().security_groups
 
@@ -281,6 +316,13 @@ class ClusterState:
         if self.offenders:
             for policy in self.offenders:
                 result.append(f"  - {policy}")
+        else:
+            result.append("  None")
+
+        result.append("\nNamespaces:")
+        if self.namespaces:
+            for name, labels in self.namespaces.items():
+                result.append(f"  - {name}: {labels}")
         else:
             result.append("  None")
 

@@ -21,18 +21,42 @@ class Traffic:
 
 
 class LabelSet:
-    def __init__(self, labels: dict[str, str]):
+    def __init__(self, labels: dict[str, str], namespace_labels: dict[str, str] = None):
         self.labels: dict[str, str] = labels if labels is not None else {}
+        # namespace_labels constrains which namespace(s) this selector applies to,
+        # matched against a Namespace's own labels (e.g. the auto-injected
+        # kubernetes.io/metadata.name label expresses "must be this exact namespace").
+        # None = not a namespace-scoped selector (e.g. a bare Pod's own label_set).
+        # {} (not None) = matches any namespace. Non-empty = namespace must have these labels.
+        self.namespace_labels: dict[str, str] | None = namespace_labels
         self.string_repr = self.get_string_repr()
 
     # Get the unique string-representation of the LabelSet.
     def get_string_repr(self):
-        return "".join(f"{k}:{v}" for k, v in sorted(self.labels.items()))
+        repr = "".join(f"{k}:{v}" for k, v in sorted(self.labels.items()))
+        if self.namespace_labels is not None:
+            ns_repr = "".join(f"{k}:{v}" for k, v in sorted(self.namespace_labels.items()))
+            repr += f"@ns[{ns_repr}]"
+        return repr
 
     def issubset(self, other):
         return all(
             key in other.labels and other.labels[key] == value
             for key, value in self.labels.items()
+        )
+
+    def namespace_issubset(self, other):
+        """
+        True if self's namespace-scope constraint is broader-or-equal to other's,
+        i.e. self.namespace_labels (as a dict) is a subset of other.namespace_labels.
+        Used to compare two selectors against each other (not a selector against a
+        live pod's actual namespace - see helpers.matching for that).
+        """
+        self_labels = self.namespace_labels or {}
+        other_labels = other.namespace_labels or {}
+        return all(
+            key in other_labels and other_labels[key] == value
+            for key, value in self_labels.items()
         )
 
     def __eq__(self, other):
@@ -70,11 +94,12 @@ EGRESS = "egress"
 
 class Policy:
     def __init__(
-        self, name: str, sel: LabelSet, allow: list[tuple[LabelSet | CIDR, Traffic]]
+        self, name: str, sel: LabelSet, allow: list[tuple[LabelSet | CIDR, Traffic]], namespace: str = None
     ):
         self.name: str = name
         self.sel: LabelSet = sel
         self.allow: list[tuple[LabelSet | CIDR, Traffic]] = allow
+        self.namespace: str = namespace
 
     def get_string_repr(self):
         labelsets = {self.sel}
@@ -89,14 +114,15 @@ class Policy:
     def __eq__(self, other):
         if not isinstance(other, Policy):
             return False
-        return (self.name, self.sel, tuple(self.allow)) == (
+        return (self.name, self.namespace, self.sel, tuple(self.allow)) == (
             other.name,
+            other.namespace,
             other.sel,
             tuple(other.allow),
         )
 
     def __hash__(self):
-        return hash((self.name, self.sel, tuple(self.allow)))
+        return hash((self.name, self.namespace, self.sel, tuple(self.allow)))
 
     def __str__(self):
         # allow_str = ", ".join(str(item) for item in self.allow)
@@ -164,10 +190,11 @@ class SecurityGroup:
         return hash((self.id, self.name, frozenset(self.remotes)))
 
 class Pod:
-    def __init__(self, name: str, label_set: LabelSet, node: Node):
+    def __init__(self, name: str, label_set: LabelSet, node: Node, namespace: str = None):
         self.name = name
         self.label_set = label_set
         self.node = node
+        self.namespace = namespace
 
     def is_assigned_to_node(self) -> bool:
         return self.node is not None
@@ -179,22 +206,24 @@ class Pod:
         label_set = LabelSet(labels=labels)
         node_name = data.get("node", {}).get("name")
         node = Node(node_name)
+        namespace = data.get("namespace")
         return Pod(
             name,
             label_set,
             node,
+            namespace,
         )
 
     def __hash__(self):
-        return hash(self.name)
+        return hash((self.name, self.namespace))
 
     def __eq__(self, other):
         if isinstance(other, Pod):
-            return self.name == other.name
+            return self.name == other.name and self.namespace == other.namespace
         return False
 
     def __str__(self):
-        return f"Pod(name={self.name}, label_set={self.label_set}, node={self.node}"
+        return f"Pod(name={self.name}, namespace={self.namespace}, label_set={self.label_set}, node={self.node}"
         # return "------ POD: " + self.name + "-----------\n" + " - Running on node: " + (self.node.name or "None")+ "\n - labels: " + str(json.dumps(self.label_set.labels, indent=4)) + "\n"
 
 

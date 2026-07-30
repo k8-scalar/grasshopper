@@ -14,9 +14,6 @@ import csv
 import threading
 
 
-# Specify the namespace you want to manage.
-NAMESPACE = 'test-thesis'
-
 MODE = None
 watcher = None
 watchdog = None
@@ -53,16 +50,16 @@ def startup():
     args = parse_args()
     MODE = args.mode
 
-    print(f"🚀 Starting Kopf operator in mode: {MODE}, watching the {NAMESPACE} namespace.")
+    print(f"🚀 Starting Kopf operator in mode: {MODE}, watching all namespaces.")
 
     # Initialising OpenStack Client.
     OpenStackClient()
-    
+
     # Initializing cluster configuration.
     initialize_cluster_configuration()
 
     # Initializing Cluster State.
-    ClusterState().initialize_light(PNS_scenario=(MODE == "PNS"), namespace=NAMESPACE)
+    ClusterState().initialize_light(PNS_scenario=(MODE == "PNS"))
 
     # If mode is PNS, create a sg for every node.
     if MODE == "PNS":
@@ -115,6 +112,20 @@ def handle_removed_pod(body, **kwargs):
     print(f"Removing pod {pod_name}")
     watchdog.handle_removed_pod(pod_object)
 
+@kopf.on.resume('v1', 'namespaces')
+@kopf.on.create('v1', 'namespaces')
+@kopf.on.update('v1', 'namespaces')
+def handle_new_or_updated_namespace(body, **kwargs):
+    name, labels = Watcher.create_namespace_from_dict(body)
+    print(f"Registering namespace {name} with labels {labels}")
+    watchdog.handle_new_namespace(name, labels)
+
+@kopf.on.delete('v1', 'namespaces')
+def handle_removed_namespace(body, **kwargs):
+    name, _ = Watcher.create_namespace_from_dict(body)
+    print(f"Removing namespace {name}")
+    watchdog.handle_removed_namespace(name)
+
 @kopf.on.resume('networking.k8s.io', 'v1', 'networkpolicies')
 @kopf.on.create('networking.k8s.io', 'v1', 'networkpolicies')
 def handle_new_policy(body, **kwargs):
@@ -150,7 +161,7 @@ def show_cluster_state(**kwargs):
 if __name__ == "__main__":
     kopf.run(
         standalone=True,          # Optional: disables multiprocessing
-        namespace=NAMESPACE
+        clusterwide=True,         # Watch all namespaces, not just one.
     )
 
 

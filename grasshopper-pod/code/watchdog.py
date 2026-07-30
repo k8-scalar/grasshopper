@@ -1,5 +1,5 @@
 from classes import *
-from helpers import matching, running, matching_ls
+from helpers import matching, running, matching_ls, selector_issubset
 from matcher import PLSMatcher, PNSMatcher
 from cluster_state import ClusterState
 from locking.lockmanager2 import LockManager
@@ -29,7 +29,7 @@ class WatchDog:
     def split(pol_new) -> list[Policy]:
         sub_policies: list[Policy] = []
         for allow_rule in pol_new.allow:
-            sub_pol = Policy(pol_new.name, pol_new.sel, [allow_rule])
+            sub_pol = Policy(pol_new.name, pol_new.sel, [allow_rule], pol_new.namespace)
             sub_policies.append(sub_pol)
 
         return sub_policies
@@ -59,7 +59,7 @@ class WatchDog:
     @staticmethod
     def conflicting(pol_new, pols) -> bool:
         for pol in pols:
-            if pol_new.sel.issubset(pol.sel):
+            if selector_issubset(pol_new.sel, pol.sel):
                 for labelset_new, traffic_new in pol_new.allow:
                     if not isinstance(labelset_new, LabelSet):
                         continue
@@ -68,7 +68,7 @@ class WatchDog:
                             continue
                         if (
                             traffic_new == traffic
-                            and labelset_new.issubset(labelset)
+                            and selector_issubset(labelset_new, labelset)
                             and (pol_new.sel != pol.sel or labelset_new != labelset)
                         ):
                             return True
@@ -78,7 +78,7 @@ class WatchDog:
     def redundant(pol_new, pols) -> bool:
         is_redundant = False
         for pol in pols:
-            if pol.sel.issubset(pol_new.sel):
+            if selector_issubset(pol.sel, pol_new.sel):
                 is_redundant = True
                 for labelset_new, traffic_new in pol_new.allow:
                     if not isinstance(labelset_new, LabelSet):
@@ -87,7 +87,7 @@ class WatchDog:
                     for labelset, traffic in pol.allow:
                         if not isinstance(labelset, LabelSet):
                             continue
-                        if traffic_new == traffic and labelset.issubset(labelset_new):
+                        if traffic_new == traffic and selector_issubset(labelset, labelset_new):
                             exists_match = True
                     if exists_match == False:
                         return False
@@ -99,8 +99,14 @@ class WatchDog:
         """
         Checks whether or not a given policy is overly permissive.
         I.e.:
-            - It has the empty selector in it's selected-attribute. (Selects all pods)
-            - If it has an allow-rule, which selects all pods. (empty selector or 0.0.0.0/0
+            - It has the empty selector in it's selected-attribute. (Selects all pods
+              in the policy's own namespace - sel has no discretionary namespace scope,
+              so this check is unconditional regardless of namespace.)
+            - If it has an allow-rule, which selects all pods in all namespaces
+              (empty pod-labels AND no namespace restriction) or 0.0.0.0/0.
+              An allow-rule with empty pod-labels but a real namespace restriction
+              (e.g. "any pod in this one namespace") is a legitimate, narrower
+              pattern and is NOT considered overly permissive.
 
             Is only called on splitted policies, so we assume the allow-list has only 1 element.
         """
@@ -109,9 +115,9 @@ class WatchDog:
             return True
 
         if isinstance(spol.allow[0][0], LabelSet):
-            if (
-                len(spol.allow[0][0].labels) == 0
-            ):  # empty dict corresponds to empty-selector.
+            allow_labelset = spol.allow[0][0]
+            if len(allow_labelset.labels) == 0 and not allow_labelset.namespace_labels:
+                # empty pod-labels AND no (or empty) namespace restriction = any pod, any namespace.
                 return True
 
         if isinstance(spol.allow[0][0], CIDR):
@@ -234,6 +240,19 @@ class WatchDog:
 
     def handle_modified_policy(self, pol: Policy):
         pass
+
+    def handle_new_namespace(self, name: str, labels: dict[str, str]):
+        """
+        Registers a namespace's labels, so namespaceSelector-based policies can
+        match against it. Best-effort: if a namespace's labels change later
+        (handle_new_namespace called again with updated labels), already-computed
+        SG rules that depended on the old labels are NOT retroactively
+        re-evaluated - same rigor level as handle_modified_policy above.
+        """
+        ClusterState.add_namespace(name, labels)
+
+    def handle_removed_namespace(self, name: str):
+        ClusterState.remove_namespace(name)
 
     @staticmethod
     def get_involved_labelsets(pod: Pod) -> set[LabelSet]:

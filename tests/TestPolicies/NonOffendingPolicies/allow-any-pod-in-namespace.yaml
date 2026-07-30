@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-any-pod-in-namespace
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      role: cache
+  ingress:
+  - from:
+    # No namespaceSelector -> implicitly scoped to this policy's own namespace
+    # (default). "Any pod in one specific namespace" is a legitimate, narrower
+    # rule, not overly permissive - unlike a namespaceSelector: {} peer, which
+    # would mean "any pod in any namespace" (see
+    # OffendingPolicies/OverlyPermissive/overly-permissive-any-namespace.yaml).
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 6379
+  policyTypes:
+  - Ingress
