@@ -9,6 +9,11 @@ assumes.
 If your cluster is single-project, none of this applies - everything here is
 additive and off by default.
 
+**Tests**: see [`tests/multi-domain/`](tests/multi-domain/README.md) -
+`tests/multi-domain/unit/` runs anywhere with no cluster needed,
+`tests/multi-domain/cluster/` is the manual runbook for validating against a
+real 2-project cluster.
+
 ## Scope
 
 Multi-domain support only exists for **PNS mode** (`--mode PNS`). PLS mode's
