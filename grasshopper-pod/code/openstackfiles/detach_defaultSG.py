@@ -1,6 +1,14 @@
+import os
 from kubernetes import client, config
 from classes import node_project_from_labels
 from openstackfiles.openstack_client import OpenStackClient
+
+
+def initialize_cluster_configuration():
+    if os.path.exists("/var/run/secrets/kubernetes.io/serviceaccount/token"):
+        config.load_incluster_config()
+    else:
+        config.load_kube_config()
 
 
 def detach_defaultSG():
@@ -14,7 +22,7 @@ def detach_defaultSG():
     create_master_and_workerSG().
     """
     # Load Kubernetes configuration
-    config.load_kube_config()
+    initialize_cluster_configuration()
 
     # Initialize the Kubernetes API client
     v1 = client.CoreV1Api()

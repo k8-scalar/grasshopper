@@ -1,3 +1,4 @@
+import os
 from kubernetes import client, config
 from classes import node_project_from_labels, node_internal_ip_from_addresses
 from openstackfiles.openstack_client import OpenStackClient
@@ -7,6 +8,14 @@ from openstackfiles.security_group_operations import (
     attach_security_group_to_instance,
     create_security_group_if_not_exists,
 )
+
+
+def initialize_cluster_configuration():
+    if os.path.exists("/var/run/secrets/kubernetes.io/serviceaccount/token"):
+        config.load_incluster_config()
+    else:
+        config.load_kube_config()
+
 
 # Master node label
 master_node_label = "node-role.kubernetes.io/control-plane"
@@ -263,7 +272,7 @@ def create_master_and_workerSG():
         concern applies here - this is a plain node-to-node CIDR rule).
     """
     # Kubernetes client configuration
-    config.load_kube_config()
+    initialize_cluster_configuration()
     v1 = client.CoreV1Api()
     node_list = v1.list_node().items
 
