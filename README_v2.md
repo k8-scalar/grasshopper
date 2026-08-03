@@ -95,11 +95,12 @@ no fallback - it must have its own entry.
 
 Never put the real JSON on a command line (it'll land in shell history) and
 never commit it. Build it in a local file that's `.gitignore`d, then create
-the Secret from that file:
+the Secret from that file, in the `kube-system` namespace (see below for why):
 
 ```bash
 # projects.json - keep this OUTSIDE the repo, or make sure it's gitignored.
 kubectl create secret generic grasshopper-openstack-creds \
+  -n kube-system \
   --from-file=OS_PROJECTS_JSON=./projects.json
 ```
 
@@ -107,6 +108,22 @@ The Deployment/Pod spec picks it up exactly like the single-project case,
 via `envFrom.secretRef` (see `Deployment/pods/grasshopper-operator-PNS.yaml`) -
 no manifest changes needed, since it's the same Secret name, just with a
 different key populated.
+
+### Where Grasshopper itself runs - control-plane node only
+
+`grasshopper-operator-PNS.yaml` schedules the pod onto the control-plane node
+specifically (`nodeSelector: node-role.kubernetes.io/control-plane: ""`, with
+a matching `toleration` for the usual control-plane taint), in the
+`kube-system` namespace - it is **not** meant to run on an arbitrary worker.
+
+This is deliberate, not incidental: a Kubernetes Secret's data is only ever
+fetched and materialized (as env vars, in this case) by the kubelet on
+whichever node the pod actually lands on. In a multi-domain cluster, worker
+nodes can belong to any of several OpenStack projects, and none of them
+should ever see any project's credentials - only the control-plane node
+should. Pinning Grasshopper there means `OS_PROJECTS_JSON` is never fetched
+by, or visible to, any worker node's kubelet, regardless of which project(s)
+it belongs to.
 
 Delete your local `projects.json` once the Secret is created if you don't
 need it again - `kubectl get secret ... -o yaml` will show you the (base64,

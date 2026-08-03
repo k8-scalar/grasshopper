@@ -1,16 +1,26 @@
 # Deploys Grasshopper itself as a real Pod for manual multi-domain testing.
-# Adjust the three marked fields for your own cluster/image/registry before
+# Adjust the marked fields for your own cluster/image/registry before
 # applying - see ../README.md for the full step-by-step.
 apiVersion: v1
 kind: Pod
 metadata:
   name: grasshopper-multidomain-test
-  namespace: default
+  namespace: kube-system
   labels:
     app: grasshopper-multidomain-test
 spec:
   serviceAccountName: grasshopper-sa
-  nodeName: micro-worker-1  # <-- any node is fine; the pod itself just needs network access to the k8s API and OpenStack
+  # Control-plane node only - the OpenStack credentials (OS_PROJECTS_JSON)
+  # must never be materialized on a worker node's kubelet.
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    - key: "node.kubernetes.io/disk-pressure"
+      operator: "Exists"
+      effect: "NoSchedule"
   containers:
     - name: grasshopper
       image: decomads/grasshopper:multi-domain-test  # <-- your built/pushed image (see ../README.md step 3)

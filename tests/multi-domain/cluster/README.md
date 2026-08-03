@@ -49,22 +49,33 @@ section, with a `"key"` per project matching the labels from step 1. Then:
 
 ```bash
 kubectl create secret generic grasshopper-openstack-creds \
+  -n kube-system \
   --from-file=OS_PROJECTS_JSON=./projects.json
 ```
 
 Never put the JSON directly on a command line - it'll end up in shell
 history. `--from-file` keeps the secret's content out of your terminal
-entirely.
+entirely. The Secret lives in `kube-system`, the same namespace as the pod -
+see the note on node/namespace placement below for why.
 
 ## 4. Deploy Grasshopper
 
-Edit `deploy-test-pod.yaml`'s three marked fields (target node, your image,
-the encapsulation flag if you need it), then:
+`deploy-test-pod.yaml` runs Grasshopper in the `kube-system` namespace,
+scheduled onto the control-plane node only (`nodeSelector` +
+`tolerations` in the manifest) - **not** an arbitrary worker node. This is
+deliberate: a pod's Secret data is only ever fetched/materialized by the
+kubelet on whichever node the pod actually lands on, so pinning Grasshopper
+to the control-plane node means the `OS_PROJECTS_JSON` credentials are never
+present on any worker node's kubelet, regardless of which project(s) those
+workers belong to.
+
+Edit `deploy-test-pod.yaml`'s remaining marked fields (your image, the
+encapsulation flag if you need it), then:
 
 ```bash
 kubectl apply -f deploy-test-pod.yaml
-kubectl wait --for=condition=Ready pod/grasshopper-multidomain-test -n default --timeout=120s
-kubectl logs grasshopper-multidomain-test -n default | grep -iE "error|traceback|Finished checking"
+kubectl wait --for=condition=Ready pod/grasshopper-multidomain-test -n kube-system --timeout=120s
+kubectl logs grasshopper-multidomain-test -n kube-system | grep -iE "error|traceback|Finished checking"
 ```
 
 You want to see `Finished checking SGs` and nothing under `error`/`traceback`.
@@ -104,7 +115,7 @@ openstack --os-cloud <project-B-cloud> security group rule list SG_<database-nod
 
 ```bash
 kubectl delete namespace gh-multidomain-thorough
-kubectl logs grasshopper-multidomain-test -n default --tail=50 | grep -iE "handle_removed"
+kubectl logs grasshopper-multidomain-test -n kube-system --tail=50 | grep -iE "handle_removed"
 ```
 
 All `handle_removed_pod`/`handle_removed_policy` handlers should say
@@ -114,8 +125,8 @@ step 5 - every rule should now be gone.
 ## 7. Clean up
 
 ```bash
-kubectl delete pod grasshopper-multidomain-test -n default
-kubectl delete secret grasshopper-openstack-creds
+kubectl delete pod grasshopper-multidomain-test -n kube-system
+kubectl delete secret grasshopper-openstack-creds -n kube-system
 ```
 
 Per-node security groups created along the way are harmless to leave (they're
