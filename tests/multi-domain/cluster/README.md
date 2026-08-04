@@ -111,6 +111,15 @@ openstack --os-cloud <project-A-cloud> security group rule list SG_<backend-node
 openstack --os-cloud <project-B-cloud> security group rule list SG_<database-node> -f value
 ```
 
+Then confirm actual reachability matches what the NetworkPolicies allow -
+`test-connectivity.sh` looks up the three pods' IPs live and checks
+frontend->backend and backend->database both succeed, and frontend->database
+is blocked:
+
+```bash
+./test-connectivity.sh
+```
+
 ## 6. Verify removal
 
 ```bash
