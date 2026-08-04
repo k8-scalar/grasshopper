@@ -74,6 +74,18 @@ MASTER_SG_RULES = [
         "remote_group_id": None,
         "remote_ip_prefix": None,
     },  # Cluster management to workerSG
+    {
+        "direction": "egress",
+        "protocol": "udp",
+        "port_range_min": 4789,
+        "port_range_max": 4789,
+        "remote_group_id": None,
+        "remote_ip_prefix": None,
+    },  # VXLAN to workerSG - Calico encapsulates pod-sourced traffic even
+        # when its real destination is a raw control-plane port (kubelet's
+        # OWN host-network traffic is unaffected, but any regular POD - e.g.
+        # an operator calling the API server - has its packets VXLAN-wrapped
+        # before they leave the node, which the raw-port rules above can't see)
     # Ingress rules for masterSG
     {
         "direction": "ingress",
@@ -138,6 +150,13 @@ MASTER_SG_RULES = [
         "port_range_max": 179,
         "remote_group_id": None,
     },  # BGP protocol from workerSG
+    {
+        "direction": "ingress",
+        "protocol": "udp",
+        "port_range_min": 4789,
+        "port_range_max": 4789,
+        "remote_group_id": None,
+    },  # VXLAN from workerSG
 ]
 
 WORKER_SG_RULES = [
@@ -213,6 +232,14 @@ WORKER_SG_RULES = [
         "port_range_max": 179,
         "remote_group_id": None,
     },  # BGP protocol to masterSG
+    {
+        "direction": "egress",
+        "protocol": "udp",
+        "port_range_min": 4789,
+        "port_range_max": 4789,
+        "remote_group_id": None,
+    },  # VXLAN to masterSG - see the matching rule in MASTER_SG_RULES for why
+        # this is needed even though the other rules here use masterSG's real ports
     # Ingress rules for workerSG
     {
         "direction": "ingress",
@@ -242,6 +269,13 @@ WORKER_SG_RULES = [
         "port_range_max": 53,
         "remote_group_id": None,
     },  # DNS UDP from workerSG
+    {
+        "direction": "ingress",
+        "protocol": "udp",
+        "port_range_min": 4789,
+        "port_range_max": 4789,
+        "remote_group_id": None,
+    },  # VXLAN from masterSG
 ]
 
 
@@ -267,9 +301,14 @@ def create_master_and_workerSG():
       - Same-project master<->worker rules keep using remote_group_id,
         unchanged from the single-project case.
       - Cross-project master<->worker rules use CIDR of each individual peer
-        node's real IP instead (control-plane services listen on the node's
-        own network stack, not a Calico pod overlay, so no VXLAN/encapsulation
-        concern applies here - this is a plain node-to-node CIDR rule).
+        node's real IP instead - the raw-port rules above are for
+        control-plane services that talk over the node's own network stack
+        (kubelet's own traffic bypasses Calico entirely), but a regular POD
+        on either side (e.g. an operator calling the API server) has its
+        packets VXLAN-encapsulated by Calico before they leave the node
+        regardless of the real destination port - hence the extra UDP/4789
+        rule in both MASTER_SG_RULES and WORKER_SG_RULES, needed on top of
+        the raw ports, not instead of them.
     """
     # Kubernetes client configuration
     initialize_cluster_configuration()
