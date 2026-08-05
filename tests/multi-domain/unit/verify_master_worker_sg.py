@@ -134,5 +134,25 @@ check("cross-project rules never set remote_group_id to a foreign-project SG id"
 cross_rules_on_worker_b = [r for r in created_rules if r[0] == PROJ_B and r[1] == created_sgs[(PROJ_B, "workerSG")]["id"] and r[6] == "10.0.1.1/32"]
 check("cross-project rules on workerSG (proj-b) use CIDR of the proj-a master's IP", len(cross_rules_on_worker_b) > 0)
 
+# VXLAN (udp/4789) rule-shape table: unconditional cross-project, toggle-gated same-project.
+cross_rules_vxlan = [r for r in cross_rules_on_master if r[3] == "udp" and r[4] == 4789]
+check("cross-project masterSG gets the VXLAN rule unconditionally (toggle still default/native)", len(cross_rules_vxlan) > 0)
+
+worker_a_sg_id = created_sgs[(PROJ_A, "workerSG")]["id"]
+same_project_vxlan_before = [r for r in same_project_rules if r[3] == "udp" and r[4] == 4789 and r[5] == worker_a_sg_id]
+check("same-project masterSG does NOT get the VXLAN rule while toggle is native (default)", len(same_project_vxlan_before) == 0)
+
+import network_mode
+network_mode.configure(network_mode.ENCAPSULATION_VXLAN, 4789)
+with mock.patch.object(OpenStackClient, "for_project", side_effect=fake_for_project), \
+     mock.patch("kubernetes.config.load_kube_config"), \
+     mock.patch("kubernetes.client.CoreV1Api") as MockCoreV1:
+    MockCoreV1.return_value.list_node.return_value = types.SimpleNamespace(items=nodes)
+    cmw.create_master_and_workerSG()
+
+same_project_rules_after = [r for r in created_rules if r[0] == PROJ_A and r[1] == created_sgs[(PROJ_A, "masterSG")]["id"]]
+same_project_vxlan_after = [r for r in same_project_rules_after if r[3] == "udp" and r[4] == 4789 and r[5] == created_sgs[(PROJ_A, "workerSG")]["id"]]
+check("same-project masterSG DOES get the VXLAN rule once toggle is set to vxlan", len(same_project_vxlan_after) > 0)
+
 
 report_and_exit()

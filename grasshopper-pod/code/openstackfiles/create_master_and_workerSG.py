@@ -8,6 +8,7 @@ from openstackfiles.security_group_operations import (
     attach_security_group_to_instance,
     create_security_group_if_not_exists,
 )
+import network_mode
 
 
 def initialize_cluster_configuration():
@@ -74,18 +75,6 @@ MASTER_SG_RULES = [
         "remote_group_id": None,
         "remote_ip_prefix": None,
     },  # Cluster management to workerSG
-    {
-        "direction": "egress",
-        "protocol": "udp",
-        "port_range_min": 4789,
-        "port_range_max": 4789,
-        "remote_group_id": None,
-        "remote_ip_prefix": None,
-    },  # VXLAN to workerSG - Calico encapsulates pod-sourced traffic even
-        # when its real destination is a raw control-plane port (kubelet's
-        # OWN host-network traffic is unaffected, but any regular POD - e.g.
-        # an operator calling the API server - has its packets VXLAN-wrapped
-        # before they leave the node, which the raw-port rules above can't see)
     # Ingress rules for masterSG
     {
         "direction": "ingress",
@@ -150,13 +139,6 @@ MASTER_SG_RULES = [
         "port_range_max": 179,
         "remote_group_id": None,
     },  # BGP protocol from workerSG
-    {
-        "direction": "ingress",
-        "protocol": "udp",
-        "port_range_min": 4789,
-        "port_range_max": 4789,
-        "remote_group_id": None,
-    },  # VXLAN from workerSG
 ]
 
 WORKER_SG_RULES = [
@@ -241,14 +223,6 @@ WORKER_SG_RULES = [
         "port_range_max": 179,
         "remote_group_id": None,
     },  # BGP protocol to masterSG
-    {
-        "direction": "egress",
-        "protocol": "udp",
-        "port_range_min": 4789,
-        "port_range_max": 4789,
-        "remote_group_id": None,
-    },  # VXLAN to masterSG - see the matching rule in MASTER_SG_RULES for why
-        # this is needed even though the other rules here use masterSG's real ports
     # Ingress rules for workerSG
     {
         "direction": "ingress",
@@ -278,13 +252,6 @@ WORKER_SG_RULES = [
         "port_range_max": 53,
         "remote_group_id": None,
     },  # DNS UDP from masterSG
-    {
-        "direction": "ingress",
-        "protocol": "udp",
-        "port_range_min": 4789,
-        "port_range_max": 4789,
-        "remote_group_id": None,
-    },  # VXLAN from masterSG
 ]
 
 
@@ -315,14 +282,40 @@ def create_master_and_workerSG():
         (kubelet's own traffic bypasses Calico entirely), but a regular POD
         on either side (e.g. an operator calling the API server) has its
         packets VXLAN-encapsulated by Calico before they leave the node
-        regardless of the real destination port - hence the extra UDP/4789
-        rule in both MASTER_SG_RULES and WORKER_SG_RULES, needed on top of
-        the raw ports, not instead of them.
+        regardless of the real destination port. So on top of the raw
+        ports above (not instead of them), a VXLAN rule is also needed:
+        unconditionally for cross-project pairs (crossing a project boundary
+        always requires VXLAN, same as the dynamic per-pod rules - see
+        network_mode.py), and only for same-project pairs when the operator's
+        --intra-project-encapsulation toggle is "vxlan" (if this cluster's
+        Calico uses native routing within a project, same-project master<->
+        worker pod traffic isn't encapsulated either, so the rule would be
+        unnecessary there).
     """
     # Kubernetes client configuration
     initialize_cluster_configuration()
     v1 = client.CoreV1Api()
     node_list = v1.list_node().items
+
+    # Built fresh on every call (not a module-level constant) so this always
+    # reflects the live --vxlan-port value set via network_mode.configure(),
+    # not whatever it was at import time.
+    vxlan_rules = [
+        {
+            "direction": "egress",
+            "protocol": "udp",
+            "port_range_min": network_mode.vxlan_port,
+            "port_range_max": network_mode.vxlan_port,
+            "remote_group_id": None,
+        },
+        {
+            "direction": "ingress",
+            "protocol": "udp",
+            "port_range_min": network_mode.vxlan_port,
+            "port_range_max": network_mode.vxlan_port,
+            "remote_group_id": None,
+        },
+    ]
 
     # Group nodes by (project, role).
     masters_by_project = {}
@@ -368,11 +361,17 @@ def create_master_and_workerSG():
             if master_project == worker_project:
                 add_rules_to_security_group(master_sg["id"], MASTER_SG_RULES, worker_sg["id"], project_key=master_project)
                 add_rules_to_security_group(worker_sg["id"], WORKER_SG_RULES, master_sg["id"], project_key=worker_project)
+                if network_mode.intra_project_encapsulation == network_mode.ENCAPSULATION_VXLAN:
+                    add_rules_to_security_group(master_sg["id"], vxlan_rules, worker_sg["id"], project_key=master_project)
+                    add_rules_to_security_group(worker_sg["id"], vxlan_rules, master_sg["id"], project_key=worker_project)
             else:
                 master_ips = [f"{ip}/32" for _, ip in masters if ip]
                 worker_ips = [f"{ip}/32" for _, ip in workers if ip]
                 add_cidr_rules_to_security_group(master_sg["id"], MASTER_SG_RULES, worker_ips, project_key=master_project)
                 add_cidr_rules_to_security_group(worker_sg["id"], WORKER_SG_RULES, master_ips, project_key=worker_project)
+                # Cross-project always needs VXLAN, unconditionally - no toggle check.
+                add_cidr_rules_to_security_group(master_sg["id"], vxlan_rules, worker_ips, project_key=master_project)
+                add_cidr_rules_to_security_group(worker_sg["id"], vxlan_rules, master_ips, project_key=worker_project)
 
     print(
         "Security groups successfully created, rules added, and attached to Kubernetes nodes."
