@@ -223,6 +223,16 @@ WORKER_SG_RULES = [
         "port_range_max": 179,
         "remote_group_id": None,
     },  # BGP protocol to masterSG
+    {
+        "direction": "egress",
+        "protocol": "tcp",
+        "port_range_min": 5473,
+        "port_range_max": 5473,
+        "remote_group_id": None,
+        "remote_ip_prefix": "0.0.0.0/0",
+    },  # Typha to all - Felix (calico-node) on every node needs this
+        # regardless of where Typha is currently scheduled; matches the
+        # SSH/DNS "to all" pattern since Typha's node can change
     # Ingress rules for workerSG
     {
         "direction": "ingress",
