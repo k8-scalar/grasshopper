@@ -104,12 +104,17 @@ class Policy:
     def get_string_repr(self):
         labelsets = {self.sel}
         labelsets.update([rule[0] for rule in self.allow])
-        labelsets_sorted = sorted(list(labelsets), key= lambda x: x.get_string_repr())
+        # A CIDR peer (ipBlock) has no get_string_repr() - fall back to str() for it.
+        reprs = sorted(ls.get_string_repr() if isinstance(ls, LabelSet) else str(ls) for ls in labelsets)
 
-        return ",".join([ls.get_string_repr() for ls in labelsets_sorted])
+        return ",".join(reprs)
 
     def get_involved_labelsets(self):
-        return [self.sel] + [ls for (ls, _) in self.allow]
+        # A CIDR peer (ipBlock) never gets a ClusterState.map entry - it's a
+        # static address block, not something concurrent pod/policy handling
+        # needs to serialize access to - so it needs no lock, unlike self.sel
+        # (always a LabelSet) and any LabelSet-typed allow peer.
+        return [self.sel] + [ls for (ls, _) in self.allow if isinstance(ls, LabelSet)]
 
     def __eq__(self, other):
         if not isinstance(other, Policy):

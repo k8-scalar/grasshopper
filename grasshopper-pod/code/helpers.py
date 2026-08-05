@@ -67,14 +67,25 @@ def other_policy_provides_traffic(excluded_pol: Policy, traffic: Traffic, n: Nod
     excluded_pol still the (unique) governing policy" via traffic_pols would
     always spuriously fail, misreporting "something else needs this" instead of
     correctly recognizing "nothing does anymore".
+
+    m is None when excluded_pol's own peer is a CIDR (ipBlock) - a CIDR target
+    has no single matched Node to pass as m. In that case, only another
+    CIDR-peer policy targeting the exact same CIDR can justify keeping the
+    connection; a LabelSet-peer policy has no real m here to compare against.
     """
     for pol in ClusterState().get_policies():
         if pol == excluded_pol:
             continue
-        if isinstance(pol.allow[0][0], CIDR):
-            continue
         if pol.allow[0][1] != traffic:
             continue
-        if running(pol.sel, n) and running(pol.allow[0][0], m):
+        if not running(pol.sel, n):
+            continue
+        target = pol.allow[0][0]
+        if isinstance(target, CIDR):
+            if m is None and target == excluded_pol.allow[0][0]:
+                return True
+            continue
+        if m is not None and running(target, m):
             return True
+    return False
     return False

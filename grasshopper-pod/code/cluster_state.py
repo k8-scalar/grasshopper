@@ -168,10 +168,13 @@ class ClusterState:
 
     @staticmethod
     def get_labelsets_string(labelsets: set[LabelSet]):
+        # Purely a diagnostic string for logging - labelsets can also contain
+        # CIDR entries (an ipBlock policy peer), which don't have get_string_repr(),
+        # so use str() uniformly rather than assuming every entry is a LabelSet.
         labelsets_string = ""
         for l in labelsets:
-            labelsets_string += l.get_string_repr() + ", "
-        
+            labelsets_string += str(l) + ", "
+
         return labelsets_string
 
     @staticmethod

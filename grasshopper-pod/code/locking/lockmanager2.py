@@ -47,19 +47,22 @@ class LockManager:
 
     def lock_labelsets(self, labelsets: list):
         """
-        Context manager to lock a list of LabelSets.
+        Context manager to lock a list of LabelSets. A CIDR peer (ipBlock) may
+        also appear in this list - it never gets a ClusterState.map entry, so
+        it needs no lock and is skipped rather than given a lock key.
         """
-        lock_keys = [ls.get_string_repr() for ls in labelsets]
+        lock_keys = [ls.get_string_repr() for ls in labelsets if hasattr(ls, "get_string_repr")]
         return LockManager().acquire_multiple(lock_keys)
 
 
     def lock_policy(self, policy):
         """
         Context manager to lock all LabelSets involved in a Policy.
-        This includes the select LabelSet and all allowed LabelSets.
+        This includes the select LabelSet and all allowed LabelSets (skipping
+        any CIDR/ipBlock allow-peer, which needs no lock - see lock_labelsets).
         """
         labelsets = [policy.sel] + [ls for (ls, _) in policy.allow]
-        lock_keys = [ls.get_string_repr() for ls in labelsets]
+        lock_keys = [ls.get_string_repr() for ls in labelsets if hasattr(ls, "get_string_repr")]
         return LockManager().acquire_multiple(lock_keys)
 
 
@@ -67,12 +70,12 @@ class LockManager:
         """
         Context manager to lock all LabelSets involved in multiple Policies.
         All select and allow LabelSets are collected and locked in a globally sorted manner.
-        This prevents deadlocks.
+        This prevents deadlocks. Any CIDR/ipBlock allow-peer is skipped - see lock_labelsets.
         """
         labelsets = []
         for policy in policies:
             labelsets.append(policy.sel)
             labelsets.extend([ls for (ls, _) in policy.allow])
 
-        lock_keys = [ls.get_string_repr() for ls in labelsets]
+        lock_keys = [ls.get_string_repr() for ls in labelsets if hasattr(ls, "get_string_repr")]
         return LockManager().acquire_multiple(lock_keys)

@@ -88,32 +88,36 @@ class SecurityGroupModulePNS(SecurityGroupModule):
 
     @staticmethod
     def SG_add_conn(pol: Policy, n: Node, m: Node) -> None:
+        # m is None when pol's peer is a CIDR (ipBlock) - there's no single
+        # matched Node for a fixed address block, so rule_from() below uses
+        # pol.allow[0][0] (the CIDR itself) as the target instead of m.
+        m_desc = m.name if m is not None else pol.allow[0][0]
         if n == m:
             print(f"SGMod: Cannot add connection from {n.name} to itself in PNS mode.")
             return
-        print(f"SGMod: Adding connection from {n.name} to {m.name}")
+        print(f"SGMod: Adding connection from {n.name} to {m_desc}")
         rule: Rule = SecurityGroupModulePNS.rule_from(pol, n, m)
         if rule not in SecurityGroupModulePNS.SGn(n).remotes:
             SecurityGroupModule.add_rule_to_remotes(SecurityGroupModulePNS.SGn(n), rule)
 
     @staticmethod
     def SG_remove_conn(pol: Policy, n: Node, m: Node) -> None:
-        print(f"SGMod: Removing connection from {n.name} to {m.name}")
-        if not isinstance(pol.allow[0][0], CIDR):
-            # Removal is usually triggered by the very pod that made pol match
-            # in the first place (already gone from ClusterState by now), so
-            # pol's own selector will typically no longer be "running" on n -
-            # that's expected, not a reason to skip removal. Only skip if some
-            # OTHER policy still needs this exact connection.
-            if other_policy_provides_traffic(pol, pol.allow[0][1], n, m):
-                print(
-                    f"SGMod: another policy still requires traffic from node {n.name} to node {m.name}"
-                )
-                return
-            SecurityGroupModule.remove_rule_from_remotes(
-                SecurityGroupModulePNS.SGn(n), SecurityGroupModulePNS.rule_from(pol, n, m)
+        m_desc = m.name if m is not None else pol.allow[0][0]
+        print(f"SGMod: Removing connection from {n.name} to {m_desc}")
+        # Removal is usually triggered by the very pod that made pol match
+        # in the first place (already gone from ClusterState by now), so
+        # pol's own selector will typically no longer be "running" on n -
+        # that's expected, not a reason to skip removal. Only skip if some
+        # OTHER policy still needs this exact connection.
+        if other_policy_provides_traffic(pol, pol.allow[0][1], n, m):
+            print(
+                f"SGMod: another policy still requires traffic from node {n.name} to {m_desc}"
             )
-            print(f"SGMod: removed rule from {SecurityGroupModulePNS.SGn(n).name}")
+            return
+        SecurityGroupModule.remove_rule_from_remotes(
+            SecurityGroupModulePNS.SGn(n), SecurityGroupModulePNS.rule_from(pol, n, m)
+        )
+        print(f"SGMod: removed rule from {SecurityGroupModulePNS.SGn(n).name}")
 
     @staticmethod
     def rule_from(pol: Policy, n: Node, m: Node) -> Rule:
