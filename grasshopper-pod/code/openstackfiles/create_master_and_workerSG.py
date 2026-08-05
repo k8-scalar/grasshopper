@@ -184,6 +184,15 @@ WORKER_SG_RULES = [
     },  # DNS to masterSG
     {
         "direction": "egress",
+        "protocol": "udp",
+        "port_range_min": 53,
+        "port_range_max": 53,
+        "remote_group_id": None,
+        "remote_ip_prefix": "0.0.0.0/0",
+    },  # DNS UDP to all - matches masterSG's own "to all" rule, so a worker
+        # can reach an external resolver directly, not just relay through masterSG
+    {
+        "direction": "egress",
         "protocol": "tcp",
         "port_range_min": 9053,
         "port_range_max": 9053,
@@ -268,7 +277,7 @@ WORKER_SG_RULES = [
         "port_range_min": 53,
         "port_range_max": 53,
         "remote_group_id": None,
-    },  # DNS UDP from workerSG
+    },  # DNS UDP from masterSG
     {
         "direction": "ingress",
         "protocol": "udp",
