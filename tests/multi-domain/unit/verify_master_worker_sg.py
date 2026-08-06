@@ -134,6 +134,35 @@ check("cross-project rules never set remote_group_id to a foreign-project SG id"
 cross_rules_on_worker_b = [r for r in created_rules if r[0] == PROJ_B and r[1] == created_sgs[(PROJ_B, "workerSG")]["id"] and r[6] == "10.0.1.1/32"]
 check("cross-project rules on workerSG (proj-b) use CIDR of the proj-a master's IP", len(cross_rules_on_worker_b) > 0)
 
+# BGP (179) must be bidirectional on every side - unlike the client-server ports
+# (6443, 10250, etc.) which only ever need the one direction that matches
+# which side initiates, either side of a BGP session may dial the other.
+# Confirmed live: under Route Reflector mode, a one-directional 179 rule left
+# Felix/BIRD unable to establish its peer session with the reflector.
+def has_179(rules, direction, remote_group=None, remote_ip=None):
+    return any(
+        r[3] == "tcp" and r[4] == 179 and r[2] == direction
+        and (remote_group is None or r[5] == remote_group)
+        and (remote_ip is None or r[6] == remote_ip)
+        for r in rules
+    )
+
+worker_a_id = created_sgs[(PROJ_A, "workerSG")]["id"]
+master_a_id = created_sgs[(PROJ_A, "masterSG")]["id"]
+check("masterSG has BOTH egress and ingress 179 to/from same-project workerSG",
+      has_179(same_project_rules, "egress", remote_group=worker_a_id) and has_179(same_project_rules, "ingress", remote_group=worker_a_id))
+
+worker_a_rules = [r for r in created_rules if r[0] == PROJ_A and r[1] == worker_a_id]
+check("workerSG (proj-a) has BOTH egress and ingress 179 to/from masterSG",
+      has_179(worker_a_rules, "egress", remote_group=master_a_id) and has_179(worker_a_rules, "ingress", remote_group=master_a_id))
+
+check("cross-project masterSG has BOTH egress and ingress 179 via CIDR to proj-b workers",
+      has_179(cross_rules_on_master, "egress") and has_179(cross_rules_on_master, "ingress"))
+
+worker_b_rules = [r for r in created_rules if r[0] == PROJ_B and r[1] == created_sgs[(PROJ_B, "workerSG")]["id"]]
+check("cross-project workerSG (proj-b) has BOTH egress and ingress 179 via CIDR to/from proj-a master",
+      has_179(worker_b_rules, "egress", remote_ip="10.0.1.1/32") and has_179(worker_b_rules, "ingress", remote_ip="10.0.1.1/32"))
+
 # VXLAN (udp/4789) rule-shape table: unconditional cross-project, toggle-gated same-project.
 cross_rules_vxlan = [r for r in cross_rules_on_master if r[3] == "udp" and r[4] == 4789]
 check("cross-project masterSG gets the VXLAN rule unconditionally (toggle still default/native)", len(cross_rules_vxlan) > 0)

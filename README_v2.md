@@ -178,6 +178,48 @@ peer node's real IP (control-plane services listen on the node's own network
 stack, not a Calico pod overlay, so this doesn't need VXLAN handling the way
 the dynamic per-pod rules do).
 
+### BGP (179) requires Calico Route Reflector mode
+
+Every other port here is master↔worker only because that's genuinely all
+that's needed - but Calico's *default* BGP topology is a full node-to-node
+mesh (`nodeToNodeMeshEnabled: true`, the default whenever no
+`BGPConfiguration` exists), which needs 179 open between **every** node pair,
+not just master↔worker. This script does not provide that - confirmed live,
+running it under the default mesh left Felix/BIRD unable to establish most
+of its peer sessions once `default` was detached.
+
+Instead, this branch assumes Calico is configured for **Route Reflector**
+mode with the control-plane node as the (sole) reflector:
+
+```bash
+kubectl label node <control-plane-node> route-reflector=true
+kubectl annotate node <control-plane-node> projectcalico.org/RouteReflectorClusterID=224.0.0.1
+```
+
+```yaml
+apiVersion: projectcalico.org/v3
+kind: BGPConfiguration
+metadata:
+  name: default
+spec:
+  nodeToNodeMeshEnabled: false
+---
+apiVersion: projectcalico.org/v3
+kind: BGPPeer
+metadata:
+  name: nodes-to-rr
+spec:
+  nodeSelector: route-reflector != 'true'
+  peerSelector: route-reflector == 'true'
+```
+
+Under that topology every node's only BGP peer is the control-plane node, so
+the master↔worker-only rule shape already used for every other port is
+correct here too - no worker↔worker rule exists anywhere in this file, and
+none is needed. If your cluster is (or needs to stay) in the default
+full-mesh mode instead, 179 needs to be open between every node pair, which
+this bootstrap script does not set up.
+
 ## 5. Deploy Grasshopper
 
 Same as the single-project case (see main README) - build/push the image,
@@ -240,3 +282,7 @@ inner pod-to-pod packet's real port. That's why:
   correctly, but relies on the fix in this branch for a specific pod/policy
   removal ordering bug - make sure you're running a build that includes it
   (commit `09a84c4` or later on this branch).
+- The BGP (179) rules assume Calico is running in Route Reflector mode with
+  the control-plane node as the reflector - see the note in step 4 above.
+  Under Calico's default full node-to-node mesh, this bootstrap script does
+  not open the worker↔worker 179 connectivity that mode requires.

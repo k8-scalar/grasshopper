@@ -139,6 +139,15 @@ MASTER_SG_RULES = [
         "port_range_max": 179,
         "remote_group_id": None,
     },  # BGP protocol from workerSG
+    {
+        "direction": "egress",
+        "protocol": "tcp",
+        "port_range_min": 179,
+        "port_range_max": 179,
+        "remote_group_id": None,
+    },  # BGP protocol to workerSG - unlike the other ports above, BGP is
+        # peer-to-peer (either side can initiate the TCP handshake), so both
+        # directions are needed, not just worker-initiates-to-master.
 ]
 
 WORKER_SG_RULES = [
@@ -224,6 +233,14 @@ WORKER_SG_RULES = [
         "remote_group_id": None,
     },  # BGP protocol to masterSG
     {
+        "direction": "ingress",
+        "protocol": "tcp",
+        "port_range_min": 179,
+        "port_range_max": 179,
+        "remote_group_id": None,
+    },  # BGP protocol from masterSG - see the matching note in MASTER_SG_RULES:
+        # BGP is peer-to-peer, so both directions are needed here too.
+    {
         "direction": "egress",
         "protocol": "tcp",
         "port_range_min": 5473,
@@ -301,6 +318,22 @@ def create_master_and_workerSG():
         Calico uses native routing within a project, same-project master<->
         worker pod traffic isn't encapsulated either, so the rule would be
         unnecessary there).
+
+    BGP (179) assumes Calico is configured for Route Reflector mode with the
+    control-plane node as the (sole) reflector - i.e. a BGPConfiguration with
+    nodeToNodeMeshEnabled: false, and a BGPPeer scoping every regular node to
+    peer only with the reflector. Under that topology every node's BGP peer
+    is the master, so the same master<->worker-only rule shape already used
+    for every other port here is correct - there is no worker<->worker rule
+    anywhere in this file, and none is needed. This does NOT hold under
+    Calico's default full node-to-node mesh (nodeToNodeMeshEnabled: true,
+    the default whenever no BGPConfiguration exists) - that topology needs
+    every node to reach every other node on 179, which this bootstrap script
+    does not provide. Confirmed live: Felix/BIRD readiness depends on 179
+    working in whichever direction that node's BGP client actually dials, so
+    - unlike the client-server ports above, which only ever need the one
+    direction that matches which side always initiates - both directions
+    are wired here, since either side of a BGP session may initiate.
     """
     # Kubernetes client configuration
     initialize_cluster_configuration()
