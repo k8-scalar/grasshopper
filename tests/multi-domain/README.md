@@ -27,6 +27,8 @@ What each one covers:
 | `verify_removal_race_fix.py` | `SG_remove_conn`'s guard across every pod/policy removal ordering (including the exact one that used to leave stale rules), and that a genuinely different policy still correctly blocks removal |
 | `verify_master_worker_sg.py` | `create_master_and_workerSG()`: per-project `masterSG`/`workerSG`, same-project `remote_group_id`, cross-project CIDR, no cross-project attach attempts |
 | `verify_detach_default_sg.py` | `detach_defaultSG()`: same per-project resolution, no cross-project `nova.servers.find()` |
+| `verify_attach_default_sg.py` | `attach_defaultSG()`: same per-project resolution, mirrors `detach_defaultSG()` |
+| `verify_setup_gh_ordering.py` | `setup_gh()` attaches `default` before creating masterSG/workerSG, and never detaches it itself |
 
 ## `cluster/` - real OpenStack + Kubernetes cluster required
 

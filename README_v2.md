@@ -178,6 +178,31 @@ peer node's real IP (control-plane services listen on the node's own network
 stack, not a Calico pod overlay, so this doesn't need VXLAN handling the way
 the dynamic per-pod rules do).
 
+`setup_gh.py` also (re-)attaches `default` to every worker first, in case a
+previous Grasshopper deployment on this cluster already detached it - see the
+next section for why this matters, and note that `setup_gh.py` deliberately
+does **not** detach `default` itself anymore; that's now a separate, later
+step (step 6).
+
+### Why `default` has to stay on workers until step 6
+
+`workerSG`'s rules above are a fixed, static list. They do not - and cannot -
+include the dynamic, per-node ingress rules Grasshopper creates from whatever
+NetworkPolicies you apply (e.g. the Typha ipBlock policy - see the main
+README/your Calico install for why Typha needs one). Until Grasshopper is
+actually deployed and has processed those policies, a worker relying on only
+`workerSG` has no rule covering that traffic at all - `default` is what
+covers the gap in the meantime.
+
+Confirmed live, with a real connection probe (not just reading the code): with
+`default` removed from a worker and that worker's dynamic Typha-ingress rule
+also removed (simulating "Grasshopper hasn't processed the policy yet"), a
+**fresh** TCP connection to Typha's port timed out - not just an inference,
+an actual outage. Restoring either one restored the connection. So the order
+matters: `default` stays on workers through steps 4-5, and only comes off in
+step 6, once Grasshopper is confirmed running and the relevant policies are
+confirmed processed.
+
 ### BGP (179) requires Calico Route Reflector mode
 
 Every other port here is master↔worker only because that's genuinely all
@@ -225,6 +250,26 @@ this bootstrap script does not set up.
 Same as the single-project case (see main README) - build/push the image,
 apply `Deployment/rbac/grasshopper-rbac.yaml`, apply your Pod/Deployment spec
 with the args from step 3 and the Secret from step 2.
+
+Also apply whatever NetworkPolicies your Calico install needs to keep working
+without `default` - at minimum, a Typha ingress policy (Typha can land on any
+node, so Felix elsewhere needs a way to reach it; see your Calico install's
+own docs for the exact selector/port). Wait for Grasshopper's logs to confirm
+it actually processed the policy (a `handle_new_policy`/`Handler ... succeeded`
+line, not just that the policy object exists) before moving on to step 6.
+
+## 6. Detach `default` from workers
+
+Only now - Grasshopper running, the policies from step 5 confirmed processed -
+is it safe to remove the wide-open `default` rules workers no longer need:
+
+```bash
+python3 -c "from openstackfiles.detach_defaultSG import detach_defaultSG; detach_defaultSG()"
+```
+
+This is deliberately a separate step from `setup_gh.py` (step 4), not bundled
+into it - see "Why `default` has to stay on workers until step 6" above for
+why running this any earlier leaves a real gap, not just a theoretical one.
 
 ## How Grasshopper learns node IPs and builds CIDRs
 
@@ -286,3 +331,6 @@ inner pod-to-pod packet's real port. That's why:
   the control-plane node as the reflector - see the note in step 4 above.
   Under Calico's default full node-to-node mesh, this bootstrap script does
   not open the worker↔worker 179 connectivity that mode requires.
+- Detaching `default` from workers (step 6) is a manual step, run only after
+  you've confirmed Grasshopper is up and has processed the relevant
+  NetworkPolicies - there's no automated readiness check gating it.
