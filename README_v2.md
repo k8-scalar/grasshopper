@@ -181,27 +181,28 @@ the dynamic per-pod rules do).
 `setup_gh.py` also (re-)attaches `default` to every worker first, in case a
 previous Grasshopper deployment on this cluster already detached it - see the
 next section for why this matters, and note that `setup_gh.py` deliberately
-does **not** detach `default` itself anymore; that's now a separate, later
-step (step 6).
+does **not** detach `default` itself; Grasshopper does that on its own
+startup (step 6), not this script.
 
-### Why `default` has to stay on workers until step 6
+### Why `default` has to stay on workers until Grasshopper detaches it
 
 `workerSG`'s rules above are a fixed, static list. They do not - and cannot -
 include the dynamic, per-node ingress rules Grasshopper creates from whatever
 NetworkPolicies you apply (e.g. the Typha ipBlock policy - see the main
-README/your Calico install for why Typha needs one). Until Grasshopper is
-actually deployed and has processed those policies, a worker relying on only
-`workerSG` has no rule covering that traffic at all - `default` is what
-covers the gap in the meantime.
+README/your Calico install for why Typha needs one). Until Grasshopper has
+actually processed those policies, a worker relying on only `workerSG` has no
+rule covering that traffic at all - `default` is what covers the gap in the
+meantime.
 
 Confirmed live, with a real connection probe (not just reading the code): with
 `default` removed from a worker and that worker's dynamic Typha-ingress rule
 also removed (simulating "Grasshopper hasn't processed the policy yet"), a
 **fresh** TCP connection to Typha's port timed out - not just an inference,
 an actual outage. Restoring either one restored the connection. So the order
-matters: `default` stays on workers through steps 4-5, and only comes off in
-step 6, once Grasshopper is confirmed running and the relevant policies are
-confirmed processed.
+matters: `default` stays on workers through step 5, and Grasshopper itself is
+the only thing that takes it off, right after it's processed whatever
+NetworkPolicies already existed when it started (step 6) - which is exactly
+why step 5 has to happen first, not after.
 
 ### BGP (179) requires Calico Route Reflector mode
 
@@ -245,31 +246,33 @@ none is needed. If your cluster is (or needs to stay) in the default
 full-mesh mode instead, 179 needs to be open between every node pair, which
 this bootstrap script does not set up.
 
-## 5. Deploy Grasshopper
+## 5. Apply your bootstrap-critical NetworkPolicies - BEFORE deploying Grasshopper
+
+Apply whatever NetworkPolicies your Calico install needs to keep working once
+`default` is gone from workers - at minimum, a Typha ingress policy (Typha
+can land on any node, so Felix elsewhere needs a way to reach it; see your
+Calico install's own docs for the exact selector/port).
+
+This has to happen **before** step 6, not after: Grasshopper detaches
+`default` from workers itself, automatically, as the last thing it does on
+startup - see below - and it only knows about whatever NetworkPolicies
+already exist at that point. A policy applied after Grasshopper has already
+started and detached is still handled fine day-to-day (its `@kopf.on.create`
+handler fires normally, same as any live policy change), but it means a
+window where that traffic isn't open yet - fine for a regular policy, not
+what you want for something bootstrap-critical like Typha.
+
+## 6. Deploy Grasshopper
 
 Same as the single-project case (see main README) - build/push the image,
 apply `Deployment/rbac/grasshopper-rbac.yaml`, apply your Pod/Deployment spec
 with the args from step 3 and the Secret from step 2.
 
-Also apply whatever NetworkPolicies your Calico install needs to keep working
-without `default` - at minimum, a Typha ingress policy (Typha can land on any
-node, so Felix elsewhere needs a way to reach it; see your Calico install's
-own docs for the exact selector/port). Wait for Grasshopper's logs to confirm
-it actually processed the policy (a `handle_new_policy`/`Handler ... succeeded`
-line, not just that the policy object exists) before moving on to step 6.
-
-## 6. Detach `default` from workers
-
-Only now - Grasshopper running, the policies from step 5 confirmed processed -
-is it safe to remove the wide-open `default` rules workers no longer need:
-
-```bash
-python3 -c "from openstackfiles.detach_defaultSG import detach_defaultSG; detach_defaultSG()"
-```
-
-This is deliberately a separate step from `setup_gh.py` (step 4), not bundled
-into it - see "Why `default` has to stay on workers until step 6" above for
-why running this any earlier leaves a real gap, not just a theoretical one.
+On startup, Grasshopper processes every NetworkPolicy that already exists
+(the ones from step 5), then detaches `default` from every worker itself -
+no separate manual step needed. Check its logs to confirm both happened
+(`handle_new_policy`/`Handler ... succeeded` for each policy, then
+`detach_defaultSG` running) before treating the cluster as done.
 
 ## How Grasshopper learns node IPs and builds CIDRs
 
@@ -331,6 +334,7 @@ inner pod-to-pod packet's real port. That's why:
   the control-plane node as the reflector - see the note in step 4 above.
   Under Calico's default full node-to-node mesh, this bootstrap script does
   not open the worker↔worker 179 connectivity that mode requires.
-- Detaching `default` from workers (step 6) is a manual step, run only after
-  you've confirmed Grasshopper is up and has processed the relevant
-  NetworkPolicies - there's no automated readiness check gating it.
+- Grasshopper detaches `default` from workers itself on startup, right after
+  processing whatever NetworkPolicies already exist at that point (see step
+  5/6) - it has no way to know about a bootstrap-critical policy applied
+  *after* it has already started and detached. Apply those first.

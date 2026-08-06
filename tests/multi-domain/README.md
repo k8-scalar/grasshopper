@@ -29,6 +29,7 @@ What each one covers:
 | `verify_detach_default_sg.py` | `detach_defaultSG()`: same per-project resolution, no cross-project `nova.servers.find()` |
 | `verify_attach_default_sg.py` | `attach_defaultSG()`: same per-project resolution, mirrors `detach_defaultSG()` |
 | `verify_setup_gh_ordering.py` | `setup_gh()` attaches `default` before creating masterSG/workerSG, and never detaches it itself |
+| `verify_startup_detach_ordering.py` | `main_operator.py`'s `startup()`: processes every already-existing NetworkPolicy before calling `detach_defaultSG()` (PNS mode only - never detaches in PLS mode) |
 
 ## `cluster/` - real OpenStack + Kubernetes cluster required
 

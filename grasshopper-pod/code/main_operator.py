@@ -1,9 +1,11 @@
 import kopf
 import argparse
+import json
 import os
 from cluster_state import ClusterState
 from openstackfiles.create_sg_per_node import create_sg_per_node
-from kubernetes import config
+from openstackfiles.detach_defaultSG import detach_defaultSG
+from kubernetes import client, config
 from operator_code.watcher_operator import Watcher
 from watchdog import WatchDog
 import network_mode
@@ -57,6 +59,27 @@ def initialize_cluster_configuration():
     else:
         config.load_kube_config()
 
+def process_existing_network_policies():
+    """
+    Synchronously processes every NetworkPolicy that already exists at pod
+    startup, so that by the time detach_defaultSG() runs (right after this,
+    still inside startup()) every policy the operator needs to have reacted
+    to (e.g. a Typha ipBlock policy - see README_v2.md) already has its
+    dynamic per-node rule created. Reprocessing the same policy later via the
+    @kopf.on.resume handler below is harmless - WatchDog.handle_new_policy
+    already no-ops if the policy is already in ClusterState.
+
+    Uses the raw, unparsed API response (_preload_content=False) rather than
+    the typed client's .to_dict(): the typed client's dict form uses
+    snake_case field names (pod_selector, not podSelector), which
+    create_policy_from_policy_dict - written for kopf's raw camelCase JSON
+    body - wouldn't recognize.
+    """
+    resp = client.NetworkingV1Api().list_network_policy_for_all_namespaces(_preload_content=False)
+    for item in json.loads(resp.read())["items"]:
+        policy = Watcher.create_policy_from_policy_dict(item)
+        watchdog.handle_new_policy(policy)
+
 def startup():
     global MODE, watcher, watchdog
     args = parse_args()
@@ -91,6 +114,16 @@ def startup():
     # Create Watcher.
     watcher = Watcher(PNS_scenario=(MODE == "PNS"))
     watchdog = WatchDog(PNS_scenario=(MODE == "PNS"))
+
+    if MODE == "PNS":
+        # Process every already-existing NetworkPolicy before detaching
+        # "default" from workers - detaching any earlier leaves a real
+        # ingress gap for whatever traffic those policies were supposed to
+        # open (confirmed live - see README_v2.md). This means any
+        # bootstrap-critical NetworkPolicy (e.g. Typha's) must be applied
+        # BEFORE this pod is deployed, not after.
+        process_existing_network_policies()
+        detach_defaultSG()
 
 @kopf.on.startup()
 def startup_handler(settings: kopf.OperatorSettings, **kwargs):
