@@ -60,10 +60,14 @@ with mock.patch("kubernetes.config.load_kube_config"), \
      mock.patch("watchdog.WatchDog.__init__", return_value=None), \
      mock.patch("sys.argv", ["main_operator.py", "--mode", "PNS"]):
     import main_operator
-    main_operator.startup()
+    with mock.patch("main_operator.ensure_typha_networkpolicy", side_effect=lambda: calls.append("typha_policy")):
+        main_operator.startup()
 
+check("Typha policy was ensured", "typha_policy" in calls)
 check("existing policy was processed", "process:allow-typha-ingress-from-felix" in calls)
 check("detach_defaultSG ran", "detach" in calls)
+check("Typha policy ensured before processing existing policies",
+      calls.index("typha_policy") < calls.index("process:allow-typha-ingress-from-felix"))
 check("policy processed before detach", calls.index("process:allow-typha-ingress-from-felix") < calls.index("detach"))
 
 # PLS mode: startup() must not touch detach_defaultSG at all.
