@@ -285,7 +285,21 @@ class Rule:
         return False
 
     def __hash__(self):
-        return hash((self.id, self.target, self.traffic))
+        # Must NOT include self.id: __eq__ treats two rules as equal whenever
+        # (target, traffic) match, regardless of id (id-equality is just a
+        # redundant special case of that, since a real id uniquely implies a
+        # specific target+traffic anyway) - hashing on id too would violate
+        # the hash/eq contract (a == b but hash(a) != hash(b)) for the exact
+        # case this equality check exists to catch: a freshly-built Rule
+        # (id=None) that's value-equal to an already-created one (id set).
+        # Confirmed live: this let two independent policies sharing the same
+        # CIDR+port target both attempt to create the identical OpenStack
+        # rule, since `rule not in SG.remotes` hashed to the wrong bucket and
+        # never found the existing entry - Neutron then rejected the second
+        # attempt as a duplicate, and because ClusterState had already marked
+        # the pod/node as handled before that error, kopf's retry silently
+        # no-op'd instead of ever retrying the real work.
+        return hash((self.target, self.traffic))
 
 
 class MapEntry:

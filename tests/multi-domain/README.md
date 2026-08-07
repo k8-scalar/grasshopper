@@ -31,6 +31,7 @@ What each one covers:
 | `verify_setup_gh_ordering.py` | `setup_gh()` attaches `default` before creating masterSG/workerSG, and never detaches it itself |
 | `verify_startup_detach_ordering.py` | `main_operator.py`'s `startup()`: ensures the Typha policy, then processes every already-existing NetworkPolicy, then calls `detach_defaultSG()`, in that order (PNS mode only - never detaches in PLS mode) |
 | `verify_ensure_typha_networkpolicy.py` | `ensure_typha_networkpolicy()`: skips if no Typha pod found or a policy already exists (idempotent), otherwise creates one in Typha's actual discovered namespace with one `/32` ipBlock peer per known node IP |
+| `verify_rule_dedup_across_policies.py` | `Rule`'s hash/eq contract (a fresh id=None rule must hash equal to an already-created same-target-and-traffic rule), and that two independent policies/pods converging on the same CIDR target on one node never both attempt to create the identical OpenStack rule |
 
 ## `cluster/` - real OpenStack + Kubernetes cluster required
 
