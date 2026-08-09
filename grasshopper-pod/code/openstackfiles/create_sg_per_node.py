@@ -1,7 +1,7 @@
 import os
 from kubernetes import client, config
 
-from classes import node_project_from_labels, node_internal_ip_from_addresses
+from classes import node_project_from_labels, node_internal_ip_from_addresses, Node, SecurityGroup, Rule, Traffic
 from cluster_state import ClusterState
 from openstackfiles.openstack_client import OpenStackClient
 from openstackfiles.security_group_operations import (
@@ -51,11 +51,38 @@ def create_sg_per_node(delete_existing_rules=False):
 
             # Keep the ClusterState Node record's project/internal_ip in sync too,
             # in case this ran after cluster_state.py's own node population (both
-            # read the same label/address, this just guards against ordering).
+            # read the same label/address, this just guards against ordering) -
+            # or ADD it if it's not there at all yet, which happens when this runs
+            # from the node-create handler for a node that joined after startup.
             existing = ClusterState.get_node(node_name)
             if existing:
                 existing.project = node_project
                 existing.internal_ip = node_ip
+            else:
+                ClusterState.add_node(Node(name=node_name, project=node_project, internal_ip=node_ip))
+
+            # Likewise register this node's own SG in ClusterState if it isn't
+            # there yet - SGn() (security_group_module.py) reads only from
+            # ClusterState, never OpenStack directly, so without this a node
+            # that joins after startup would have its SG created/attached above
+            # but every NetworkPolicy rule involving it would still crash on a
+            # missing lookup. Only ADD - never overwrite an already-registered
+            # SG, since a live one may carry in-memory .remotes state from
+            # concurrently running policy/pod handlers that a naive resync here
+            # would race with and clobber.
+            if ClusterState.get_security_group(sg_name) is None:
+                # If rules were just deleted above, they're gone from OpenStack
+                # even though this stale dict still lists them - start empty.
+                rules_json = [] if delete_existing_rules else security_group.get("security_group_rules", [])
+                sg_obj = SecurityGroup(id=security_group["id"], name=sg_name, project=node_project)
+                sg_obj.remotes = {
+                    Rule(
+                        target=sg_obj,
+                        traffic=Traffic(direction=r["direction"], port=r["port_range_min"], protocol=r["protocol"]),
+                    )
+                    for r in rules_json
+                }
+                ClusterState.add_security_group(sg_obj)
         print("Finished checking SGs")
     else:
         print("No nodes found in the cluster.")

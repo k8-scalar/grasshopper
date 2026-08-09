@@ -196,6 +196,20 @@ def startup_handler(settings: kopf.OperatorSettings, **kwargs):
     logger.info(f"Starting Operator with {MAX_WORKERS} workers.")
     startup()
 
+# Handler for a worker/master node joining the cluster after Grasshopper has
+# already started. Existing-at-startup nodes are already handled once, in
+# full, by create_sg_per_node() inside startup() - deliberately no
+# @kopf.on.resume here too, that would just redo the same idempotent work a
+# second time for every node on every operator restart. PLS mode has no
+# per-node SGs (SecurityGroupModulePLS keys SGs by labelset, not by node), so
+# this is a no-op outside PNS mode.
+@kopf.on.create('v1', 'nodes')
+def handle_new_node(name, **kwargs):
+    if MODE != "PNS":
+        return
+    print(f"New node joined the cluster: {name} - creating its per-node SG.")
+    create_sg_per_node()
+
 @kopf.on.resume('v1', 'pods')
 def handle_existing_pod(body, name, namespace, **kwargs):
     node = body.get("spec", {}).get("nodeName")
