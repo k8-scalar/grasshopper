@@ -95,6 +95,11 @@ class SecurityGroupModulePNS(SecurityGroupModule):
         if n == m:
             print(f"SGMod: Cannot add connection from {n.name} to itself in PNS mode.")
             return
+        # m is None for a CIDR/ipBlock peer - not a cluster node, so segment
+        # isolation (defined over cluster node pairs) never applies to it.
+        if m is not None and ClusterState.is_isolated(n.name, m.name):
+            print(f"SGMod: Blocking connection from {n.name} to {m_desc} - segmentation policy isolates these nodes.")
+            return
         print(f"SGMod: Adding connection from {n.name} to {m_desc}")
         rule: Rule = SecurityGroupModulePNS.rule_from(pol, n, m)
         if rule not in SecurityGroupModulePNS.SGn(n).remotes:
@@ -159,7 +164,39 @@ class SecurityGroupModulePNS(SecurityGroupModule):
     @staticmethod
     def _vxlan_traffic(original: Traffic) -> Traffic:
         return Traffic(direction=original.direction, port=network_mode.vxlan_port, protocol="udp")
-        
+
+    @staticmethod
+    def revoke_rules_for_isolated_pairs(pairs: set) -> None:
+        """
+        Tears down any existing dynamic rule between each (n_name, m_name)
+        pair in `pairs` - a segmentation change must retroactively revoke
+        already-granted connectivity, not just gate future SG_add_conn calls
+        (see the ClusterState.is_isolated() check there). Checks BOTH
+        directions per pair (n's SG for a rule targeting m, and m's SG for a
+        rule targeting n), since which side actually holds the rule depends
+        on the NetworkPolicy's ingress/egress direction, not on which node in
+        the pair we happen to be looking at. Handles both same-project
+        (SecurityGroup target) and cross-project (CIDR-of-peer-node-IP
+        target) rule shapes, matching rule_from()'s own two shapes.
+        """
+        for n_name, m_name in pairs:
+            for a_name, b_name in ((n_name, m_name), (m_name, n_name)):
+                a_sg = ClusterState.get_security_group("SG_" + a_name)
+                if a_sg is None:
+                    continue
+                b_sg_name = "SG_" + b_name
+                b_node = ClusterState.get_node(b_name)
+                b_cidr = f"{b_node.internal_ip}/32" if b_node and b_node.internal_ip else None
+                for rule in list(a_sg.remotes):
+                    target = rule.target
+                    matches_b = (
+                        (isinstance(target, SecurityGroup) and target.name == b_sg_name)
+                        or (isinstance(target, CIDR) and b_cidr is not None and target.cidr == b_cidr)
+                    )
+                    if matches_b:
+                        print(f"SGMod: segmentation isolates {a_name} from {b_name} - revoking existing rule on {a_sg.name}")
+                        SecurityGroupModule.remove_rule_from_remotes(a_sg, rule)
+
 
 class SecurityGroupModulePLS(SecurityGroupModule):
     @staticmethod

@@ -18,13 +18,28 @@ rules:
 - apiGroups: [""]
   resources: ["events"]
   verbs: ["create", "patch"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
 - apiGroups: ["networking.k8s.io"]
   resources: ["networkpolicies"]
   verbs: ["get", "list", "watch", "patch", "create"]
 - apiGroups: ["apiextensions.k8s.io"]
   resources:
-    - customresourcedefinitions  
+    - customresourcedefinitions
   verbs: ["get", "list", "watch"]
+- apiGroups: ["nodesegmentationpolicy.diktyo.x-k8s.io"]
+  resources: ["nodesegmentationpolicies"]
+  # patch is needed even though our own handlers never call it - kopf itself
+  # writes its own progress-tracking annotations onto a resource it handles
+  # (same reason nodes/pods/namespaces/networkpolicies above all need it too).
+  verbs: ["get", "list", "watch", "patch"]
+- apiGroups: ["nodesegmentationpolicy.diktyo.x-k8s.io"]
+  resources: ["nodesegmentationpolicies/status"]
+  # This CRD declares a status subresource (subresources: status: {}), which
+  # makes it a SEPARATE RBAC resource from the one above - same reason
+  # pods/status has its own rule below.
+  verbs: ["patch"]
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1

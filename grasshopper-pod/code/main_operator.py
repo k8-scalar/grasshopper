@@ -5,6 +5,7 @@ import os
 from cluster_state import ClusterState
 from openstackfiles.create_sg_per_node import create_sg_per_node
 from openstackfiles.detach_defaultSG import detach_defaultSG
+from security_group_module import SecurityGroupModulePNS
 from kubernetes import client, config
 from operator_code.watcher_operator import Watcher
 from watchdog import WatchDog
@@ -209,6 +210,168 @@ def handle_new_node(name, **kwargs):
         return
     print(f"New node joined the cluster: {name} - creating its per-node SG.")
     create_sg_per_node()
+
+NSP_GROUP = "nodesegmentationpolicy.diktyo.x-k8s.io"
+NSP_VERSION = "v1alpha1"
+NSP_PLURAL = "nodesegmentationpolicies"
+
+CONNECTIVITY_CONFIGMAP_NAME = "grasshopper-connectivity"
+CONNECTIVITY_CONFIGMAP_NAMESPACE = "kube-system"
+
+
+def _node_isolated(node_segments: dict, isolated: bool, n: str, m: str) -> bool:
+    if not isolated:
+        return False
+    n_seg, m_seg = node_segments.get(n), node_segments.get(m)
+    return n_seg is not None and m_seg is not None and n_seg != m_seg
+
+
+def newly_isolated_pairs(old_segments: dict, old_isolated: bool, new_segments: dict, new_isolated: bool) -> set:
+    """
+    Every unordered node pair that's isolated under the NEW mapping but
+    wasn't under the OLD one - i.e. connectivity a segmentation change just
+    revoked. Only considers nodes named in either mapping - a pair neither
+    mapping ever mentions can't have changed status.
+    """
+    candidate_nodes = set(old_segments) | set(new_segments)
+    pairs = set()
+    for n in candidate_nodes:
+        for m in candidate_nodes:
+            if n >= m:
+                continue
+            if _node_isolated(new_segments, new_isolated, n, m) and not _node_isolated(old_segments, old_isolated, n, m):
+                pairs.add((n, m))
+    return pairs
+
+
+def connectivity_configmap_data(node_segments: dict, isolated: bool) -> dict:
+    """
+    One grasshopper.connection.boolean.origin.<n>.destination.<m> key per
+    ordered pair of nodes named in the current segmentation - mirrors the key
+    shape of Nestor-paper's netperf-metrics ConfigMap convention
+    (netperf.p90.latency.milliseconds.origin.<n>.destination.<m>). Value "1"
+    means allowed, "0" means blocked by segmentation. "Basics" scope only:
+    this publishes isolated(n,m), not the full Default/LeastPriv/Channels
+    range from isolation.tex. Empty (no keys) whenever isolation isn't
+    active - there's nothing segmentation-related to report.
+    """
+    if not isolated:
+        return {}
+    node_names = sorted(node_segments)
+    data = {}
+    for n in node_names:
+        for m in node_names:
+            if n == m:
+                continue
+            allowed = "0" if node_segments[n] != node_segments[m] else "1"
+            data[f"grasshopper.connection.boolean.origin.{n}.destination.{m}"] = allowed
+    return data
+
+
+def publish_connectivity_configmap(node_segments: dict, isolated: bool):
+    v1 = client.CoreV1Api()
+    body = client.V1ConfigMap(
+        metadata=client.V1ObjectMeta(name=CONNECTIVITY_CONFIGMAP_NAME, namespace=CONNECTIVITY_CONFIGMAP_NAMESPACE),
+        data=connectivity_configmap_data(node_segments, isolated),
+    )
+    try:
+        v1.replace_namespaced_config_map(CONNECTIVITY_CONFIGMAP_NAME, CONNECTIVITY_CONFIGMAP_NAMESPACE, body)
+    except client.exceptions.ApiException as e:
+        if e.status == 404:
+            v1.create_namespaced_config_map(CONNECTIVITY_CONFIGMAP_NAMESPACE, body)
+        else:
+            raise
+
+
+def sync_node_segments_from_nsp(body: dict):
+    """
+    Recomputes the node -> segment mapping from the single
+    NodeSegmentationPolicy CR's current spec/status - see isolated(n,m) in
+    Nestor-paper/formalization/isolation.tex. "Basics" scope only: this
+    captures just the isolated(n,m) predicate (blocked vs not), not the full
+    Conn(n,m) range (Default/LeastPriv/Channels are a later increment).
+
+    A segmentation change doesn't just gate FUTURE SG_add_conn calls (see
+    ClusterState.is_isolated()'s use there) - any rule already created
+    between a pair that just became isolated must be actively revoked, since
+    it was granted under a connectivity matrix that no longer holds.
+    """
+    old_isolated = ClusterState().segmentation_isolated
+    old_segments = dict(ClusterState().node_segments)
+
+    spec = body.get("spec", {}) or {}
+    status = body.get("status", {}) or {}
+
+    if not spec.get("isolated"):
+        new_segments, new_isolated = {}, False
+        print("NodeSegmentationPolicy: isolation not enabled (spec.isolated is not true) - no node pairs blocked.")
+    else:
+        new_segments = {}
+        for seg in (status.get("segments") or []):
+            seg_name = seg.get("name")
+            for node_name in (seg.get("nodes") or []):
+                new_segments[node_name] = seg_name
+        new_isolated = True
+        segment_count = len(set(new_segments.values()))
+        print(f"NodeSegmentationPolicy: isolation active, {len(new_segments)} node(s) across {segment_count} segment(s).")
+
+    ClusterState.set_node_segments(new_segments, isolated=new_isolated)
+
+    if MODE == "PNS":
+        pairs = newly_isolated_pairs(old_segments, old_isolated, new_segments, new_isolated)
+        if pairs:
+            print(f"NodeSegmentationPolicy: {len(pairs)} node pair(s) newly isolated - revoking any existing rule between them.")
+            SecurityGroupModulePNS.revoke_rules_for_isolated_pairs(pairs)
+
+    try:
+        publish_connectivity_configmap(new_segments, new_isolated)
+    except Exception as e:
+        print(f"NodeSegmentationPolicy: failed to publish {CONNECTIVITY_CONFIGMAP_NAME} ConfigMap: {e}")
+
+
+# Handlers for the single, cluster-scoped NodeSegmentationPolicy CR (see
+# Nestor-paper/formalization/isolation.tex and class-scheduling-operator/crds/
+# nodesegmentationpolicy-crd.yaml - "we assume that only one such object
+# exists in the cluster", matching this CRD's own cluster scope).
+#
+# on.field (not on.update) on spec.isolated/status.segments specifically -
+# not the whole object - so this only recomputes when something that
+# actually changes the connectivity matrix changes, not on every reconcile
+# tick (status.lastReconcileTime updates every reconcile even when segments
+# haven't). on.resume picks up whatever state already exists when Grasshopper
+# itself (re)starts - on.field alone never fires for that, same reason
+# pods/policies/namespaces elsewhere in this file each need their own
+# on.resume handler too.
+#
+# Rule revocation inside sync_node_segments_from_nsp is gated to MODE ==
+# "PNS" (PLS has no per-node SGs), but the ConfigMap publish and the
+# ClusterState cache itself are not - they're mode-agnostic bookkeeping.
+@kopf.on.resume(NSP_GROUP, NSP_VERSION, NSP_PLURAL)
+@kopf.on.field(NSP_GROUP, NSP_VERSION, NSP_PLURAL, field='spec.isolated')
+@kopf.on.field(NSP_GROUP, NSP_VERSION, NSP_PLURAL, field='status.segments')
+def handle_node_segmentation_policy(body, **kwargs):
+    sync_node_segments_from_nsp(body)
+
+
+# KNOWN LIMITATION (both here and in sync_node_segments_from_nsp above): when
+# isolation is lifted - this delete, or a later update with spec.isolated:
+# false, or a segment merge - previously-blocked pairs become allowed again,
+# but no rule is created for them retroactively. revoke_rules_for_isolated_
+# pairs() only ever removes rules for pairs that just became isolated; there
+# is no symmetric "re-evaluate every existing policy for pairs that just
+# became UN-isolated" step. Until a pod/policy event naturally re-triggers
+# SG_add_conn for that pair, connectivity that should now be allowed stays
+# missing. Reprocessing all existing policies (like process_existing_
+# network_policies() does at startup) would close this gap but is a
+# materially bigger change than "the basics" scope covers here.
+@kopf.on.delete(NSP_GROUP, NSP_VERSION, NSP_PLURAL)
+def handle_node_segmentation_policy_deleted(**kwargs):
+    print("NodeSegmentationPolicy deleted - clearing node segmentation, no pairs blocked.")
+    ClusterState.clear_node_segments()
+    try:
+        publish_connectivity_configmap({}, False)
+    except Exception as e:
+        print(f"NodeSegmentationPolicy: failed to clear {CONNECTIVITY_CONFIGMAP_NAME} ConfigMap: {e}")
 
 @kopf.on.resume('v1', 'pods')
 def handle_existing_pod(body, name, namespace, **kwargs):

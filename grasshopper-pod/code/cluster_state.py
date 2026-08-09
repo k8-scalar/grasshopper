@@ -36,6 +36,14 @@ class ClusterState:
     # Set of all offending policies
     offenders = set()
 
+    # Node name -> segment name, from the single cluster-scoped
+    # NodeSegmentationPolicy CR's status.segments (see
+    # Nestor-paper/formalization/isolation.tex). Empty whenever isolation
+    # isn't active - meaning no pair is ever blocked - which is also the
+    # correct state before any such CR has been seen at all.
+    node_segments: dict[str, str] = {}
+    segmentation_isolated: bool = False
+
     _instance = None
 
     _labelSetLockManager = None
@@ -312,6 +320,37 @@ class ClusterState:
     @staticmethod
     def remove_security_group(sg_name: str):
         ClusterState().security_groups.pop(sg_name)
+
+    @staticmethod
+    def set_node_segments(node_segments: dict[str, str], isolated: bool):
+        ClusterState().node_segments = node_segments
+        ClusterState().segmentation_isolated = isolated
+
+    @staticmethod
+    def clear_node_segments():
+        ClusterState().node_segments = {}
+        ClusterState().segmentation_isolated = False
+
+    @staticmethod
+    def is_isolated(n_name: str, m_name: str) -> bool:
+        """
+        isolated(n,m) from isolation.tex, restricted to this branch's single
+        NodeSegmentationPolicy CR - the formalization's Segs is a set of
+        segmentations, but there's exactly one here, matching the CRD's own
+        cluster-scoped singleton assumption. True only when isolation is
+        active AND both nodes are assigned to KNOWN, DIFFERENT segments - a
+        node absent from every segment isn't isolated from anything (it just
+        isn't segmented at all). This is "basics" scope: it only ever BLOCKS
+        pairs the policy explicitly separates, never blocks by default.
+        """
+        if not ClusterState().segmentation_isolated:
+            return False
+        segs = ClusterState().node_segments
+        n_seg = segs.get(n_name)
+        m_seg = segs.get(m_name)
+        if n_seg is None or m_seg is None:
+            return False
+        return n_seg != m_seg
 
     def __str__(self):
         result = ["--------------", "Cluster State:"]
