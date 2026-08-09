@@ -1,12 +1,14 @@
 import kopf
 import argparse
+import json
 import os
 from cluster_state import ClusterState
 from openstackfiles.create_sg_per_node import create_sg_per_node
-from openstackfiles.openstack_client import OpenStackClient
-from kubernetes import config
+from openstackfiles.detach_defaultSG import detach_defaultSG
+from kubernetes import client, config
 from operator_code.watcher_operator import Watcher
 from watchdog import WatchDog
+import network_mode
 import logging
 import time
 import pandas as pd
@@ -37,6 +39,18 @@ logger = logging.getLogger(__file__)
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices=['PNS', 'PLS'], required=True)
+    parser.add_argument(
+        '--intra-project-encapsulation',
+        choices=[network_mode.ENCAPSULATION_NATIVE, network_mode.ENCAPSULATION_VXLAN],
+        default=network_mode.ENCAPSULATION_NATIVE,
+        help="Whether same-OpenStack-project connections are native-routed (default) "
+             "or also VXLAN-encapsulated by Calico. Cross-project connections always "
+             "require VXLAN regardless of this setting - only relevant to PNS mode.",
+    )
+    parser.add_argument(
+        '--vxlan-port', type=int, default=network_mode.vxlan_port,
+        help="VXLAN encapsulation UDP port (Calico's default is 4789).",
+    )
     return parser.parse_args()
 
 def initialize_cluster_configuration():
@@ -45,15 +59,100 @@ def initialize_cluster_configuration():
     else:
         config.load_kube_config()
 
+TYPHA_POLICY_NAME = "grasshopper-typha-ingress"
+
+
+def ensure_typha_networkpolicy():
+    """
+    Creates the NetworkPolicy that lets Felix (calico-node, on every node)
+    reach Typha (which can land on any node) on port 5473 - if nobody else
+    has, nobody else will. This isn't a user's application policy; it's
+    baseline Calico plumbing this operator itself depends on (workerSG's
+    static rules only cover the egress side - see create_master_and_workerSG.py
+    - the ingress side only exists once this policy is processed), so
+    Grasshopper creates it itself rather than assuming an administrator
+    remembered to.
+
+    Discovers Typha's actual namespace/labels live (no hardcoded
+    "calico-system", since that varies by install method) by searching for
+    the well-known k8s-app=calico-typha label cluster-wide. If no Typha pod
+    is found at all (e.g. this cluster doesn't run Typha), skips - nothing to
+    protect. Idempotent: does nothing if a policy with this name already
+    exists in that namespace, so a pod restart never creates a duplicate.
+
+    Uses one /32 ipBlock peer per currently-known node IP rather than a
+    hardcoded subnet - consistent with "no CIDR/subnet configuration
+    anywhere" elsewhere in this operator (see README_v2.md); it only ever
+    uses node IPs it has already discovered live from the Kubernetes API.
+    """
+    core = client.CoreV1Api()
+    typha_pods = core.list_pod_for_all_namespaces(label_selector="k8s-app=calico-typha").items
+    if not typha_pods:
+        print("ensure_typha_networkpolicy: no calico-typha pod found, skipping.")
+        return
+
+    namespace = typha_pods[0].metadata.namespace
+    net = client.NetworkingV1Api()
+    existing = net.list_namespaced_network_policy(namespace, field_selector=f"metadata.name={TYPHA_POLICY_NAME}").items
+    if existing:
+        print(f"ensure_typha_networkpolicy: {namespace}/{TYPHA_POLICY_NAME} already exists, skipping.")
+        return
+
+    node_ips = sorted({node.internal_ip for node in ClusterState.get_nodes() if node.internal_ip})
+    if not node_ips:
+        print("ensure_typha_networkpolicy: no node IPs known yet, skipping.")
+        return
+
+    policy = client.V1NetworkPolicy(
+        metadata=client.V1ObjectMeta(name=TYPHA_POLICY_NAME, namespace=namespace),
+        spec=client.V1NetworkPolicySpec(
+            pod_selector=client.V1LabelSelector(match_labels={"k8s-app": "calico-typha"}),
+            policy_types=["Ingress"],
+            ingress=[client.V1NetworkPolicyIngressRule(
+                _from=[client.V1NetworkPolicyPeer(ip_block=client.V1IPBlock(cidr=f"{ip}/32"))
+                       for ip in node_ips],
+                ports=[client.V1NetworkPolicyPort(protocol="TCP", port=5473)],
+            )],
+        ),
+    )
+    net.create_namespaced_network_policy(namespace, policy)
+    print(f"ensure_typha_networkpolicy: created {namespace}/{TYPHA_POLICY_NAME} for {len(node_ips)} node IP(s).")
+
+
+def process_existing_network_policies():
+    """
+    Synchronously processes every NetworkPolicy that already exists at pod
+    startup, so that by the time detach_defaultSG() runs (right after this,
+    still inside startup()) every policy the operator needs to have reacted
+    to (e.g. a Typha ipBlock policy - see README_v2.md) already has its
+    dynamic per-node rule created. Reprocessing the same policy later via the
+    @kopf.on.resume handler below is harmless - WatchDog.handle_new_policy
+    already no-ops if the policy is already in ClusterState.
+
+    Uses the raw, unparsed API response (_preload_content=False) rather than
+    the typed client's .to_dict(): the typed client's dict form uses
+    snake_case field names (pod_selector, not podSelector), which
+    create_policy_from_policy_dict - written for kopf's raw camelCase JSON
+    body - wouldn't recognize.
+    """
+    resp = client.NetworkingV1Api().list_network_policy_for_all_namespaces(_preload_content=False)
+    for item in json.loads(resp.read())["items"]:
+        policy = Watcher.create_policy_from_policy_dict(item)
+        watchdog.handle_new_policy(policy)
+
 def startup():
     global MODE, watcher, watchdog
     args = parse_args()
     MODE = args.mode
+    network_mode.configure(args.intra_project_encapsulation, args.vxlan_port)
 
-    print(f"🚀 Starting Kopf operator in mode: {MODE}, watching all namespaces.")
+    print(f"🚀 Starting Kopf operator in mode: {MODE}, watching all namespaces. "
+          f"intra-project encapsulation: {network_mode.intra_project_encapsulation}.")
 
-    # Initialising OpenStack Client.
-    OpenStackClient()
+    # Each OpenStackClient is now created lazily per-project (via for_project())
+    # by whatever code first needs that project's Neutron/Nova session - no
+    # eager single "default" warm-up here, since assuming a "default" project
+    # always exists is exactly what multi-domain support removes.
 
     # Initializing cluster configuration.
     initialize_cluster_configuration()
@@ -64,10 +163,31 @@ def startup():
     # If mode is PNS, create a sg for every node.
     if MODE == "PNS":
         create_sg_per_node(delete_existing_rules=True)
+        # initialize_light() (above) already listed existing SGs into
+        # ClusterState, but create_sg_per_node() may have just created brand
+        # new ones (e.g. first run against a fresh node) - re-list so every
+        # per-node SG is registered before any policy/pod event tries to look
+        # it up via SecurityGroupModulePNS.SGn(), which would otherwise return
+        # None for a freshly-created node's SG.
+        ClusterState.initialize_security_groups(PNS_scenario=True)
 
     # Create Watcher.
     watcher = Watcher(PNS_scenario=(MODE == "PNS"))
     watchdog = WatchDog(PNS_scenario=(MODE == "PNS"))
+
+    if MODE == "PNS":
+        # Grasshopper depends on Typha being reachable just as much as any
+        # user workload does - create that policy itself rather than assume
+        # an administrator remembered to (nobody else will).
+        ensure_typha_networkpolicy()
+
+        # Process every already-existing NetworkPolicy (including the one
+        # just created above) before detaching "default" from workers -
+        # detaching any earlier leaves a real ingress gap for whatever
+        # traffic those policies were supposed to open (confirmed live -
+        # see README_v2.md).
+        process_existing_network_policies()
+        detach_defaultSG()
 
 @kopf.on.startup()
 def startup_handler(settings: kopf.OperatorSettings, **kwargs):
@@ -75,6 +195,20 @@ def startup_handler(settings: kopf.OperatorSettings, **kwargs):
     settings.posting.backoff = DELAY
     logger.info(f"Starting Operator with {MAX_WORKERS} workers.")
     startup()
+
+# Handler for a worker/master node joining the cluster after Grasshopper has
+# already started. Existing-at-startup nodes are already handled once, in
+# full, by create_sg_per_node() inside startup() - deliberately no
+# @kopf.on.resume here too, that would just redo the same idempotent work a
+# second time for every node on every operator restart. PLS mode has no
+# per-node SGs (SecurityGroupModulePLS keys SGs by labelset, not by node), so
+# this is a no-op outside PNS mode.
+@kopf.on.create('v1', 'nodes')
+def handle_new_node(name, **kwargs):
+    if MODE != "PNS":
+        return
+    print(f"New node joined the cluster: {name} - creating its per-node SG.")
+    create_sg_per_node()
 
 @kopf.on.resume('v1', 'pods')
 def handle_existing_pod(body, name, namespace, **kwargs):

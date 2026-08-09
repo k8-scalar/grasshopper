@@ -1,4 +1,4 @@
-from classes import LabelSet, Node, Pod, Policy, Traffic
+from classes import CIDR, LabelSet, Node, Pod, Policy, Traffic
 from cluster_state import ClusterState
 
 
@@ -54,3 +54,38 @@ def traffic_pols(traffic: Traffic, n: Node, m: Node) -> Policy | None:
             ]
         ):
             return pol
+
+
+def other_policy_provides_traffic(excluded_pol: Policy, traffic: Traffic, n: Node, m: Node) -> bool:
+    """
+    True if some policy OTHER than excluded_pol currently justifies the n -> m
+    connection for this exact traffic. Used when tearing down a connection that
+    excluded_pol used to justify: unlike traffic_pols, this does not require
+    excluded_pol's own selector to still be satisfied on n - removal is usually
+    triggered by the very pod that made it match in the first place (already
+    removed from ClusterState by the time this runs), so re-deriving "is
+    excluded_pol still the (unique) governing policy" via traffic_pols would
+    always spuriously fail, misreporting "something else needs this" instead of
+    correctly recognizing "nothing does anymore".
+
+    m is None when excluded_pol's own peer is a CIDR (ipBlock) - a CIDR target
+    has no single matched Node to pass as m. In that case, only another
+    CIDR-peer policy targeting the exact same CIDR can justify keeping the
+    connection; a LabelSet-peer policy has no real m here to compare against.
+    """
+    for pol in ClusterState().get_policies():
+        if pol == excluded_pol:
+            continue
+        if pol.allow[0][1] != traffic:
+            continue
+        if not running(pol.sel, n):
+            continue
+        target = pol.allow[0][0]
+        if isinstance(target, CIDR):
+            if m is None and target == excluded_pol.allow[0][0]:
+                return True
+            continue
+        if m is not None and running(target, m):
+            return True
+    return False
+    return False

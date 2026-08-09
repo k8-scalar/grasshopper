@@ -104,12 +104,17 @@ class Policy:
     def get_string_repr(self):
         labelsets = {self.sel}
         labelsets.update([rule[0] for rule in self.allow])
-        labelsets_sorted = sorted(list(labelsets), key= lambda x: x.get_string_repr())
+        # A CIDR peer (ipBlock) has no get_string_repr() - fall back to str() for it.
+        reprs = sorted(ls.get_string_repr() if isinstance(ls, LabelSet) else str(ls) for ls in labelsets)
 
-        return ",".join([ls.get_string_repr() for ls in labelsets_sorted])
+        return ",".join(reprs)
 
     def get_involved_labelsets(self):
-        return [self.sel] + [ls for (ls, _) in self.allow]
+        # A CIDR peer (ipBlock) never gets a ClusterState.map entry - it's a
+        # static address block, not something concurrent pod/policy handling
+        # needs to serialize access to - so it needs no lock, unlike self.sel
+        # (always a LabelSet) and any LabelSet-typed allow peer.
+        return [self.sel] + [ls for (ls, _) in self.allow if isinstance(ls, LabelSet)]
 
     def __eq__(self, other):
         if not isinstance(other, Policy):
@@ -135,12 +140,38 @@ class Policy:
 
 
 
+DEFAULT_OPENSTACK_PROJECT = "default"
+
+# Node label used to record which OpenStack project a node belongs to.
+OPENSTACK_PROJECT_NODE_LABEL = "grasshopper.io/openstack-project"
+
+
+def node_project_from_labels(labels: dict) -> str:
+    return (labels or {}).get(OPENSTACK_PROJECT_NODE_LABEL, DEFAULT_OPENSTACK_PROJECT)
+
+
+def node_internal_ip_from_addresses(addresses) -> str | None:
+    for addr in addresses or []:
+        if getattr(addr, "type", None) == "InternalIP":
+            return addr.address
+    return None
+
+
 class Node:
-    def __init__(self, name: str):
+    def __init__(self, name: str, project: str = DEFAULT_OPENSTACK_PROJECT, internal_ip: str = None):
         self.name = name
+        # project/internal_ip are additive metadata, deliberately NOT part of
+        # __eq__/__hash__ (which stay name-only) - node names are already
+        # cluster-unique, and many places treat Node as a set/dict key by name
+        # alone. Ad hoc Node instances built elsewhere in the codebase (e.g. from
+        # a pod event) won't carry real values here - resolve the canonical
+        # instance via ClusterState.get_node(name) instead of trusting these
+        # fields on an arbitrary Node instance.
+        self.project = project
+        self.internal_ip = internal_ip
 
     def __str__(self):
-        return f"Node(name={self.name})"
+        return f"Node(name={self.name}, project={self.project}, internal_ip={self.internal_ip})"
 
     def __eq__(self, other):
         if isinstance(other, Node):
@@ -152,9 +183,12 @@ class Node:
 
 
 class SecurityGroup:
-    def __init__(self, id: str, name: str):
+    def __init__(self, id: str, name: str, project: str = DEFAULT_OPENSTACK_PROJECT):
         self.id = id
         self.name = name
+        # Which OpenStack project owns this SG - determines which project's
+        # OpenStackClient must be used for any Neutron/Nova call involving it.
+        self.project = project
         self.remotes: set[Rule] = set()
         self.attached_nodes = set()
 
@@ -251,7 +285,21 @@ class Rule:
         return False
 
     def __hash__(self):
-        return hash((self.id, self.target, self.traffic))
+        # Must NOT include self.id: __eq__ treats two rules as equal whenever
+        # (target, traffic) match, regardless of id (id-equality is just a
+        # redundant special case of that, since a real id uniquely implies a
+        # specific target+traffic anyway) - hashing on id too would violate
+        # the hash/eq contract (a == b but hash(a) != hash(b)) for the exact
+        # case this equality check exists to catch: a freshly-built Rule
+        # (id=None) that's value-equal to an already-created one (id set).
+        # Confirmed live: this let two independent policies sharing the same
+        # CIDR+port target both attempt to create the identical OpenStack
+        # rule, since `rule not in SG.remotes` hashed to the wrong bucket and
+        # never found the existing entry - Neutron then rejected the second
+        # attempt as a duplicate, and because ClusterState had already marked
+        # the pod/node as handled before that error, kopf's retry silently
+        # no-op'd instead of ever retrying the real work.
+        return hash((self.target, self.traffic))
 
 
 class MapEntry:

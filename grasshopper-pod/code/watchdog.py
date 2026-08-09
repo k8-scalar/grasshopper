@@ -212,16 +212,17 @@ class WatchDog:
     @staticmethod
     def remove_policy(spol):
         s = ClusterState.get_map_entry(spol.sel)
-        a = ClusterState.get_map_entry(
-            spol.allow[0][0]
-        )  # Get labelset from allow-rule.
-
         s.remove_select_policy(spol)
-        a.remove_allow_policy(spol)
-
         if len(s.select_pols) == 0 and len(s.allow_pols) == 0:
             ClusterState.remove_map_entry(spol.sel)
 
+        # A CIDR allow-peer (ipBlock) never gets a map entry in the first
+        # place (see add_policy) - nothing to remove it from here either.
+        if isinstance(spol.allow[0][0], CIDR):
+            return
+
+        a = ClusterState.get_map_entry(spol.allow[0][0])  # Get labelset from allow-rule.
+        a.remove_allow_policy(spol)
         if len(a.select_pols) == 0 and len(a.allow_pols) == 0:
             ClusterState.remove_map_entry(spol.allow[0][0])
 

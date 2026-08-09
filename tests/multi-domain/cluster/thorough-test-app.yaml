@@ -1,0 +1,198 @@
+# A realistic 3-tier app (frontend/backend/database), using the same
+# NetworkPolicy shapes as experiments/latency/test/networkpolicies/app-a/,
+# deliberately split across two OpenStack projects to exercise both rule
+# shapes at once:
+#   - frontend <-> backend: same project (SG-to-SG reference, VXLAN port if
+#     your intra-project encapsulation toggle is on)
+#   - backend <-> database: different projects (CIDR of the peer's real node
+#     IP, VXLAN port always)
+#
+# Swap the three nodeName values below for real node names in your own
+# cluster - two in one OpenStack project, one in another. See ../README.md.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gh-multidomain-thorough
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-a-frontend
+  namespace: gh-multidomain-thorough
+  labels:
+    app: app-a
+    role: frontend
+spec:
+  nodeName: micro-worker-3  # <-- project A
+  containers:
+    - name: nginx
+      image: nginx:alpine
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-a-backend
+  namespace: gh-multidomain-thorough
+  labels:
+    app: app-a
+    role: backend
+spec:
+  nodeName: micro-worker-4  # <-- same project A as frontend
+  containers:
+    - name: nginx
+      image: nginx:alpine
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-a-database
+  namespace: gh-multidomain-thorough
+  labels:
+    app: app-a
+    role: database
+spec:
+  nodeName: cloud-worker-2  # <-- project B, different from frontend/backend
+  containers:
+    - name: nginx
+      image: nginx:alpine
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: app-a-deny-all
+  namespace: gh-multidomain-thorough
+spec:
+  podSelector:
+    matchLabels:
+      app: app-a
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: app-a-allow-frontend-backend
+  namespace: gh-multidomain-thorough
+spec:
+  podSelector:
+    matchLabels:
+      app: app-a
+      role: frontend
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: app-a
+              role: backend
+      ports:
+        - protocol: TCP
+          port: 80
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: app-a
+              role: backend
+      ports:
+        - protocol: TCP
+          port: 80
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: app-a-allow-backend-frontend
+  namespace: gh-multidomain-thorough
+spec:
+  podSelector:
+    matchLabels:
+      app: app-a
+      role: backend
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: app-a
+              role: frontend
+      ports:
+        - protocol: TCP
+          port: 80
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: app-a
+              role: frontend
+      ports:
+        - protocol: TCP
+          port: 80
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: app-a-allow-backend-database
+  namespace: gh-multidomain-thorough
+spec:
+  podSelector:
+    matchLabels:
+      app: app-a
+      role: backend
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: app-a
+              role: database
+      ports:
+        - protocol: TCP
+          port: 80
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: app-a
+              role: database
+      ports:
+        - protocol: TCP
+          port: 80
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: app-a-allow-database-backend
+  namespace: gh-multidomain-thorough
+spec:
+  podSelector:
+    matchLabels:
+      app: app-a
+      role: database
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: app-a
+              role: backend
+      ports:
+        - protocol: TCP
+          port: 80
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: app-a
+              role: backend
+      ports:
+        - protocol: TCP
+          port: 80
+  policyTypes:
+    - Ingress
+    - Egress

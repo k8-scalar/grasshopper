@@ -2,18 +2,33 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: grasshopper-operator
+  namespace: kube-system
   labels:
     app: grasshopper
 spec:
   serviceAccountName: grasshopper-sa
+  # Runs on the control-plane node only - the OpenStack credentials
+  # (OS_PROJECTS_JSON) must never be materialized on a worker node's kubelet.
   nodeSelector:
-    kubernetes.io/hostname: worker
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    - key: "node.kubernetes.io/disk-pressure"
+      operator: "Exists"
+      effect: "NoSchedule"
   containers:
     - name: grasshopper
       image: grasshopper:v2
-      imagePullPolicy: Never     
+      imagePullPolicy: Never
       command: ["python3", "main_operator.py"]
       args: ["--mode", "PNS"]
+      # For multi-domain clusters (nodes spanning multiple OpenStack projects) or
+      # if Calico itself uses VXLAN even within one project, add:
+      #   args: ["--mode", "PNS", "--intra-project-encapsulation", "vxlan", "--vxlan-port", "4789"]
+      # See .env.dist for the OS_PROJECTS_JSON multi-project credential format,
+      # and label nodes with grasshopper.io/openstack-project=<key>.
       envFrom:
         - secretRef:
             name: grasshopper-openstack-creds

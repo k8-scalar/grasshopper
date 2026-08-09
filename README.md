@@ -80,7 +80,3 @@ Make sure your kubernetes cluster is properly setup.
    to ["--mode", "PLS"] or ["--mode", "PNS"]
 
 
-## Grasshopper versions
-
-- v2: Original Grasshopper as a Pod / Grasshopper as an Operator
-- v3: Grasshopper as an Operator with persistence.
