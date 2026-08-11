@@ -1,0 +1,183 @@
+"""
+Verifies the batch reconciliation loop (main_operator.py's reconcile_once()
+and friends) - a timing-based safety net that runs alongside, not instead
+of, the event-driven kopf handlers. Covers, with the real WatchDog/
+ClusterState pipeline and only the Kubernetes/CustomObjects API calls mocked:
+
+- reconcile_pods_once() finds a pod that exists in the cluster but was never
+  tracked (a missed create/field event) and handles it as new.
+- reconcile_pods_once() finds a pod ClusterState still tracks but that no
+  longer exists in the cluster (a missed delete event) and handles it as
+  removed.
+- reconcile_pods_once() is a no-op when nothing has drifted.
+- reconcile_segmentation_once() re-syncs from a listed NodeSegmentationPolicy
+  CR, going through the exact same sync_node_segments_from_nsp() the on.field/
+  on.resume handlers use.
+- reconcile_segmentation_once() clears ClusterState when the CR is gone but
+  ClusterState still thinks isolation is active (a missed delete event for
+  the CR itself).
+
+Run with: python verify_reconciliation_loop.py
+"""
+import types
+import unittest.mock as mock
+
+import _bootstrap
+from _bootstrap import check, report_and_exit
+
+from classes import Node, SecurityGroup
+from cluster_state import ClusterState
+from watchdog import WatchDog
+from openstackfiles.openstack_client import OpenStackClient
+from operator_code.watcher_operator import Watcher
+
+import os
+
+os.environ["OS_AUTH_URL"] = "https://example.com:5000"
+os.environ["OS_APPLICATION_CREDENTIAL_ID"] = "id"
+os.environ["OS_APPLICATION_CREDENTIAL_SECRET"] = "secret"
+
+with mock.patch("sys.argv", ["main_operator.py", "--mode", "PNS"]):
+    import main_operator
+
+
+def reset_all():
+    ClusterState.map.clear()
+    ClusterState.nodes.clear()
+    ClusterState._nodes_by_name.clear()
+    ClusterState.pods.clear()
+    ClusterState.policies.clear()
+    ClusterState.security_groups.clear()
+    ClusterState.namespaces.clear()
+    ClusterState.offenders.clear()
+    ClusterState.clear_node_segments()
+    OpenStackClient._instances.clear()
+    OpenStackClient._credentials_by_key = None
+    main_operator.MODE = "PNS"
+    main_operator.watchdog = WatchDog(PNS_scenario=True)
+
+
+def fake_k8s_pod(name, namespace, labels, node_name):
+    return types.SimpleNamespace(
+        metadata=types.SimpleNamespace(name=name, namespace=namespace, labels=labels),
+        spec=types.SimpleNamespace(node_name=node_name),
+    )
+
+
+def pol_dict(name, ns, sel, allow, port=8080):
+    return {
+        "metadata": {"name": name, "namespace": ns},
+        "spec": {"podSelector": {"matchLabels": sel}, "ingress": [{"from": allow, "ports": [{"port": port, "protocol": "TCP"}]}]},
+    }
+
+
+def remotes_of(sg_name):
+    return ClusterState.get_security_group(sg_name).remotes
+
+
+def setup_two_node_pair_with_policy():
+    ClusterState.add_node(Node("n-a", project="default", internal_ip="10.0.0.1"))
+    ClusterState.add_node(Node("n-b", project="default", internal_ip="10.0.0.2"))
+    ClusterState.add_security_group(SecurityGroup(id="sg-a", name="SG_n-a", project="default"))
+    ClusterState.add_security_group(SecurityGroup(id="sg-b", name="SG_n-b", project="default"))
+    pol = Watcher.create_policy_from_policy_dict(pol_dict("allow-b-to-a", "ns1", {"app": "server-a"}, [{"podSelector": {"matchLabels": {"app": "client-b"}}}]))
+    main_operator.watchdog.handle_new_policy(pol)
+    return pol
+
+
+# ============================================================
+# Scenario A: an untracked pod (missed create event) is picked up and
+# handled as new by the batch pass.
+# ============================================================
+print("=== Scenario A: untracked pod is reconciled as new ===")
+reset_all()
+setup_two_node_pair_with_policy()
+
+with mock.patch("kubernetes.client.CoreV1Api") as MockCoreV1:
+    MockCoreV1.return_value.list_pod_for_all_namespaces.return_value = types.SimpleNamespace(items=[
+        fake_k8s_pod("pod-a", "ns1", {"app": "server-a"}, "n-a"),
+        fake_k8s_pod("pod-b", "ns1", {"app": "client-b"}, "n-b"),
+    ])
+    new_count, removed_count = main_operator.reconcile_pods_once()
+
+check("both untracked pods were found and handled", new_count == 2 and removed_count == 0)
+check("both pods now tracked in ClusterState", len(ClusterState.get_pods()) == 2)
+check("the rule they imply was actually created (not just tracked)", len(remotes_of("SG_n-a")) == 1)
+
+# Re-running immediately, with the same cluster state, must be a no-op -
+# reconciliation should never re-process something it already handled.
+with mock.patch("kubernetes.client.CoreV1Api") as MockCoreV1:
+    MockCoreV1.return_value.list_pod_for_all_namespaces.return_value = types.SimpleNamespace(items=[
+        fake_k8s_pod("pod-a", "ns1", {"app": "server-a"}, "n-a"),
+        fake_k8s_pod("pod-b", "ns1", {"app": "client-b"}, "n-b"),
+    ])
+    new_count, removed_count = main_operator.reconcile_pods_once()
+check("re-running with no drift finds nothing to do", new_count == 0 and removed_count == 0)
+check("rule count is unaffected by the idempotent re-run", len(remotes_of("SG_n-a")) == 1)
+
+
+# ============================================================
+# Scenario B: a pod ClusterState still tracks but that's gone from the
+# cluster (missed delete event) is reconciled as removed, and its rule is
+# torn down.
+# ============================================================
+print("\n=== Scenario B: stale tracked pod is reconciled as removed ===")
+# Continues from Scenario A's state: pod-a and pod-b both tracked, rule exists.
+with mock.patch("kubernetes.client.CoreV1Api") as MockCoreV1:
+    MockCoreV1.return_value.list_pod_for_all_namespaces.return_value = types.SimpleNamespace(items=[
+        fake_k8s_pod("pod-a", "ns1", {"app": "server-a"}, "n-a"),
+        # pod-b is gone - simulates a missed delete event.
+    ])
+    new_count, removed_count = main_operator.reconcile_pods_once()
+
+check("exactly one stale pod found and handled as removed", new_count == 0 and removed_count == 1)
+check("pod-b no longer tracked in ClusterState", len(ClusterState.get_pods()) == 1)
+check("its rule was torn down as a consequence", len(remotes_of("SG_n-a")) == 0)
+
+
+# ============================================================
+# Scenario C: reconcile_segmentation_once() re-syncs from a listed CR -
+# exercises the exact same sync_node_segments_from_nsp() path the on.field/
+# on.resume handlers use.
+# ============================================================
+print("\n=== Scenario C: segmentation reconciliation re-syncs from a listed CR ===")
+reset_all()
+nsp_body = {
+    "spec": {"isolated": True},
+    "status": {"segments": [{"name": "seg-1", "nodes": ["n-a"]}, {"name": "seg-2", "nodes": ["n-b"]}]},
+}
+with mock.patch("kubernetes.client.CustomObjectsApi") as MockCustom, \
+     mock.patch("main_operator.publish_connectivity_configmap") as mock_publish:
+    MockCustom.return_value.list_cluster_custom_object.return_value = {"items": [nsp_body]}
+    main_operator.reconcile_segmentation_once()
+    check("ConfigMap publish was attempted", mock_publish.called)
+
+check("ClusterState reflects the listed CR's segments", ClusterState.is_isolated("n-a", "n-b"))
+
+
+# ============================================================
+# Scenario D: the CR is gone (missed delete event) but ClusterState still
+# thinks isolation is active - reconciliation must clear it, same as
+# handle_node_segmentation_policy_deleted() does for a real delete event.
+# ============================================================
+print("\n=== Scenario D: missing CR clears a stale 'isolated' cache ===")
+check("isolation is indeed still active before reconciling", ClusterState().segmentation_isolated)
+
+with mock.patch("kubernetes.client.CustomObjectsApi") as MockCustom, \
+     mock.patch("main_operator.publish_connectivity_configmap") as mock_publish:
+    MockCustom.return_value.list_cluster_custom_object.return_value = {"items": []}
+    main_operator.reconcile_segmentation_once()
+    check("ConfigMap clear was attempted", mock_publish.called)
+
+check("ClusterState no longer thinks isolation is active", not ClusterState().segmentation_isolated)
+
+# And a second reconcile with the CR still gone must be a harmless no-op
+# (nothing left to clear).
+with mock.patch("kubernetes.client.CustomObjectsApi") as MockCustom, \
+     mock.patch("main_operator.publish_connectivity_configmap") as mock_publish:
+    MockCustom.return_value.list_cluster_custom_object.return_value = {"items": []}
+    main_operator.reconcile_segmentation_once()
+    check("no redundant ConfigMap clear once already cleared", not mock_publish.called)
+
+
+report_and_exit()

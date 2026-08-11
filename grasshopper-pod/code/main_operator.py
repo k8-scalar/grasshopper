@@ -52,6 +52,12 @@ def parse_args():
         '--vxlan-port', type=int, default=network_mode.vxlan_port,
         help="VXLAN encapsulation UDP port (Calico's default is 4789).",
     )
+    parser.add_argument(
+        '--reconcile-interval-seconds', type=int, default=60,
+        help="How often the batch reconciliation loop re-syncs pods and the "
+             "NodeSegmentationPolicy CR against the event-driven handlers' "
+             "state, catching anything they missed. 0 disables it.",
+    )
     return parser.parse_args()
 
 def initialize_cluster_configuration():
@@ -190,6 +196,17 @@ def startup():
         process_existing_network_policies()
         detach_defaultSG()
 
+    # Batch reconciliation is complementary to, not a replacement for, every
+    # event-driven handler above - mode-agnostic (pod tracking matters in PLS
+    # too), so this runs regardless of MODE. args.reconcile_interval_seconds
+    # of 0 disables it entirely (e.g. for a test run that wants a completely
+    # quiet log).
+    if args.reconcile_interval_seconds > 0:
+        threading.Thread(
+            target=reconciliation_loop, args=(args.reconcile_interval_seconds,), daemon=True
+        ).start()
+        print(f"Batch reconciliation loop started, interval {args.reconcile_interval_seconds}s.")
+
 @kopf.on.startup()
 def startup_handler(settings: kopf.OperatorSettings, **kwargs):
     settings.execution.max_workers = MAX_WORKERS
@@ -327,6 +344,104 @@ def sync_node_segments_from_nsp(body: dict):
         publish_connectivity_configmap(new_segments, new_isolated)
     except Exception as e:
         print(f"NodeSegmentationPolicy: failed to publish {CONNECTIVITY_CONFIGMAP_NAME} ConfigMap: {e}")
+
+
+# ============================================================
+# Batch reconciliation loop - a timing-based safety net that runs alongside
+# (never instead of) the event-driven kopf handlers above. Those handlers
+# react immediately to individual pod/policy/CR events, which is strictly
+# better when they fire - this loop exists for when they don't: a handler
+# that raised past its retries, a watch stream gap, or a delete event for
+# the NodeSegmentationPolicy CR that never arrived. It periodically re-lists
+# the cluster's actual current state and replays the SAME handler functions
+# the event path uses (handle_new_pod/handle_removed_pod, sync_node_segments_
+# from_nsp) for anything that's drifted - it does not duplicate their logic.
+# ============================================================
+
+def reconcile_segmentation_once():
+    """
+    Re-reads the single NodeSegmentationPolicy CR (if any) and re-syncs
+    ClusterState through the exact same sync_node_segments_from_nsp() the
+    on.field/on.resume handlers use - a missed update self-heals on the next
+    tick. Also handles a missed DELETE: if the CR is gone but ClusterState
+    still thinks isolation is active, clears it exactly like
+    handle_node_segmentation_policy_deleted() does.
+    """
+    try:
+        items = client.CustomObjectsApi().list_cluster_custom_object(NSP_GROUP, NSP_VERSION, NSP_PLURAL).get("items", [])
+    except Exception as e:
+        print(f"Reconcile: failed to list NodeSegmentationPolicy: {e}")
+        return
+
+    if items:
+        sync_node_segments_from_nsp(items[0])
+    elif ClusterState().segmentation_isolated:
+        print("Reconcile: NodeSegmentationPolicy CR no longer exists (missed delete event?) - clearing segmentation.")
+        ClusterState.clear_node_segments()
+        try:
+            publish_connectivity_configmap({}, False)
+        except Exception as e:
+            print(f"Reconcile: failed to clear {CONNECTIVITY_CONFIGMAP_NAME} ConfigMap: {e}")
+
+
+def reconcile_pods_once():
+    """
+    Batch-reconciles ClusterState's tracked pods against the cluster's actual
+    current pods in one pass: any pod that exists but isn't tracked (a missed
+    create/field event) is handled as new; any tracked pod that no longer
+    exists (a missed delete event) is handled as removed. Both go through the
+    real WatchDog methods the event handlers use - already idempotent (see
+    their own "already handled"/"does not exist" guards), so this is safe to
+    run even when nothing has actually drifted. Pods not yet scheduled
+    (spec.nodeName unset) are skipped - the spec.nodeName field handler picks
+    those up once they are, same as it always does.
+    """
+    try:
+        pod_list = client.CoreV1Api().list_pod_for_all_namespaces().items
+    except Exception as e:
+        print(f"Reconcile: failed to list pods: {e}")
+        return 0, 0
+
+    actual = {}
+    for p in pod_list:
+        node_name = p.spec.node_name
+        if not node_name:
+            continue
+        pod_dict = {
+            "metadata": {"name": p.metadata.name, "namespace": p.metadata.namespace, "labels": p.metadata.labels or {}},
+            "spec": {"nodeName": node_name},
+        }
+        actual[(p.metadata.namespace, p.metadata.name)] = Watcher.create_pod_from_pod_dict(pod_dict)
+
+    known = {(pod.namespace, pod.name): pod for pod in ClusterState.get_pods()}
+
+    new_keys = set(actual) - set(known)
+    removed_keys = set(known) - set(actual)
+
+    for namespace, name in new_keys:
+        print(f"Reconcile: found untracked pod {name} (ns {namespace}) - handling as new.")
+        watchdog.handle_new_pod(actual[(namespace, name)])
+    for namespace, name in removed_keys:
+        print(f"Reconcile: tracked pod {name} (ns {namespace}) no longer exists - handling as removed.")
+        watchdog.handle_removed_pod(known[(namespace, name)])
+
+    return len(new_keys), len(removed_keys)
+
+
+def reconcile_once():
+    reconcile_segmentation_once()
+    new_count, removed_count = reconcile_pods_once()
+    if new_count or removed_count:
+        print(f"Reconcile: batch pass processed {new_count} untracked and {removed_count} stale pod(s).")
+
+
+def reconciliation_loop(interval_seconds: int):
+    while True:
+        time.sleep(interval_seconds)
+        try:
+            reconcile_once()
+        except Exception as e:
+            print(f"Reconcile: unexpected error during batch reconciliation: {e}")
 
 
 # Handlers for the single, cluster-scoped NodeSegmentationPolicy CR (see
