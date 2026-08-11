@@ -30,6 +30,36 @@ WAIT_TIME = 2
 last_run_time = 0
 remove_handler_lock = threading.Lock()
 
+# ============================================================
+# TEST-ONLY instrumentation for a scalability comparison test (experimental-gh
+# vs segmentation-aware-gh throughput/failure rate under a pod burst) - lives
+# ONLY on this throwaway *-scaletest branch, never merged into the real
+# feature branches. Strict no-op unless GH_TEST_ANNOTATE_PROCESSED=1 is set,
+# so normal Grasshopper operation (this env var unset) is byte-for-byte
+# unaffected. Do not upstream this block.
+# ============================================================
+GH_TEST_ANNOTATE_PROCESSED = os.environ.get("GH_TEST_ANNOTATE_PROCESSED") == "1"
+TEST_PROCESSED_ANNOTATION = "grasshopper.io/test-processed"
+
+
+def mark_pod_processed_for_test(namespace: str, name: str):
+    """
+    Adds a throwaway annotation to a pod once it's been successfully handled,
+    so an external test harness can measure processing throughput/failures
+    (annotation missing after the test window = never processed). Called
+    only after the real handling call already returned without raising -
+    an exception there propagates normally and this is simply never reached,
+    so "annotated" here really does mean "successfully processed."
+    """
+    if not GH_TEST_ANNOTATE_PROCESSED:
+        return
+    try:
+        client.CoreV1Api().patch_namespaced_pod(
+            name, namespace, {"metadata": {"annotations": {TEST_PROCESSED_ANNOTATION: "true"}}}
+        )
+    except Exception as e:
+        print(f"Test instrumentation: failed to annotate pod {name} (ns {namespace}) as processed: {e}")
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s - %(message)s"
@@ -421,6 +451,7 @@ def reconcile_pods_once():
     for namespace, name in new_keys:
         print(f"Reconcile: found untracked pod {name} (ns {namespace}) - handling as new.")
         watchdog.handle_new_pod(actual[(namespace, name)])
+        mark_pod_processed_for_test(namespace, name)
     for namespace, name in removed_keys:
         print(f"Reconcile: tracked pod {name} (ns {namespace}) no longer exists - handling as removed.")
         watchdog.handle_removed_pod(known[(namespace, name)])
@@ -516,6 +547,7 @@ def handle_new_pod(old, new, body, name, namespace, **kwargs):
     pod_object = Watcher.create_pod_from_pod_dict(body)
     print(f"Handling the new pod object: {pod_object}")
     watchdog.handle_new_pod(pod_object)
+    mark_pod_processed_for_test(namespace, pod_name)
 
 @kopf.on.delete('v1', 'pods')
 def handle_removed_pod(body, **kwargs):
