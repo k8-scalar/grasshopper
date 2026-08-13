@@ -414,6 +414,17 @@ def reconcile_pods_once():
     already-gone filtering), so safe to run even when nothing has drifted.
     Pods not yet scheduled (spec.nodeName unset) are skipped - the
     spec.nodeName field handler picks those up once they are, same as always.
+    Pods with a deletion_timestamp set are also skipped from "actual" (they
+    are mid-termination, still returned by the API while blocked on kopf's
+    own finalizer, but not really there) - otherwise a reconciliation tick
+    landing between kopf's on.delete handler finishing (removing the pod from
+    ClusterState) and the finalizer actually clearing would see the pod as
+    newly-untracked and resurrect it: re-adding it to ClusterState and
+    recreating its SG rules, fighting kopf's own finalizer removal and
+    flapping the pod between removed/recreated indefinitely. Treating a
+    terminating pod as absent instead just means it also lands in
+    removed_keys if it's still tracked - a harmless no-op once kopf's own
+    handler (or a prior reconciliation tick) has already removed it.
     """
     try:
         pod_list = client.CoreV1Api().list_pod_for_all_namespaces().items
@@ -423,6 +434,8 @@ def reconcile_pods_once():
 
     actual = {}
     for p in pod_list:
+        if p.metadata.deletion_timestamp is not None:
+            continue
         node_name = p.spec.node_name
         if not node_name:
             continue

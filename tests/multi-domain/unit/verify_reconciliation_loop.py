@@ -66,9 +66,9 @@ def reset_all():
     main_operator.watchdog = WatchDog(PNS_scenario=True)
 
 
-def fake_k8s_pod(name, namespace, labels, node_name):
+def fake_k8s_pod(name, namespace, labels, node_name, deletion_timestamp=None):
     return types.SimpleNamespace(
-        metadata=types.SimpleNamespace(name=name, namespace=namespace, labels=labels),
+        metadata=types.SimpleNamespace(name=name, namespace=namespace, labels=labels, deletion_timestamp=deletion_timestamp),
         spec=types.SimpleNamespace(node_name=node_name),
     )
 
@@ -187,6 +187,52 @@ with mock.patch("kubernetes.client.CustomObjectsApi") as MockCustom, \
     MockCustom.return_value.list_cluster_custom_object.return_value = {"items": []}
     main_operator.reconcile_segmentation_once()
     check("no redundant ConfigMap clear once already cleared", not mock_publish.called)
+
+
+# ============================================================
+# Scenario E: a pod that's mid-termination (deletion_timestamp set, still
+# blocked on kopf's own finalizer, so still returned by the API) must NOT be
+# resurrected by a reconciliation tick that lands after kopf's on.delete
+# handler already removed it from ClusterState. Without the
+# deletion_timestamp check, this pod would look identical to a genuinely new
+# untracked pod - re-adding it to ClusterState and recreating its SG rule,
+# flapping it between removed/recreated instead of letting it actually
+# terminate. This reproduces a real incident: client-d1 got stuck
+# Terminating indefinitely this way during a live elastic test run.
+# ============================================================
+print("\n=== Scenario E: terminating pod is not resurrected by reconciliation ===")
+reset_all()
+setup_two_node_pair_with_policy()
+
+# First tick: both pods are genuinely new and untracked - handled as new,
+# same as Scenario A.
+with mock.patch("kubernetes.client.CoreV1Api") as MockCoreV1:
+    MockCoreV1.return_value.list_pod_for_all_namespaces.return_value = types.SimpleNamespace(items=[
+        fake_k8s_pod("pod-a", "ns1", {"app": "server-a"}, "n-a"),
+        fake_k8s_pod("pod-b", "ns1", {"app": "client-b"}, "n-b"),
+    ])
+    main_operator.reconcile_pods_once()
+check("both pods tracked, rule exists, before simulating termination", len(ClusterState.get_pods()) == 2 and len(remotes_of("SG_n-a")) == 1)
+
+# Simulate kopf's own on.delete handler having already run for pod-b
+# (removing it from ClusterState) while the API object itself is still
+# present with a deletion_timestamp - the exact race window the bug lives in.
+pod_b = next(p for p in ClusterState.get_pods() if p.name == "pod-b")
+main_operator.watchdog.handle_removed_pod(pod_b)
+check("pod-b removed from ClusterState by the simulated kopf handler", len(ClusterState.get_pods()) == 1)
+
+# The next reconciliation tick still sees pod-b via the API (terminating,
+# not yet gone) - it must be skipped, not resurrected.
+with mock.patch("kubernetes.client.CoreV1Api") as MockCoreV1:
+    MockCoreV1.return_value.list_pod_for_all_namespaces.return_value = types.SimpleNamespace(items=[
+        fake_k8s_pod("pod-a", "ns1", {"app": "server-a"}, "n-a"),
+        fake_k8s_pod("pod-b", "ns1", {"app": "client-b"}, "n-b", deletion_timestamp="2026-08-13T16:42:00Z"),
+    ])
+    new_count, removed_count = main_operator.reconcile_pods_once()
+
+check("terminating pod-b was not treated as newly-untracked", new_count == 0)
+check("pod-b was not resurrected into ClusterState", len(ClusterState.get_pods()) == 1)
+check("pod-b's rule was not recreated", len(remotes_of("SG_n-a")) == 0)
 
 
 report_and_exit()
