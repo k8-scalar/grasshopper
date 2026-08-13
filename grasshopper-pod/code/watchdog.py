@@ -309,6 +309,108 @@ class WatchDog:
         print(f"[{threading.get_ident()}] Pod {pod.name} handled. Released locks for: {ClusterState.get_labelsets_string(used_labelsets)}")
 
 
+    def handle_new_pods_batch(self, pods: set[Pod]):
+        """
+        Batch equivalent of handle_new_pod() for a whole group of untracked
+        pods at once - e.g. everything a reconciliation pass finds missing
+        from ClusterState in one sweep. Computes the eventual (labelset,
+        node) SG configuration needed for the WHOLE group in memory first,
+        then locks and applies it ONCE, instead of paying a separate lock
+        acquisition (and the contention that implies under a burst - many
+        pods sharing the same labelset all fight over the same lock) for
+        every individual pod.
+
+        This changes nothing about WHAT gets computed - SG_config_new_pod is
+        already deduped per (labelset, node) pair inside handle_new_pod (a
+        second pod landing on an already-covered node never re-triggers it),
+        so N pods converge to the exact same end state either way. This only
+        changes HOW MANY TIMES a lock gets acquired to get there: once per
+        labelset here, instead of once per pod. Confirmed live: a 1000-pod
+        burst processed one-pod-at-a-time stalled for many minutes under
+        exactly this lock contention, compounded by a slow OpenStack call
+        holding a lock that hundreds of unrelated pods were all waiting on.
+        """
+        pods = {pod for pod in pods if pod not in ClusterState().get_pods()}
+        if not pods:
+            return
+
+        # Which existing labelsets does each pod in the batch newly match,
+        # and which of those (labelset, node) pairs aren't covered yet.
+        by_labelset: dict[LabelSet, set[Pod]] = {}
+        for label_set in ClusterState.get_label_sets():
+            for pod in pods:
+                if matching(label_set, pod):
+                    by_labelset.setdefault(label_set, set()).add(pod)
+
+        involved_labelsets = {pod.label_set for pod in pods} | set(by_labelset)
+        involved_pols = set()
+        for ls in involved_labelsets:
+            entry = ClusterState.get_map_entry(ls)
+            if entry:
+                involved_pols |= entry.select_pols | entry.allow_pols
+        for pol in involved_pols:
+            involved_labelsets.update(pol.get_involved_labelsets())
+
+        print(f"[{threading.get_ident()}] Handling batch of {len(pods)} new pod(s), locking {ClusterState.get_labelsets_string(involved_labelsets)} ...")
+        with self.labelSetLockManager.lock_labelsets(involved_labelsets):
+            for pod in pods:
+                if pod in ClusterState().get_pods():
+                    continue
+                print(f"New pod: {pod.name}, on node: {pod.node.name}")
+                ClusterState().add_pod(pod)
+
+            for label_set, matched_pods in by_labelset.items():
+                map_entry = ClusterState().get_map_entry(label_set)
+                new_nodes = {pod.node for pod in matched_pods} - map_entry.match_nodes
+                for node in new_nodes:
+                    # 'node' is the first node in this batch to match label_set.
+                    ClusterState().add_match_node_to_map_entry(label_set, node)
+                    self.matcher.SG_config_new_pod(label_set, node)
+
+        print(f"[{threading.get_ident()}] Batch of {len(pods)} new pod(s) handled. Released locks for: {ClusterState.get_labelsets_string(involved_labelsets)}")
+
+    def handle_removed_pods_batch(self, pods: set[Pod]):
+        """
+        Batch equivalent of handle_removed_pod() for a whole group of
+        currently-tracked pods that no longer exist, all at once - see
+        handle_new_pods_batch's docstring for why this matters under a burst.
+
+        Removes every pod from ClusterState FIRST, then checks running() (the
+        reference-count guard) once per (labelset, node) pair rather than
+        once per pod - correct because it's checking against the batch's
+        final post-removal state directly, rather than N sequential
+        snapshots that would have reached the same conclusion anyway just
+        with more redundant lock/check cycles along the way.
+        """
+        pods = {pod for pod in pods if pod in ClusterState().get_pods()}
+        if not pods:
+            return
+
+        involved_labelsets = set()
+        for pod in pods:
+            involved_labelsets.update(WatchDog.get_involved_labelsets(pod))
+
+        print(f"[{threading.get_ident()}] Handling batch of {len(pods)} removed pod(s), locking {ClusterState.get_labelsets_string(involved_labelsets)} ...")
+        with self.labelSetLockManager.lock_labelsets(involved_labelsets):
+            affected_nodes_by_labelset: dict[LabelSet, set[Node]] = {}
+            for pod in pods:
+                if pod not in ClusterState().get_pods():
+                    continue
+                print(f"Removed pod: {pod.name}, on node: {pod.node.name}")
+                ClusterState().remove_pod(pod)
+                n = pod.node
+                pod.node = None
+                for label_set in filter(lambda L: matching(L, pod), ClusterState().get_label_sets()):
+                    affected_nodes_by_labelset.setdefault(label_set, set()).add(n)
+
+            for label_set, nodes in affected_nodes_by_labelset.items():
+                for node in nodes:
+                    if not running(label_set, node):
+                        ClusterState().remove_match_node_from_map_entry(label_set, node)
+                        self.matcher.SG_config_remove_pod(label_set, node)
+
+        print(f"[{threading.get_ident()}] Batch of {len(pods)} removed pod(s) handled. released {ClusterState.get_labelsets_string(involved_labelsets)} ...")
+
     def handle_removed_pod(self, pod: Pod):
         # Only handle removed pod event once.
         if pod not in ClusterState().get_pods():

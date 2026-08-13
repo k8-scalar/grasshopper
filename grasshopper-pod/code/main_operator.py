@@ -10,6 +10,7 @@ from kubernetes import client, config
 from operator_code.watcher_operator import Watcher
 from watchdog import WatchDog
 import network_mode
+import openstackfiles.openstack_client as openstack_client
 import logging
 import time
 import pandas as pd
@@ -57,6 +58,14 @@ def parse_args():
         help="How often the batch reconciliation loop re-syncs pods and the "
              "NodeSegmentationPolicy CR against the event-driven handlers' "
              "state, catching anything they missed. 0 disables it.",
+    )
+    parser.add_argument(
+        '--openstack-timeout-seconds', type=int, default=openstack_client.DEFAULT_REQUEST_TIMEOUT_SECONDS,
+        help="Timeout for every Neutron/Nova API call. Without one, a single "
+             "slow/unresponsive OpenStack call blocks forever, holding "
+             "whatever labelset lock(s) it needs - and for the reconciliation "
+             "loop specifically, permanently and silently disabling all "
+             "future ticks, since reconcile_once() would simply never return.",
     )
     return parser.parse_args()
 
@@ -152,6 +161,10 @@ def startup():
     args = parse_args()
     MODE = args.mode
     network_mode.configure(args.intra_project_encapsulation, args.vxlan_port)
+    # Must run before anything constructs an OpenStackClient (every project's
+    # client is created lazily, on first use, from wherever that happens to
+    # be - create_sg_per_node() below is typically the first).
+    openstack_client.configure(args.openstack_timeout_seconds)
 
     print(f"🚀 Starting Kopf operator in mode: {MODE}, watching all namespaces. "
           f"intra-project encapsulation: {network_mode.intra_project_encapsulation}.")
@@ -389,12 +402,18 @@ def reconcile_pods_once():
     Batch-reconciles ClusterState's tracked pods against the cluster's actual
     current pods in one pass: any pod that exists but isn't tracked (a missed
     create/field event) is handled as new; any tracked pod that no longer
-    exists (a missed delete event) is handled as removed. Both go through the
-    real WatchDog methods the event handlers use - already idempotent (see
-    their own "already handled"/"does not exist" guards), so this is safe to
-    run even when nothing has actually drifted. Pods not yet scheduled
-    (spec.nodeName unset) are skipped - the spec.nodeName field handler picks
-    those up once they are, same as it always does.
+    exists (a missed delete event) is handled as removed. Both go through
+    WatchDog's batch methods (handle_new_pods_batch/handle_removed_pods_batch)
+    - the whole point of a reconciliation pass is "here's everything that
+    might have drifted, converge it," which is exactly the shape a batch
+    computation wants: figure out the eventual (labelset, node) SG
+    configuration for the WHOLE group in memory, then apply only the deltas
+    once, rather than replaying N single-pod handlers (each its own lock
+    acquisition) for pods that mostly resolve to the same handful of nodes
+    anyway. Idempotent either way (see those methods' own already-tracked/
+    already-gone filtering), so safe to run even when nothing has drifted.
+    Pods not yet scheduled (spec.nodeName unset) are skipped - the
+    spec.nodeName field handler picks those up once they are, same as always.
     """
     try:
         pod_list = client.CoreV1Api().list_pod_for_all_namespaces().items
@@ -418,12 +437,12 @@ def reconcile_pods_once():
     new_keys = set(actual) - set(known)
     removed_keys = set(known) - set(actual)
 
-    for namespace, name in new_keys:
-        print(f"Reconcile: found untracked pod {name} (ns {namespace}) - handling as new.")
-        watchdog.handle_new_pod(actual[(namespace, name)])
-    for namespace, name in removed_keys:
-        print(f"Reconcile: tracked pod {name} (ns {namespace}) no longer exists - handling as removed.")
-        watchdog.handle_removed_pod(known[(namespace, name)])
+    if new_keys:
+        print(f"Reconcile: found {len(new_keys)} untracked pod(s) - handling as a batch.")
+        watchdog.handle_new_pods_batch({actual[key] for key in new_keys})
+    if removed_keys:
+        print(f"Reconcile: {len(removed_keys)} tracked pod(s) no longer exist - handling as a batch.")
+        watchdog.handle_removed_pods_batch({known[key] for key in removed_keys})
 
     return len(new_keys), len(removed_keys)
 

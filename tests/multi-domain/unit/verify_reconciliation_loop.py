@@ -17,6 +17,15 @@ ClusterState pipeline and only the Kubernetes/CustomObjects API calls mocked:
   ClusterState still thinks isolation is active (a missed delete event for
   the CR itself).
 
+This file checks reconcile_pods_once() at the black-box drift-detection
+level (untracked/stale pod found -> correctly handled). It doesn't exercise
+batches bigger than 2 pods, so it can't distinguish the current batch
+computation (WatchDog.handle_new_pods_batch/handle_removed_pods_batch) from
+the older one-pod-at-a-time loop it replaced - both converge to the same end
+state for a batch this small. See verify_batch_pod_reconciliation.py for the
+actual efficiency property (OpenStack call count scales with distinct nodes
+in the batch, not pod count) that's the whole point of batching at scale.
+
 Run with: python verify_reconciliation_loop.py
 """
 import types
