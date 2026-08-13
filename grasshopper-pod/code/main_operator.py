@@ -425,7 +425,23 @@ def reconcile_pods_once():
     terminating pod as absent instead just means it also lands in
     removed_keys if it's still tracked - a harmless no-op once kopf's own
     handler (or a prior reconciliation tick) has already removed it.
+
+    known is snapshotted BEFORE the API list call, not after - deliberately.
+    A pod's own event handler runs concurrently with this function, in a
+    different thread, and can add it to ClusterState at any point. If known
+    were read second (after the list call), a pod added in the gap between
+    the two reads would land in known but not in the already-captured
+    actual - misclassified as genuinely removed, tearing down a rule that
+    was just legitimately created. Reading known first means such a pod
+    instead lands in actual but not (the now-stale) known - misclassified
+    as newly-untracked instead, which is a harmless no-op: handle_new_pods_
+    batch already filters out anything ClusterState has by the time it runs.
+    Reproduced live: a same-project elastic test's newly-scaled-out client
+    pod had its rule created, then torn down again within the same second
+    by a reconciliation tick that raced its creation this way.
     """
+    known = {(pod.namespace, pod.name): pod for pod in ClusterState.get_pods()}
+
     try:
         pod_list = client.CoreV1Api().list_pod_for_all_namespaces().items
     except Exception as e:
@@ -444,8 +460,6 @@ def reconcile_pods_once():
             "spec": {"nodeName": node_name},
         }
         actual[(p.metadata.namespace, p.metadata.name)] = Watcher.create_pod_from_pod_dict(pod_dict)
-
-    known = {(pod.namespace, pod.name): pod for pod in ClusterState.get_pods()}
 
     new_keys = set(actual) - set(known)
     removed_keys = set(known) - set(actual)

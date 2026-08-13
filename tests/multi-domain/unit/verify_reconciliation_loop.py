@@ -235,4 +235,75 @@ check("pod-b was not resurrected into ClusterState", len(ClusterState.get_pods()
 check("pod-b's rule was not recreated", len(remotes_of("SG_n-a")) == 0)
 
 
+# ============================================================
+# Scenario F: a pod whose own event handler adds it to ClusterState WHILE a
+# reconciliation tick is mid-flight must not have its brand-new rule torn
+# down by that same tick. Reproduces the exact race found live: known is
+# read, then (concurrently, in another thread) the pod's own handler adds it
+# and creates its rule, then the reconciliation tick's API listing runs and
+# of course includes the pod - if known were captured AFTER the API list
+# instead of before, this pod would appear in known but not in the
+# already-stale actual, misclassified as removed, deleting the rule that
+# was just legitimately created moments earlier.
+# ============================================================
+print("\n=== Scenario F: pod added mid-reconciliation-tick is not torn back down ===")
+reset_all()
+setup_two_node_pair_with_policy()
+
+# First, directly assert the read order itself - the behavioral race demo
+# below can only stress whichever order the code actually uses (the hook
+# point is the mocked API call), so on its own it can't tell a correctly-
+# ordered implementation apart from a reverted one. This can.
+call_order = []
+real_get_pods = ClusterState.get_pods
+
+
+def tracking_get_pods():
+    call_order.append("known")
+    return real_get_pods()
+
+
+with mock.patch("cluster_state.ClusterState.get_pods", side_effect=tracking_get_pods), \
+     mock.patch("kubernetes.client.CoreV1Api") as MockCoreV1:
+    def tracking_list(*_a, **_k):
+        call_order.append("actual")
+        return types.SimpleNamespace(items=[])
+    MockCoreV1.return_value.list_pod_for_all_namespaces.side_effect = tracking_list
+    main_operator.reconcile_pods_once()
+
+check("known (ClusterState) is snapshotted before the API pod listing, not after", call_order == ["known", "actual"])
+
+main_operator.watchdog.handle_new_pod(Watcher.create_pod_from_pod_dict({
+    "metadata": {"name": "pod-a", "namespace": "ns1", "labels": {"app": "server-a"}},
+    "spec": {"nodeName": "n-a"},
+}))
+check("only pod-a tracked so far, no rule yet (pod-b doesn't exist)", len(ClusterState.get_pods()) == 1 and len(remotes_of("SG_n-a")) == 0)
+
+pod_b_obj = Watcher.create_pod_from_pod_dict({
+    "metadata": {"name": "pod-b", "namespace": "ns1", "labels": {"app": "client-b"}},
+    "spec": {"nodeName": "n-b"},
+})
+
+
+def list_racing_with_pod_b_creation(*_args, **_kwargs):
+    # Simulates pod-b's own event handler finishing - in another thread - in
+    # the gap between reconcile_pods_once() reading `known` (only pod-a, at
+    # this point) and this API call. By the time the API is actually listed,
+    # pod-b genuinely exists (its own handler already saw it there).
+    main_operator.watchdog.handle_new_pod(pod_b_obj)
+    return types.SimpleNamespace(items=[
+        fake_k8s_pod("pod-a", "ns1", {"app": "server-a"}, "n-a"),
+        fake_k8s_pod("pod-b", "ns1", {"app": "client-b"}, "n-b"),
+    ])
+
+
+with mock.patch("kubernetes.client.CoreV1Api") as MockCoreV1:
+    MockCoreV1.return_value.list_pod_for_all_namespaces.side_effect = list_racing_with_pod_b_creation
+    new_count, removed_count = main_operator.reconcile_pods_once()
+
+check("reconciliation did not treat the racing pod-b as removed", removed_count == 0)
+check("pod-b is (still) tracked in ClusterState", len(ClusterState.get_pods()) == 2)
+check("pod-b's rule survives the racing reconciliation tick", len(remotes_of("SG_n-a")) == 1)
+
+
 report_and_exit()
