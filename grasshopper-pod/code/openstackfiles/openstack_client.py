@@ -8,6 +8,26 @@ import json
 
 DEFAULT_PROJECT_KEY = "default"
 
+# Every Neutron/Nova call goes through a keystoneauth1 Session (see
+# _initialize below) - without a timeout, a single slow/unresponsive
+# OpenStack call blocks forever, holding whatever labelset lock(s) it needs.
+# For the batch reconciliation loop specifically, an unbounded hang doesn't
+# just miss one tick - reconcile_once() never returns, so the loop never
+# reaches its own next time.sleep(), permanently and silently disabling all
+# future reconciliation for the rest of the pod's life (its own try/except
+# only catches raised exceptions, not hangs). Confirmed live: this cluster's
+# OpenStack API has genuinely been observed at 44s for a single request
+# under load - the default here is set well above that, not at it, so a
+# merely-slow-but-working call still succeeds; only a genuine hang gets cut
+# off. configure() lets --openstack-timeout-seconds override it per-deployment.
+DEFAULT_REQUEST_TIMEOUT_SECONDS = 90
+request_timeout_seconds = DEFAULT_REQUEST_TIMEOUT_SECONDS
+
+
+def configure(request_timeout_seconds_: int):
+    global request_timeout_seconds
+    request_timeout_seconds = request_timeout_seconds_
+
 
 class OpenStackClient:
     """
@@ -92,7 +112,7 @@ class OpenStackClient:
             application_credential_id=creds.get("application_credential_id"),
             application_credential_secret=creds.get("application_credential_secret"),
         )
-        mysession = session.Session(auth=auth)
+        mysession = session.Session(auth=auth, timeout=request_timeout_seconds)
 
         self.project_key = project_key
 
