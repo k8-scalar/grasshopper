@@ -29,6 +29,20 @@ spec:
       #   args: ["--mode", "PNS", "--intra-project-encapsulation", "vxlan", "--vxlan-port", "4789"]
       # See .env.dist for the OS_PROJECTS_JSON multi-project credential format,
       # and label nodes with grasshopper.io/openstack-project=<key>.
+      #
+      # --reconcile-interval-seconds (default 60): how often the batch
+      # reconciliation loop re-syncs pods against the event-driven handlers'
+      # state, catching anything they missed (a handler that exhausted its
+      # retries, a watch stream gap). 0 disables it entirely.
+      #   args: ["--mode", "PNS", "--reconcile-interval-seconds", "30"]
+      #
+      # --openstack-timeout-seconds (default 90): timeout for every Neutron/
+      # Nova API call. Without one, a single slow/unresponsive OpenStack call
+      # blocks forever, holding whatever labelset lock(s) it needs - and for
+      # the reconciliation loop specifically, permanently and silently
+      # disabling all future ticks. Raise this if your OpenStack API is
+      # routinely slower than 90s under load; lower it to fail faster.
+      #   args: ["--mode", "PNS", "--openstack-timeout-seconds", "120"]
       envFrom:
         - secretRef:
             name: grasshopper-openstack-creds
