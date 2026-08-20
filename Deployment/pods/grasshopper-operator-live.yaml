@@ -1,0 +1,35 @@
+# Real (non-test) live deployment of this branch (main) - batch
+# reconciliation, OpenStack call timeouts, and both race fixes, ported in
+# WITHOUT NodeSegmentationPolicy-awareness (see commit "Add batch pod
+# reconciliation, OpenStack call timeouts, and race fixes"). No test
+# instrumentation. The image tag below predates this content landing on
+# main (built from the short-lived reconciliation-on-main branch before it
+# was merged and deleted) - rebuild and repoint the tag for a fresh deploy.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: grasshopper-multidomain-test
+  namespace: kube-system
+  labels:
+    app: grasshopper-multidomain-test
+spec:
+  serviceAccountName: grasshopper-sa
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    - key: "node.kubernetes.io/disk-pressure"
+      operator: "Exists"
+      effect: "NoSchedule"
+  containers:
+    - name: grasshopper
+      image: decomads/grasshopper:reconciliation-on-main
+      imagePullPolicy: Always
+      command: ["python3", "main_operator.py"]
+      args: ["--mode", "PNS", "--intra-project-encapsulation", "vxlan"]
+      envFrom:
+        - secretRef:
+            name: grasshopper-openstack-creds
+  restartPolicy: Never
