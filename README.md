@@ -26,7 +26,10 @@ Make sure your kubernetes cluster is properly setup.
     kubectl get secret grasshopper-openstack-creds 
 
 5) The environment variables should get be injected by kubernetes into the grasshopper pod
-   upon startup. (make sure the secret is named grasshopper-openstack-creds in the gh-v2.yaml file, otherwise change the name in the "secretRef:" field to your given name. This field is found under the "envFrom:" field under the "containers:" field)
+   upon startup. (make sure the secret is named grasshopper-openstack-creds in the
+   Deployment/pods/grasshopper-operator-PNS.yaml file, otherwise change the name in the
+   "secretRef:" field to your given name. This field is found under the "envFrom:" field
+   under the "containers:" field)
 
 # Setup cluster Security Groups.
    See V1 README for setting up appropriate security group configuration.
@@ -60,34 +63,7 @@ Make sure your kubernetes cluster is properly setup.
 
    2) Make sure you name the secret regcred, otherwise change the name in the "imagePullSecrets" to your given name.
 
-5)  change the "image:" field in the gh-v2.yaml file to the repository where your GH image is stored
-
-## Set the encapsulation toggle
-
-There's exactly one feature toggle, set via CLI args in the Pod/Deployment
-spec (`args:` under the `grasshopper` container):
-
-```yaml
-args: ["--mode", "PNS", "--intra-project-encapsulation", "vxlan", "--vxlan-port", "4789"]
-```
-
-- `--intra-project-encapsulation` is `native` (default) or `vxlan`. This is
-  about **same-project** connections only: does Calico use plain native
-  routing between nodes in the *same* OpenStack project, or does it
-  VXLAN-encapsulate even that traffic? Check your Calico install:
-  ```bash
-  kubectl get installation default -o yaml | grep encapsulation
-  ```
-  If it says `VXLAN`, set the toggle to `vxlan`. If it says `None` (native
-  routing), leave the default.
-- `--vxlan-port` (default `4789`, Calico's own default) only matters if
-  you've customized Calico's VXLAN port, or if you have any cross-project
-  connections at all (see below).
-- **Cross-project connections are not a toggle** - they always require VXLAN
-  encapsulation, unconditionally, regardless of this setting. There's no
-  "native routing across two different OpenStack projects" option; it isn't
-  achievable at the OpenStack network layer (see the design notes at the
-  bottom for why).
+5)  change the "image:" field in the Deployment/pods/grasshopper-operator-PNS.yaml file to the repository where your GH image is stored
 
 ## Run the bootstrap script for baseline cluster connectivity
 
@@ -239,13 +215,9 @@ args: ["--mode", "PNS", "--intra-project-encapsulation", "vxlan", "--vxlan-port"
     > kubectl apply -f Deployment/rbac/grasshopper-rbac.yaml
 
 2) Start the Grasshopper Pod by executing the following command:
-    > kubectl apply -f Deployment/pods/grasshopper-operator.yaml
+    > kubectl apply -f Deployment/pods/grasshopper-operator-PNS.yaml
 
-   This starts the grasshopper operator pod (in PLS mode). 
-   
-   You can also start a grasshopper pod, which runs with the original watching 
-   mechanism by executing the following command: 
-    > kubectl apply -f Deployment/pods/grasshopper-original.yaml
+   This starts the grasshopper operator pod (in PNS mode by default).
 
    If you want to change modes (PNS/PLS), change the args field in the pod yaml file
    to ["--mode", "PLS"] or ["--mode", "PNS"]
