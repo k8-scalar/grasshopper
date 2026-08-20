@@ -26,7 +26,10 @@ Make sure your kubernetes cluster is properly setup.
     kubectl get secret grasshopper-openstack-creds 
 
 5) The environment variables should get be injected by kubernetes into the grasshopper pod
-   upon startup. (make sure the secret is named grasshopper-openstack-creds in the gh-v2.yaml file, otherwise change the name in the "secretRef:" field to your given name. This field is found under the "envFrom:" field under the "containers:" field)
+   upon startup. (make sure the secret is named grasshopper-openstack-creds in the
+   Deployment/pods/grasshopper-operator-PNS.yaml file, otherwise change the name in the
+   "secretRef:" field to your given name. This field is found under the "envFrom:" field
+   under the "containers:" field)
 
 # Setup cluster Security Groups.
    See V1 README for setting up appropriate security group configuration.
@@ -60,7 +63,7 @@ Make sure your kubernetes cluster is properly setup.
 
    2) Make sure you name the secret regcred, otherwise change the name in the "imagePullSecrets" to your given name.
 
-5)  change the "image:" field in the gh-v2.yaml file to the repository where your GH image is stored
+5)  change the "image:" field in the Deployment/pods/grasshopper-operator-PNS.yaml file to the repository where your GH image is stored
     
 ## Deploying the Grasshopper pod
 
@@ -68,13 +71,9 @@ Make sure your kubernetes cluster is properly setup.
     > kubectl apply -f Deployment/rbac/grasshopper-rbac.yaml
 
 2) Start the Grasshopper Pod by executing the following command:
-    > kubectl apply -f Deployment/pods/grasshopper-operator.yaml
+    > kubectl apply -f Deployment/pods/grasshopper-operator-PNS.yaml
 
-   This starts the grasshopper operator pod (in PLS mode). 
-   
-   You can also start a grasshopper pod, which runs with the original watching 
-   mechanism by executing the following command: 
-    > kubectl apply -f Deployment/pods/grasshopper-original.yaml
+   This starts the grasshopper operator pod (in PNS mode by default).
 
    If you want to change modes (PNS/PLS), change the args field in the pod yaml file
    to ["--mode", "PLS"] or ["--mode", "PNS"]
