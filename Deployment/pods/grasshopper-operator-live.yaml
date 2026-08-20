@@ -1,0 +1,33 @@
+# Real (non-test) live deployment of this branch (segmentation-aware-gh),
+# as actually run against the shared 2-OpenStack-project test cluster during
+# development. No test instrumentation. Points at the published image for
+# this exact branch, rather than a locally-built one - update the tag if you
+# rebuild.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: grasshopper-multidomain-test
+  namespace: kube-system
+  labels:
+    app: grasshopper-multidomain-test
+spec:
+  serviceAccountName: grasshopper-sa
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    - key: "node.kubernetes.io/disk-pressure"
+      operator: "Exists"
+      effect: "NoSchedule"
+  containers:
+    - name: grasshopper
+      image: decomads/grasshopper:segmentation-aware-gh
+      imagePullPolicy: Always
+      command: ["python3", "main_operator.py"]
+      args: ["--mode", "PNS", "--intra-project-encapsulation", "vxlan"]
+      envFrom:
+        - secretRef:
+            name: grasshopper-openstack-creds
+  restartPolicy: Never
