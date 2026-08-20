@@ -223,3 +223,6 @@ args: ["--mode", "PNS", "--intra-project-encapsulation", "vxlan", "--vxlan-port"
    to ["--mode", "PLS"] or ["--mode", "PNS"]
 
 
+## Support for multi-domain grasshopper 
+
+See [here](./README_v2.md)
