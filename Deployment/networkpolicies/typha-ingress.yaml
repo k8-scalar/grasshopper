@@ -12,11 +12,27 @@
 # plane needs - install_grasshopper.sh applies every *.yaml file in this
 # directory, without knowing anything about what's inside them.
 #
-# The placeholder line below (see install_grasshopper.sh's own comments for
-# its exact name) is substituted with one "- ipBlock: {cidr: <node-ip>/32}"
-# entry per node discovered live via `kubectl get nodes` at install time -
-# one /32 per node's own IP, not a guessed subnet, so it only ever grants
-# what the cluster's actual current nodes need.
+# A single CIDR covering the whole node subnet, not one /32 peer per node.
+# Deliberately not using install_grasshopper.sh's __NODE_CIDRS__ token here:
+# WatchDog.redundant()/conflicting() in watchdog.py never actually inspect a
+# CIDR-typed allow-rule's content, only whether some other policy shares the
+# same selector - so a policy with N>1 separate ipBlock peers under one
+# selector self-collides the moment split() produces its second sub-policy,
+# and gets permanently rejected as "redundant" against its own first peer.
+# Confirmed live: a 39-peer, one-/32-per-node version of this exact policy
+# was rejected outright, leaving Typha's ingress with zero enforced SG rule
+# at all. A single CIDR has only one allow-rule, so it can never hit this
+# bug - less granular than one /32 per node, but the only shape WatchDog can
+# currently accept for a multi-address peer set. Revert to the tighter
+# per-node form (see git history for this file, or the __NODE_CIDRS__
+# substitution documented in install_grasshopper.sh) once WatchDog's
+# redundant()/conflicting() checks are fixed to compare actual CIDR content
+# instead of selector-only.
+#
+# 172.22.0.0/16 below matches THIS cluster's actual node subnet - edit it to
+# your own cluster's node CIDR range before installing on a different one
+# (there's no live-discovery equivalent for a single supernet the way
+# __NODE_CIDRS__ discovers individual node IPs).
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -30,7 +46,8 @@ spec:
     - Ingress
   ingress:
     - from:
-__NODE_CIDRS__
+        - ipBlock:
+            cidr: 172.22.0.0/16
       ports:
         - protocol: TCP
           port: 5473
