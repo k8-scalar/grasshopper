@@ -13,21 +13,30 @@
 # directory, without knowing anything about what's inside them.
 #
 # A single CIDR covering the whole node subnet, not one /32 peer per node.
-# Deliberately not using install_grasshopper.sh's __NODE_CIDRS__ token here:
-# WatchDog.redundant()/conflicting() in watchdog.py never actually inspect a
-# CIDR-typed allow-rule's content, only whether some other policy shares the
-# same selector - so a policy with N>1 separate ipBlock peers under one
-# selector self-collides the moment split() produces its second sub-policy,
-# and gets permanently rejected as "redundant" against its own first peer.
-# Confirmed live: a 39-peer, one-/32-per-node version of this exact policy
-# was rejected outright, leaving Typha's ingress with zero enforced SG rule
-# at all. A single CIDR has only one allow-rule, so it can never hit this
-# bug - less granular than one /32 per node, but the only shape WatchDog can
-# currently accept for a multi-address peer set. Revert to the tighter
-# per-node form (see git history for this file, or the __NODE_CIDRS__
-# substitution documented in install_grasshopper.sh) once WatchDog's
-# redundant()/conflicting() checks are fixed to compare actual CIDR content
-# instead of selector-only.
+# Deliberately not using install_grasshopper.sh's __NODE_CIDRS__ token here.
+#
+# WatchDog.redundant()/conflicting() in watchdog.py used to never inspect a
+# CIDR-typed allow-rule's content at all, only whether some other policy
+# shared the same selector - so a policy with N>1 separate ipBlock peers
+# under one selector self-collided the moment split() produced its second
+# sub-policy, permanently rejected as "redundant" against its own first
+# peer. Confirmed live: a 39-peer, one-/32-per-node version of this exact
+# policy was rejected outright, leaving Typha's ingress with zero enforced
+# SG rule at all. That specific bug is now fixed - conflicting()/redundant()
+# genuinely compare CIDR containment via WatchDog._peer_issubset(), so
+# disjoint peers (e.g. distinct node /32s) no longer collide with each
+# other.
+#
+# Staying on a single CIDR anyway: WatchDog.policy_check() still rejects a
+# NetworkPolicy's ENTIRE peer list the moment any ONE split sub-policy fails
+# - it doesn't drop just the offending peer. Distinct node IPs can never be
+# subsets of each other, so a per-node /32 list is safe under the fixed
+# checks specifically - but there's no guard against some other multi-peer
+# CIDR list (a broad range alongside a narrower one within it, e.g.) losing
+# ALL enforcement over one redundant pairing. See the docstring on
+# WatchDog.policy_check() for the full explanation - this is a known,
+# deliberately-not-yet-fixed structural limitation, not this policy's own
+# bug. A single CIDR sidesteps the whole risk class outright.
 #
 # 172.22.0.0/16 below matches THIS cluster's actual node subnet - edit it to
 # your own cluster's node CIDR range before installing on a different one
