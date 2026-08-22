@@ -1,3 +1,5 @@
+import ipaddress
+
 from classes import CIDR, LabelSet, Node, Pod, Policy, Traffic
 from cluster_state import ClusterState
 
@@ -43,6 +45,31 @@ def selector_issubset(a: LabelSet, b: LabelSet):
     matching() which compares a selector against a live Pod.
     """
     return a.issubset(b) and a.namespace_issubset(b)
+
+
+def cidr_issubset(a: CIDR, b: CIDR) -> bool:
+    """
+    True if CIDR a's address range is broader-or-equal to CIDR b's - the CIDR
+    analogue of selector_issubset (a covers at least as much as b). Used by
+    WatchDog.conflicting()/redundant() to compare two CIDR-typed policy peers
+    against each other, the same way selector_issubset compares two
+    LabelSet-typed peers - without this, a CIDR-typed allow-rule was
+    previously never compared at all (see watchdog.py), so any two policies
+    sharing a selector were declared conflicting/redundant against each
+    other purely from the selector match, regardless of whether their CIDRs
+    actually overlapped. Different IP versions, or a malformed CIDR string,
+    are never comparable - returns False rather than raising, since a
+    genuine format error should surface as an admission/validation problem
+    elsewhere, not crash policy-conflict checking.
+    """
+    try:
+        net_a = ipaddress.ip_network(a.cidr, strict=False)
+        net_b = ipaddress.ip_network(b.cidr, strict=False)
+    except ValueError:
+        return False
+    if net_a.version != net_b.version:
+        return False
+    return net_b.subnet_of(net_a)
 
 
 def traffic_pols(traffic: Traffic, n: Node, m: Node) -> Policy | None:
