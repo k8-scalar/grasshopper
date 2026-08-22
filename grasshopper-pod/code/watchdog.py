@@ -36,6 +36,27 @@ class WatchDog:
 
     @staticmethod
     def policy_check(pol_new) -> bool:
+        """
+        KNOWN LIMITATION: a single NetworkPolicy that expands (via split())
+        into multiple sub-policies is checked one sub-policy at a time, but
+        rejection is all-or-nothing for the WHOLE parent - the moment ANY one
+        split sub-policy fails conflicting()/redundant()/permissive(), this
+        returns False and the entire policy (every peer, not just the
+        offending one) is reported as an offender and gets zero SG rules.
+        _peer_issubset() (see conflicting()/redundant() below) now compares
+        CIDR content correctly, so genuinely disjoint peers under one
+        selector no longer collide with each other - but a policy whose OWN
+        peer list contains two CIDRs where one is a subset of (or equal to)
+        another still loses ALL of its peers, not just the redundant one.
+        This is why Deployment/networkpolicies/typha-ingress.yaml stays on a
+        single CIDR rather than reverting to one /32 per node: distinct node
+        IPs can't be subsets of each other, so that specific case is safe
+        either way, but a mixed broad-and-narrow peer list in general is
+        still one bad pairing away from losing everything. Splitting the
+        pass/fail decision per-peer (drop only the offending sub-policy,
+        keep the rest) would close this, but is a bigger structural change
+        to this function and handle_new_policy() below - not done here.
+        """
         policies: set[Policy] = ClusterState().get_policies()
         passed = policies.copy()
 
