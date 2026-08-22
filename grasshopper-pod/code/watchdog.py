@@ -1,5 +1,5 @@
 from classes import *
-from helpers import matching, running, matching_ls, selector_issubset
+from helpers import matching, running, matching_ls, selector_issubset, cidr_issubset
 from matcher import PLSMatcher, PNSMatcher
 from cluster_state import ClusterState
 from locking.lockmanager2 import LockManager
@@ -57,18 +57,40 @@ class WatchDog:
         return True
 
     @staticmethod
+    def _peer_issubset(a, b) -> bool:
+        """
+        True if allow-rule peer a is broader-or-equal to peer b, dispatching
+        to selector_issubset for two LabelSets or cidr_issubset for two
+        CIDRs - the common comparison conflicting()/redundant() need,
+        regardless of which peer type a policy's allow-rule actually uses.
+        A LabelSet and a CIDR are never comparable (a pod selector and an IP
+        range aren't the same kind of set) - returns False rather than
+        arbitrarily picking one. Previously, conflicting()/redundant() only
+        ever handled LabelSet peers (skipping any CIDR-typed one via an
+        `isinstance` guard) - so two CIDR-typed policies sharing a selector
+        were declared conflicting/redundant purely from the selector match,
+        never from whether their CIDRs actually overlapped. That let a
+        NetworkPolicy with multiple separate ipBlock peers under one
+        selector self-collide the moment split() produced its second
+        sub-policy, silently rejecting the whole policy - see
+        Deployment/networkpolicies/typha-ingress.yaml's git history for the
+        live incident this caused.
+        """
+        if isinstance(a, LabelSet) and isinstance(b, LabelSet):
+            return selector_issubset(a, b)
+        if isinstance(a, CIDR) and isinstance(b, CIDR):
+            return cidr_issubset(a, b)
+        return False
+
+    @staticmethod
     def conflicting(pol_new, pols) -> bool:
         for pol in pols:
             if selector_issubset(pol_new.sel, pol.sel):
                 for labelset_new, traffic_new in pol_new.allow:
-                    if not isinstance(labelset_new, LabelSet):
-                        continue
                     for labelset, traffic in pol.allow:
-                        if not isinstance(labelset, LabelSet):
-                            continue
                         if (
                             traffic_new == traffic
-                            and selector_issubset(labelset_new, labelset)
+                            and WatchDog._peer_issubset(labelset_new, labelset)
                             and (pol_new.sel != pol.sel or labelset_new != labelset)
                         ):
                             return True
@@ -81,13 +103,9 @@ class WatchDog:
             if selector_issubset(pol.sel, pol_new.sel):
                 is_redundant = True
                 for labelset_new, traffic_new in pol_new.allow:
-                    if not isinstance(labelset_new, LabelSet):
-                        continue
                     exists_match = False
                     for labelset, traffic in pol.allow:
-                        if not isinstance(labelset, LabelSet):
-                            continue
-                        if traffic_new == traffic and selector_issubset(labelset, labelset_new):
+                        if traffic_new == traffic and WatchDog._peer_issubset(labelset, labelset_new):
                             exists_match = True
                     if exists_match == False:
                         return False
