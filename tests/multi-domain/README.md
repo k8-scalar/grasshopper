@@ -29,8 +29,7 @@ What each one covers:
 | `verify_detach_default_sg.py` | `detach_defaultSG()`: same per-project resolution, no cross-project `nova.servers.find()` |
 | `verify_attach_default_sg.py` | `attach_defaultSG()`: same per-project resolution, mirrors `detach_defaultSG()` |
 | `verify_setup_gh_ordering.py` | `setup_gh()` attaches `default` before creating masterSG/workerSG, and never detaches it itself |
-| `verify_startup_detach_ordering.py` | `main_operator.py`'s `startup()`: ensures the Typha policy, then processes every already-existing NetworkPolicy, then calls `detach_defaultSG()`, in that order (PNS mode only - never detaches in PLS mode) |
-| `verify_ensure_typha_networkpolicy.py` | `ensure_typha_networkpolicy()`: skips if no Typha pod found or a policy already exists (idempotent), otherwise creates one in Typha's actual discovered namespace with one `/32` ipBlock peer per known node IP |
+| `verify_startup_detach_ordering.py` | `main_operator.py`'s `startup()`: processes every already-existing NetworkPolicy (bootstrap ones, e.g. Typha's, applied by `Deployment/install_grasshopper.sh` before this pod starts - see `Deployment/networkpolicies/`), then calls `detach_defaultSG()`, in that order (PNS mode only - never detaches in PLS mode) |
 | `verify_rule_dedup_across_policies.py` | `Rule`'s hash/eq contract (a fresh id=None rule must hash equal to an already-created same-target-and-traffic rule), and that two independent policies/pods converging on the same CIDR target on one node never both attempt to create the identical OpenStack rule |
 
 ## `cluster/` - real OpenStack + Kubernetes cluster required

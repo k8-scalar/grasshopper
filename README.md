@@ -67,15 +67,43 @@ Make sure your kubernetes cluster is properly setup.
     
 ## Deploying the Grasshopper pod
 
-1) Give the grasshopper pod the necessary rights inside the cluster, by executing the command: 
-    > kubectl apply -f Deployment/rbac/grasshopper-rbac.yaml
+Run the install script:
+```bash
+Deployment/install_grasshopper.sh
+```
 
-2) Start the Grasshopper Pod by executing the following command:
-    > kubectl apply -f Deployment/pods/grasshopper-operator-PNS.yaml
+This applies, in order: RBAC (`Deployment/rbac/grasshopper-rbac.yaml`), every
+bootstrap NetworkPolicy under `Deployment/networkpolicies/` (see below), then
+the Grasshopper pod itself (`Deployment/pods/grasshopper-operator-PNS.yaml` by
+default - pass a different path as the script's first argument to use another
+manifest, e.g. one with a different mode or image).
 
-   This starts the grasshopper operator pod (in PNS mode by default).
+If you want to change modes (PNS/PLS), change the args field in the pod yaml
+file to `["--mode", "PLS"]` or `["--mode", "PNS"]` before running the script
+(or after, then re-run `kubectl apply -f <that file>` yourself).
 
-   If you want to change modes (PNS/PLS), change the args field in the pod yaml file
-   to ["--mode", "PLS"] or ["--mode", "PNS"]
+### Bootstrap NetworkPolicies (CNI-specific - review before running on a new cluster)
+
+Grasshopper depends on some baseline CNI control-plane connectivity existing
+before it starts (e.g. Calico's Felix-to-Typha traffic on port 5473) -
+`workerSG`'s static rules only cover the egress side, so the ingress side
+only exists once the relevant NetworkPolicy has been applied and Grasshopper
+has processed it (see README_v2.md for why the ordering matters). Grasshopper
+itself has no built-in knowledge of any particular CNI; every file under
+`Deployment/networkpolicies/` is applied by the install script exactly as
+it's checked into the repo, with two placeholder tokens filled in from
+whatever's live on your cluster at install time:
+
+- `__NODE_CIDRS__` - one `- ipBlock: {cidr: <ip>/32}` entry per node's live
+  InternalIP (discovered via `kubectl get nodes`) - not a guessed subnet.
+- `__TYPHA_NAMESPACE__` - the namespace of a live `k8s-app=calico-typha` pod,
+  if this cluster runs one. A file using this token is skipped (not an
+  error) if no such pod is found - e.g. on a non-Calico cluster.
+
+`Deployment/networkpolicies/typha-ingress.yaml` ships as the default,
+covering Calico's Typha requirement out of the box. If your cluster runs a
+different CNI with its own bootstrap-critical connectivity need, add your
+own `*.yaml` file to that directory (or remove/replace the Typha one) -
+the install script doesn't need to change to pick it up.
 
 

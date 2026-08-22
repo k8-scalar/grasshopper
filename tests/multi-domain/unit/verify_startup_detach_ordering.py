@@ -2,8 +2,10 @@
 Verifies main_operator.py's startup() ordering: in PNS mode, it processes
 every already-existing NetworkPolicy before calling detach_defaultSG() - not
 after, and not skipped. Detaching "default" from workers before whatever
-policies already exist (e.g. a Typha ipBlock policy) have been processed
-leaves a real ingress gap - confirmed live, see README_v2.md.
+policies already exist (e.g. a Typha ipBlock policy, applied by
+Deployment/install_grasshopper.sh before this pod ever starts - see
+Deployment/networkpolicies/) have been processed leaves a real ingress gap -
+confirmed live, see README_v2.md.
 
 Also verifies startup() does NOT detach at all in PLS mode, since multi-domain/
 this detach flow assumes PNS (see the Scope section of README_v2.md).
@@ -60,14 +62,10 @@ with mock.patch("kubernetes.config.load_kube_config"), \
      mock.patch("watchdog.WatchDog.__init__", return_value=None), \
      mock.patch("sys.argv", ["main_operator.py", "--mode", "PNS"]):
     import main_operator
-    with mock.patch("main_operator.ensure_typha_networkpolicy", side_effect=lambda: calls.append("typha_policy")):
-        main_operator.startup()
+    main_operator.startup()
 
-check("Typha policy was ensured", "typha_policy" in calls)
 check("existing policy was processed", "process:allow-typha-ingress-from-felix" in calls)
 check("detach_defaultSG ran", "detach" in calls)
-check("Typha policy ensured before processing existing policies",
-      calls.index("typha_policy") < calls.index("process:allow-typha-ingress-from-felix"))
 check("policy processed before detach", calls.index("process:allow-typha-ingress-from-felix") < calls.index("detach"))
 
 # PLS mode: startup() must not touch detach_defaultSG at all.

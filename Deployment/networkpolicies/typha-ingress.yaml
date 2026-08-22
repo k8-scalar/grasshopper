@@ -1,0 +1,36 @@
+# Lets Felix (calico-node, on every node) reach Typha (which can land on any
+# node) on port 5473 - baseline Calico control-plane plumbing that Grasshopper
+# itself depends on (workerSG's static rules only cover the egress side - see
+# create_master_and_workerSG.py - the ingress side only exists once this
+# policy is applied and Grasshopper has processed it). Nobody else creates
+# this automatically, so install_grasshopper.sh applies it as part of
+# deploying Grasshopper - see README.md.
+#
+# CNI-specific by nature (this one assumes Calico's Typha/Felix split): if
+# your cluster runs a different CNI, replace this file (or add your own
+# alongside it) with whatever bootstrap NetworkPolicy your CNI's control
+# plane needs - install_grasshopper.sh applies every *.yaml file in this
+# directory, without knowing anything about what's inside them.
+#
+# The placeholder line below (see install_grasshopper.sh's own comments for
+# its exact name) is substituted with one "- ipBlock: {cidr: <node-ip>/32}"
+# entry per node discovered live via `kubectl get nodes` at install time -
+# one /32 per node's own IP, not a guessed subnet, so it only ever grants
+# what the cluster's actual current nodes need.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: grasshopper-typha-ingress
+  namespace: __TYPHA_NAMESPACE__
+spec:
+  podSelector:
+    matchLabels:
+      k8s-app: calico-typha
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+__NODE_CIDRS__
+      ports:
+        - protocol: TCP
+          port: 5473
