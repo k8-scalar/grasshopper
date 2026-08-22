@@ -190,7 +190,10 @@ inner pod-to-pod packet's real port. That's why:
   the control-plane node as the reflector - see the note in step 4 above.
   Under Calico's default full node-to-node mesh, this bootstrap script does
   not open the worker↔worker 179 connectivity that mode requires.
-- Grasshopper creates its own Typha ingress policy and detaches `default`
-  from workers itself on startup (see step 5) - but it has no way to know
-  about some *other* bootstrap-critical NetworkPolicy applied after it has
-  already started and detached. Apply those first.
+- `install_grasshopper.sh` applies the Typha ingress policy (and whatever
+  else is under `Deployment/networkpolicies/`) before Grasshopper's own
+  startup detaches `default` from workers (see step 5) - but Grasshopper
+  itself has no way to know about some *other* bootstrap-critical
+  NetworkPolicy that isn't in that directory and gets applied after it has
+  already started and detached. Add those files before running the install
+  script, not after.

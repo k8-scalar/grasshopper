@@ -74,66 +74,6 @@ def initialize_cluster_configuration():
     else:
         config.load_kube_config()
 
-TYPHA_POLICY_NAME = "grasshopper-typha-ingress"
-
-
-def ensure_typha_networkpolicy():
-    """
-    Creates the NetworkPolicy that lets Felix (calico-node, on every node)
-    reach Typha (which can land on any node) on port 5473 - if nobody else
-    has, nobody else will. This isn't a user's application policy; it's
-    baseline Calico plumbing this operator itself depends on (workerSG's
-    static rules only cover the egress side - see create_master_and_workerSG.py
-    - the ingress side only exists once this policy is processed), so
-    Grasshopper creates it itself rather than assuming an administrator
-    remembered to.
-
-    Discovers Typha's actual namespace/labels live (no hardcoded
-    "calico-system", since that varies by install method) by searching for
-    the well-known k8s-app=calico-typha label cluster-wide. If no Typha pod
-    is found at all (e.g. this cluster doesn't run Typha), skips - nothing to
-    protect. Idempotent: does nothing if a policy with this name already
-    exists in that namespace, so a pod restart never creates a duplicate.
-
-    Uses one /32 ipBlock peer per currently-known node IP rather than a
-    hardcoded subnet - consistent with "no CIDR/subnet configuration
-    anywhere" elsewhere in this operator (see README_v2.md); it only ever
-    uses node IPs it has already discovered live from the Kubernetes API.
-    """
-    core = client.CoreV1Api()
-    typha_pods = core.list_pod_for_all_namespaces(label_selector="k8s-app=calico-typha").items
-    if not typha_pods:
-        print("ensure_typha_networkpolicy: no calico-typha pod found, skipping.")
-        return
-
-    namespace = typha_pods[0].metadata.namespace
-    net = client.NetworkingV1Api()
-    existing = net.list_namespaced_network_policy(namespace, field_selector=f"metadata.name={TYPHA_POLICY_NAME}").items
-    if existing:
-        print(f"ensure_typha_networkpolicy: {namespace}/{TYPHA_POLICY_NAME} already exists, skipping.")
-        return
-
-    node_ips = sorted({node.internal_ip for node in ClusterState.get_nodes() if node.internal_ip})
-    if not node_ips:
-        print("ensure_typha_networkpolicy: no node IPs known yet, skipping.")
-        return
-
-    policy = client.V1NetworkPolicy(
-        metadata=client.V1ObjectMeta(name=TYPHA_POLICY_NAME, namespace=namespace),
-        spec=client.V1NetworkPolicySpec(
-            pod_selector=client.V1LabelSelector(match_labels={"k8s-app": "calico-typha"}),
-            policy_types=["Ingress"],
-            ingress=[client.V1NetworkPolicyIngressRule(
-                _from=[client.V1NetworkPolicyPeer(ip_block=client.V1IPBlock(cidr=f"{ip}/32"))
-                       for ip in node_ips],
-                ports=[client.V1NetworkPolicyPort(protocol="TCP", port=5473)],
-            )],
-        ),
-    )
-    net.create_namespaced_network_policy(namespace, policy)
-    print(f"ensure_typha_networkpolicy: created {namespace}/{TYPHA_POLICY_NAME} for {len(node_ips)} node IP(s).")
-
-
 def process_existing_network_policies():
     """
     Synchronously processes every NetworkPolicy that already exists at pod
@@ -195,16 +135,15 @@ def startup():
     watchdog = WatchDog(PNS_scenario=(MODE == "PNS"))
 
     if MODE == "PNS":
-        # Grasshopper depends on Typha being reachable just as much as any
-        # user workload does - create that policy itself rather than assume
-        # an administrator remembered to (nobody else will).
-        ensure_typha_networkpolicy()
-
-        # Process every already-existing NetworkPolicy (including the one
-        # just created above) before detaching "default" from workers -
-        # detaching any earlier leaves a real ingress gap for whatever
-        # traffic those policies were supposed to open (confirmed live -
-        # see README_v2.md).
+        # Bootstrap-critical NetworkPolicies (Typha's ingress, or whatever
+        # else a given cluster's CNI needs) are the responsibility of
+        # Deployment/install_grasshopper.sh, applied before this pod ever
+        # starts - see Deployment/networkpolicies/ and README.md. Grasshopper
+        # itself has no CNI-specific knowledge; it only needs to process
+        # every already-existing NetworkPolicy before detaching "default"
+        # from workers - detaching any earlier leaves a real ingress gap for
+        # whatever traffic those policies were supposed to open (confirmed
+        # live - see README_v2.md).
         process_existing_network_policies()
         detach_defaultSG()
 
