@@ -100,7 +100,6 @@ with mock.patch("kubernetes.config.load_kube_config"), \
      mock.patch("cluster_state.ClusterState.initialize_security_groups"), \
      mock.patch("operator_code.watcher_operator.Watcher.__init__", return_value=None), \
      mock.patch("watchdog.WatchDog.__init__", return_value=None), \
-     mock.patch("main_operator.ensure_typha_networkpolicy"), \
      mock.patch("main_operator.process_existing_network_policies"), \
      mock.patch("threading.Thread"), \
      mock.patch("sys.argv", ["main_operator.py", "--mode", "PNS", "--openstack-timeout-seconds", "45"]):
