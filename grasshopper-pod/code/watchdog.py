@@ -3,6 +3,7 @@ from helpers import matching, running, matching_ls, selector_issubset, cidr_issu
 from matcher import PLSMatcher, PNSMatcher
 from cluster_state import ClusterState
 from locking.lockmanager2 import LockManager
+from security_group_module import SecurityGroupModulePNS
 import threading
 
 
@@ -198,20 +199,30 @@ class WatchDog:
             verified = self.verify_policy(pol)
 
             if verified:
+                touched_node_names = set()
                 for spol in WatchDog.split(pol):
                     WatchDog.add_policy(spol)
                     for node in ClusterState().get_nodes():
                         if running(spol.sel, node):
                             ClusterState().add_match_node_to_map_entry(spol.sel, node)
+                            touched_node_names.add(node.name)
                     if isinstance(spol.allow[0][0], LabelSet):
                         for node in ClusterState().get_nodes():
                             if running(spol.allow[0][0], node):
                                 ClusterState().add_match_node_to_map_entry(
                                     spol.allow[0][0], node
                                 )
+                                touched_node_names.add(node.name)
                     self.matcher.SG_config_new_pol(spol)
 
                     ClusterState.add_policy(spol)
+                # A fresh policy can race ClusterState.node_segments syncing for
+                # the nodes it just connected (see security_group_module.py's
+                # revoke_isolated_connections() docstring) - re-check just those
+                # nodes' own SGs immediately rather than waiting for the next
+                # reconcile tick.
+                if isinstance(self.matcher, PNSMatcher) and touched_node_names:
+                    SecurityGroupModulePNS.revoke_isolated_connections(node_names=touched_node_names)
                 print(f"Successfully added policy {pol.name} to ClusterState")
             else:
                 print(f"Reporting policy {pol.name}...")
@@ -343,7 +354,14 @@ class WatchDog:
                     # 'pod' is the first pod on n to match L
                     ClusterState().add_match_node_to_map_entry(label_set, pod.node)
                     self.matcher.SG_config_new_pod(label_set, pod.node)
-            
+
+            # This pod's own node can race ClusterState.node_segments syncing
+            # (see security_group_module.py's revoke_isolated_connections()
+            # docstring) - re-check just its SG immediately rather than
+            # waiting for the next reconcile tick.
+            if isinstance(self.matcher, PNSMatcher):
+                SecurityGroupModulePNS.revoke_isolated_connections(node_names={pod.node.name})
+
         # print(ClusterState())
         print(f"[{threading.get_ident()}] Pod {pod.name} handled. Released locks for: {ClusterState.get_labelsets_string(used_labelsets)}")
 
@@ -405,6 +423,13 @@ class WatchDog:
                     # 'node' is the first node in this batch to match label_set.
                     ClusterState().add_match_node_to_map_entry(label_set, node)
                     self.matcher.SG_config_new_pod(label_set, node)
+
+            # These pods' own nodes can race ClusterState.node_segments syncing
+            # (see security_group_module.py's revoke_isolated_connections()
+            # docstring) - re-check just their SGs immediately rather than
+            # waiting for the next reconcile tick.
+            if isinstance(self.matcher, PNSMatcher):
+                SecurityGroupModulePNS.revoke_isolated_connections(node_names={pod.node.name for pod in pods})
 
         print(f"[{threading.get_ident()}] Batch of {len(pods)} new pod(s) handled. Released locks for: {ClusterState.get_labelsets_string(involved_labelsets)}")
 

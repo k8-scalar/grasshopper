@@ -197,6 +197,70 @@ class SecurityGroupModulePNS(SecurityGroupModule):
                         print(f"SGMod: segmentation isolates {a_name} from {b_name} - revoking existing rule on {a_sg.name}")
                         SecurityGroupModule.remove_rule_from_remotes(a_sg, rule)
 
+    @staticmethod
+    def revoke_isolated_connections(node_names=None) -> None:
+        """
+        Sweeps currently-tracked SG rules and revokes any whose target node
+        is presently isolated from the SG's own node - closes a gap
+        revoke_rules_for_isolated_pairs() leaves: that one only fires on a
+        segmentation CHANGE, diffed against ClusterState's own last-known
+        node_segments, so a connection wrongly established while that state
+        was still stale for the node(s) involved (a new pod or
+        NetworkPolicy processed - SG_add_conn's is_isolated() check
+        included - before Grasshopper's own NodeSegmentationPolicy watch had
+        caught up) never gets revisited once the state does catch up, since
+        nothing about it looks like a "transition" by then. Confirmed live:
+        a fresh NetworkPolicy's connection was created spanning two
+        already-isolated segments, racing ahead of ClusterState.
+        node_segments syncing for the newly (re)scheduled pods' nodes.
+
+        node_names=None (used by the reconciliation loop, every tick)
+        sweeps every tracked SG. A given set of node names (used right
+        after establishing a new pod's or a new policy's connections)
+        scopes it to just those nodes' own SGs - either way this is
+        bounded by the number of currently-tracked rules, not by node
+        count, so a whole-cluster sweep every reconcile tick stays cheap
+        regardless of cluster size.
+
+        A CIDR-typed remote is resolved back to a Node via its address -
+        one that doesn't exactly match any currently-known node's IP (a
+        genuine ipBlock policy peer, e.g. 172.22.0.0/16, rather than a
+        cross-project node-to-node /32) is left alone; it isn't a
+        node-to-node connection is_isolated() has any opinion about.
+        """
+        if node_names is not None:
+            sgs = []
+            for node_name in node_names:
+                sg = ClusterState.get_security_group("SG_" + node_name)
+                if sg is not None:
+                    sgs.append(sg)
+        else:
+            sgs = list(ClusterState.get_security_groups().values())
+
+        ip_to_node_name = {
+            node.internal_ip: node.name for node in ClusterState.get_nodes() if node.internal_ip
+        }
+
+        for sg in sgs:
+            if not sg.name.startswith("SG_"):
+                continue
+            a_name = sg.name[len("SG_"):]
+            for rule in list(sg.remotes):
+                target = rule.target
+                if isinstance(target, SecurityGroup):
+                    if not target.name.startswith("SG_"):
+                        continue
+                    b_name = target.name[len("SG_"):]
+                elif isinstance(target, CIDR):
+                    b_name = ip_to_node_name.get(target.cidr.split("/")[0])
+                    if b_name is None:
+                        continue
+                else:
+                    continue
+                if ClusterState.is_isolated(a_name, b_name):
+                    print(f"SGMod: segmentation isolates {a_name} from {b_name} - revoking existing rule on {sg.name}")
+                    SecurityGroupModule.remove_rule_from_remotes(sg, rule)
+
 
 class SecurityGroupModulePLS(SecurityGroupModule):
     @staticmethod

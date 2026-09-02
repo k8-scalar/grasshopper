@@ -318,6 +318,18 @@ def reconcile_segmentation_once():
     tick. Also handles a missed DELETE: if the CR is gone but ClusterState
     still thinks isolation is active, clears it exactly like
     handle_node_segmentation_policy_deleted() does.
+
+    Also sweeps every currently-tracked SG (revoke_isolated_connections(),
+    unconditionally, every tick) for any rule that's isolated under the
+    CURRENT state - not just pairs that just transitioned in this specific
+    sync. sync_node_segments_from_nsp()'s own revocation is delta-based
+    (newly_isolated_pairs against ClusterState's last-known segments), which
+    misses a connection that raced ahead of node_segments syncing for its
+    own node(s) (a new pod/policy processed - SG_add_conn's is_isolated()
+    check included - before this handler had caught up for that node) and
+    by the time node_segments DOES catch up, no longer looks like a
+    transition at all. Bounded by tracked-rule count, not node count, so
+    cheap enough to run every tick regardless of cluster size.
     """
     try:
         items = client.CustomObjectsApi().list_cluster_custom_object(NSP_GROUP, NSP_VERSION, NSP_PLURAL).get("items", [])
@@ -327,6 +339,8 @@ def reconcile_segmentation_once():
 
     if items:
         sync_node_segments_from_nsp(items[0])
+        if MODE == "PNS":
+            SecurityGroupModulePNS.revoke_isolated_connections()
     elif ClusterState().segmentation_isolated:
         print("Reconcile: NodeSegmentationPolicy CR no longer exists (missed delete event?) - clearing segmentation.")
         ClusterState.clear_node_segments()

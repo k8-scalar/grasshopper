@@ -215,4 +215,107 @@ check("no self-pair entries", "grasshopper.connection.boolean.origin.n-a.destina
 check("exactly 6 entries for 3 nodes (3x2 ordered pairs, no self-pairs)", len(data) == 6)
 
 
+# ============================================================
+# Scenario G: SecurityGroupModulePNS.revoke_isolated_connections() itself -
+# the reconciliation-loop-facing sweep. Unlike revoke_rules_for_isolated_
+# pairs() (delta-based, only fires on a segmentation TRANSITION), this must
+# catch a connection that's ALREADY isolated under the current state
+# regardless of how it got that way - e.g. set_node_segments() called
+# directly (simulating segmentation state becoming known through some path
+# other than sync_node_segments_from_nsp's own diff), with no diff-based
+# revoke ever having run for it.
+# ============================================================
+print("\n=== Scenario G: revoke_isolated_connections() sweeps a rule stale under the CURRENT state ===")
+reset_all()
+wd, pol, pod_a, pod_b = setup_two_node_pair()
+wd.handle_new_pod(pod_a)
+wd.handle_new_pod(pod_b)
+wd.handle_new_policy(pol)
+check("rule exists (no isolation known yet)", len(remotes_of("SG_n-a")) == 1)
+
+ClusterState.set_node_segments({"n-a": "seg-1", "n-b": "seg-2"}, isolated=True)
+check("rule STILL exists - segments changed via a path with no diff-based revoke", len(remotes_of("SG_n-a")) == 1)
+
+SecurityGroupModulePNS.revoke_isolated_connections()
+check("whole-cluster sweep revokes the now-isolated rule", len(remotes_of("SG_n-a")) == 0)
+
+# Idempotency: sweeping again (e.g. the next reconcile tick) must not raise.
+try:
+    SecurityGroupModulePNS.revoke_isolated_connections()
+    check("sweeping again is a harmless no-op", True)
+except Exception as e:
+    check(f"sweeping again is a harmless no-op (raised {e})", False)
+
+# Regression: an UNisolated connection must survive a sweep untouched.
+reset_all()
+wd, pol, pod_a, pod_b = setup_two_node_pair()
+ClusterState.set_node_segments({"n-a": "seg-1", "n-b": "seg-1"}, isolated=True)
+wd.handle_new_pod(pod_a)
+wd.handle_new_pod(pod_b)
+wd.handle_new_policy(pol)
+SecurityGroupModulePNS.revoke_isolated_connections()
+check("same-segment rule survives a whole-cluster sweep", len(remotes_of("SG_n-a")) == 1)
+
+
+# ============================================================
+# Scenario H: handle_new_pod/handle_new_pods_batch closes the exact live
+# race - a connection established while ClusterState.node_segments hadn't
+# caught up for the node(s) involved must get cleaned up the moment ANY
+# later pod event touches that same node, not just one related to the
+# original connection. Reproduces the live incident: a fresh redeploy's
+# NetworkPolicy connection raced ahead of segmentation-state syncing.
+# ============================================================
+print("\n=== Scenario H: a later, unrelated pod on the same node triggers cleanup ===")
+reset_all()
+wd, pol, pod_a, pod_b = setup_two_node_pair()
+wd.handle_new_pod(pod_a)
+wd.handle_new_pod(pod_b)
+wd.handle_new_policy(pol)
+check("rule exists (no isolation known yet)", len(remotes_of("SG_n-a")) == 1)
+
+ClusterState.set_node_segments({"n-a": "seg-1", "n-b": "seg-2"}, isolated=True)
+check("rule STILL exists right after segments become known", len(remotes_of("SG_n-a")) == 1)
+
+pod_c = Watcher.create_pod_from_pod_dict(pod_dict("pod-c", "ns1", {"app": "unrelated-c"}, "n-a"))
+wd.handle_new_pod(pod_c)
+check("an unrelated new pod on n-a triggers cleanup of the stale isolated rule", len(remotes_of("SG_n-a")) == 0)
+
+# Batch variant: same race, closed via handle_new_pods_batch instead.
+reset_all()
+wd, pol, pod_a, pod_b = setup_two_node_pair()
+wd.handle_new_pod(pod_a)
+wd.handle_new_pod(pod_b)
+wd.handle_new_policy(pol)
+ClusterState.set_node_segments({"n-a": "seg-1", "n-b": "seg-2"}, isolated=True)
+pod_c = Watcher.create_pod_from_pod_dict(pod_dict("pod-c", "ns1", {"app": "unrelated-c"}, "n-a"))
+wd.handle_new_pods_batch({pod_c})
+check("a batch containing an unrelated pod on n-a also triggers cleanup", len(remotes_of("SG_n-a")) == 0)
+
+
+# ============================================================
+# Scenario I: handle_new_policy closes the same race for a fresh
+# NetworkPolicy that touches an already-isolated node, even when the
+# stale rule it's cleaning up belongs to a DIFFERENT, earlier policy.
+# ============================================================
+print("\n=== Scenario I: a later, unrelated NetworkPolicy on the same node triggers cleanup ===")
+reset_all()
+wd, pol, pod_a, pod_b = setup_two_node_pair()
+wd.handle_new_pod(pod_a)
+wd.handle_new_pod(pod_b)
+wd.handle_new_policy(pol)
+check("rule exists (no isolation known yet)", len(remotes_of("SG_n-a")) == 1)
+
+ClusterState.set_node_segments({"n-a": "seg-1", "n-b": "seg-2"}, isolated=True)
+check("rule STILL exists right after segments become known", len(remotes_of("SG_n-a")) == 1)
+
+# A second, unrelated policy matching pod_a's EXISTING labelset - no new pod
+# event at all, so any cleanup here can only come from handle_new_policy's
+# own sweep, not from handle_new_pod's (already covered by Scenario H).
+unrelated_pol = Watcher.create_policy_from_policy_dict(
+    pol_dict("allow-server-a-self", "ns1", {"app": "server-a"}, [{"podSelector": {"matchLabels": {"app": "server-a"}}}])
+)
+wd.handle_new_policy(unrelated_pol)
+check("an unrelated new policy touching n-a triggers cleanup of the stale isolated rule", len(remotes_of("SG_n-a")) == 0)
+
+
 report_and_exit()
