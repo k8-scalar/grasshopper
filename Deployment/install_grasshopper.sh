@@ -5,14 +5,17 @@
 # own location, not the caller's working directory.
 #
 # Usage: ./install_grasshopper.sh [pod-manifest]
-#   pod-manifest defaults to pods/grasshopper-operator-PNS.yaml (this
-#   script's own directory, i.e. Deployment/), relative or absolute.
+#   pod-manifest defaults to pods/grasshopper-operator-live.yaml (this
+#   script's own directory, i.e. Deployment/), relative or absolute - the
+#   real deployment manifest (published image, vxlan encapsulation). Pass
+#   pods/grasshopper-operator-PNS.yaml explicitly for the local-build/dev
+#   test template instead.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-POD_MANIFEST="${1:-pods/grasshopper-operator-PNS.yaml}"
+POD_MANIFEST="${1:-pods/grasshopper-operator-live.yaml}"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'

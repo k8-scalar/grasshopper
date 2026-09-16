@@ -3,31 +3,54 @@
 # development. No test instrumentation. Points at the published image for
 # this exact branch, rather than a locally-built one - update the tag if you
 # rebuild.
-apiVersion: v1
-kind: Pod
+#
+# A Deployment, not a bare Pod: a bare Pod has no controller to recreate it
+# if it's ever killed for a reason outside its own control - e.g. a kubelet
+# eviction under node disk/memory pressure (exactly what happened on
+# 2026-09-06: the node's image filesystem crossed kubelet's high-usage
+# threshold, the eviction manager killed this BestEffort pod along with a
+# couple of others, and it then sat in Error state for 10 days since nothing
+# ever recreated it). A Deployment's ReplicaSet controller recreates the pod
+# automatically in that situation.
+#
+# strategy: Recreate (not the RollingUpdate default): Grasshopper has no
+# leader election, so two instances must never run against the same
+# OpenStack projects/cluster state at once, even briefly during an upgrade.
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: grasshopper-multidomain-test
   namespace: kube-system
   labels:
     app: grasshopper-multidomain-test
 spec:
-  serviceAccountName: grasshopper-sa
-  nodeSelector:
-    node-role.kubernetes.io/control-plane: ""
-  tolerations:
-    - key: "node-role.kubernetes.io/control-plane"
-      operator: "Exists"
-      effect: "NoSchedule"
-    - key: "node.kubernetes.io/disk-pressure"
-      operator: "Exists"
-      effect: "NoSchedule"
-  containers:
-    - name: grasshopper
-      image: decomads/grasshopper:segmentation-aware-gh
-      imagePullPolicy: Always
-      command: ["python3", "main_operator.py"]
-      args: ["--mode", "PNS", "--intra-project-encapsulation", "vxlan"]
-      envFrom:
-        - secretRef:
-            name: grasshopper-openstack-creds
-  restartPolicy: Never
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: grasshopper-multidomain-test
+  template:
+    metadata:
+      labels:
+        app: grasshopper-multidomain-test
+    spec:
+      serviceAccountName: grasshopper-sa
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+        - key: "node.kubernetes.io/disk-pressure"
+          operator: "Exists"
+          effect: "NoSchedule"
+      containers:
+        - name: grasshopper
+          image: decomads/grasshopper:segmentation-aware-gh
+          imagePullPolicy: Always
+          command: ["python3", "main_operator.py"]
+          args: ["--mode", "PNS", "--intra-project-encapsulation", "vxlan"]
+          envFrom:
+            - secretRef:
+                name: grasshopper-openstack-creds
