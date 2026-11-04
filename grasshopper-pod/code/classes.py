@@ -334,6 +334,38 @@ class MapEntry:
         )
 
 
+class NodePortService:
+    """
+    A tracked `type: NodePort` Service - see formalization.tex's note on
+    NodePort handling: a rule is inserted into the least-privilege Security
+    Group linked to every worker Node (workerSG) in each OpenStack project
+    that currently has a Pod matching this Service's selector, and purged
+    when the Service itself is deleted. Granularity is per-PROJECT, not
+    per-Node: workerSG is already attached to every worker in a project, so
+    one rule there covers all of them (a NodePort request may land on any
+    Node, not just ones with a matching Pod - see the paper's rationale).
+    """
+
+    def __init__(self, namespace: str, name: str, label_set: LabelSet, ports: list[tuple[int, str]]):
+        self.namespace = namespace
+        self.name = name
+        self.label_set = label_set  # matches Pods the same way a podSelector does
+        self.ports = ports  # [(nodePort, protocol), ...]
+        # Projects whose workerSG currently holds this Service's rule - set()
+        # at construction time; handle_new_service()/handle_new_pod() fill it
+        # in once a matching Pod is actually found in a given project.
+        self.opened_projects: set[str] = set()
+
+    def key(self) -> str:
+        return f"{self.namespace}/{self.name}"
+
+    def __str__(self):
+        return (
+            f"NodePortService(key={self.key()}, ports={self.ports}, "
+            f"opened_projects={self.opened_projects})"
+        )
+
+
 if __name__ == "__main__":
     labelset = LabelSet(dict({"role": "db", "end": "frontend"}))
     print(labelset.get_string_repr())
