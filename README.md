@@ -6,6 +6,62 @@ Make sure your kubernetes cluster is properly setup.
 
 ## Providing Openstack Credentials to your Grasshopper Pod (through a kubernetes secret).
 
+**If your Kubernetes nodes span more than one OpenStack project** (e.g. workers
+provisioned under different OpenStack projects/tenants), the flat `.env`
+format below can't express per-project credentials. Use this instead:
+
+1) For each OpenStack project your nodes belong to, download that project's
+   application credentials from its Horizon Dashboard, and find its Neutron
+   and Nova public endpoints with:
+    > openstack --os-cloud <cloud-name> catalog list
+
+2) Label each Kubernetes node with the project it belongs to:
+    kubectl label node <node-name> grasshopper.io/openstack-project=<project-key>
+
+   Pick any short string as `<project-key>` (e.g. the OpenStack project name
+   or ID) - it just has to match the `"key"` you give that project below.
+   Nodes with no such label are treated as belonging to a project keyed
+   `"default"`.
+
+3) Build a local JSON file (e.g. `projects.json`) - keep it **outside the
+   git repo**, or make sure it's `.gitignore`d, and never paste the real
+   values into a command line (they'd land in your shell history):
+    ```json
+    [
+      {
+        "key": "<project-key, matching the node label above>",
+        "auth_url": "<that project's auth_url, from its clouds.yaml>",
+        "application_credential_id": "<that project's application_credential_id>",
+        "application_credential_secret": "<that project's application_credential_secret>",
+        "neutron_endpoint": "<that project's Neutron public endpoint>",
+        "nova_endpoint": "<that project's Nova public endpoint>"
+      },
+      {
+        "key": "<another project's key>",
+        "...": "..."
+      }
+    ]
+    ```
+   One object per OpenStack project. If a project isn't listed at all and
+   it's specifically the one keyed `"default"`, Grasshopper falls back to the
+   flat `OS_*` vars from the single-project steps below for it - so a
+   single-project deployment never needs this file at all.
+
+4) Create the secret from that file (same secret name as the single-project
+   case, just a different key populated - no manifest changes needed):
+    ```bash
+    kubectl create secret generic grasshopper-openstack-creds \
+      -n kube-system \
+      --from-file=OS_PROJECTS_JSON=./projects.json
+    ```
+
+5) Verify, then delete your local `projects.json` if you don't need it again
+   (`kubectl get secret ... -o yaml` will show the stored, base64-encoded
+   value later if you ever need to reconstruct it):
+    kubectl get secret grasshopper-openstack-creds -n kube-system
+
+Skip the single-project steps below if you did this.
+
 1) First make sure you have downloaded your Openstack application credentials through the 
    Openstack Horizon Dashboard.
 
@@ -26,10 +82,11 @@ Make sure your kubernetes cluster is properly setup.
     kubectl get secret grasshopper-openstack-creds 
 
 5) The environment variables should get be injected by kubernetes into the grasshopper pod
-   upon startup. (make sure the secret is named grasshopper-openstack-creds in the
-   Deployment/pods/grasshopper-operator-PNS.yaml file, otherwise change the name in the
-   "secretRef:" field to your given name. This field is found under the "envFrom:" field
-   under the "containers:" field)
+   upon startup. (make sure the secret is named grasshopper-openstack-creds in whichever
+   manifest you deploy - Deployment/pods/grasshopper-operator-PNS.yaml (bare Pod) or
+   Deployment/pods/grasshopper-operator-live.yaml (Deployment) - otherwise change the name
+   in the "secretRef:" field to your given name. This field is found under the "envFrom:"
+   field under the "containers:" field)
 
 # Setup cluster Security Groups.
    See V1 README for setting up appropriate security group configuration.
