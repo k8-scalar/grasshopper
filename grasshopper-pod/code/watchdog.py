@@ -3,6 +3,7 @@ from helpers import matching, running, matching_ls, selector_issubset, cidr_issu
 from matcher import PLSMatcher, PNSMatcher
 from cluster_state import ClusterState
 from locking.lockmanager2 import LockManager
+from security_group_module import SecurityGroupModule, SecurityGroupModulePNS
 import threading
 
 
@@ -294,6 +295,85 @@ class WatchDog:
     def handle_removed_namespace(self, name: str):
         ClusterState.remove_namespace(name)
 
+    # ============================================================
+    # NodePort Services - see formalization.tex: "Upon the addition of a new
+    # NodePort service to the cluster, a rule must be inserted to grant
+    # access to the NodePort port on all Nodes hosting the pertinent Pods
+    # [...] we opt for adding this rule in the least-privilege Security Group
+    # linked to each worker Node [...] Upon deleting a NodePort service, we
+    # also purge the rule." That SG is workerSG (ClusterState.get_worker_sg,
+    # one per OpenStack project, already attached to every worker in it by
+    # create_master_and_workerSG.py) - adding the rule there once per project
+    # covers every worker in that project, since a NodePort request may land
+    # on any of them, not just ones currently running a matching Pod.
+    #
+    # A Service's own creation and its matching Pods' scheduling race
+    # independently (kopf delivers both as separate events, in either order -
+    # in practice the Service object usually lands first, before its
+    # Deployment's Pods have even been scheduled). handle_new_service() below
+    # only opens the port in projects that ALREADY have a matching Pod;
+    # handle_new_pod() separately re-checks every tracked NodePort service
+    # against each newly-scheduled Pod, so whichever event arrives second
+    # still converges to the right state.
+    #
+    # KNOWN LIMITATION (deliberate, matches the paper): the rule is only ever
+    # purged when the Service itself is deleted, not when its last matching
+    # Pod disappears (e.g. scaled to zero) while the Service lives on.
+
+    @staticmethod
+    def _projects_with_matching_pod(label_set: LabelSet) -> set[str]:
+        projects = set()
+        for pod in ClusterState().get_pods():
+            if pod.node is None or not matching(label_set, pod):
+                continue
+            node = ClusterState.get_node(pod.node.name) or pod.node
+            projects.add(node.project)
+        return projects
+
+    def _open_nodeport_for_project(self, svc: NodePortService, project: str):
+        if project in svc.opened_projects:
+            return
+        sg = ClusterState.get_worker_sg(project)
+        if sg is None:
+            print(f"NodePort: no workerSG known for project {project} - cannot open {svc.key()} there.")
+            return
+        for port, protocol in svc.ports:
+            rule = Rule(CIDR("0.0.0.0/0"), Traffic(INGRESS, port, protocol))
+            if rule not in sg.remotes:
+                SecurityGroupModule.add_rule_to_remotes(sg, rule)
+        svc.opened_projects.add(project)
+        print(f"NodePort: opened {svc.ports} for {svc.key()} on {sg.name} (project {project}).")
+
+    def _close_nodeport_for_project(self, svc: NodePortService, project: str):
+        sg = ClusterState.get_worker_sg(project)
+        if sg is None:
+            svc.opened_projects.discard(project)
+            return
+        for port, protocol in svc.ports:
+            rule = Rule(CIDR("0.0.0.0/0"), Traffic(INGRESS, port, protocol))
+            if rule in sg.remotes:
+                SecurityGroupModule.remove_rule_from_remotes(sg, rule)
+        svc.opened_projects.discard(project)
+        print(f"NodePort: closed {svc.ports} for {svc.key()} on {sg.name} (project {project}).")
+
+    def handle_new_service(self, svc: NodePortService):
+        with self.labelSetLockManager.lock_labelsets({svc.label_set}):
+            if ClusterState.get_nodeport_service(svc.key()) is not None:
+                print(f"NodePort service {svc.key()} already exists in the cluster.")
+                return
+            ClusterState.add_nodeport_service(svc)
+            for project in self._projects_with_matching_pod(svc.label_set):
+                self._open_nodeport_for_project(svc, project)
+
+    def handle_removed_service(self, svc: NodePortService):
+        with self.labelSetLockManager.lock_labelsets({svc.label_set}):
+            existing = ClusterState.get_nodeport_service(svc.key())
+            if existing is None:
+                return
+            for project in list(existing.opened_projects):
+                self._close_nodeport_for_project(existing, project)
+            ClusterState.remove_nodeport_service(svc.key())
+
     @staticmethod
     def get_involved_labelsets(pod: Pod) -> set[LabelSet]:
         """
@@ -346,6 +426,22 @@ class WatchDog:
             
         # print(ClusterState())
         print(f"[{threading.get_ident()}] Pod {pod.name} handled. Released locks for: {ClusterState.get_labelsets_string(used_labelsets)}")
+
+        # NodePort: re-check every tracked NodePort Service against this pod,
+        # in case the Service was created before any of its Pods existed (the
+        # common case - see handle_new_service()'s own docstring). Each one
+        # gets its OWN lock scope, acquired only after the block above has
+        # already released used_labelsets: the per-labelset locks here are
+        # plain threading.Lock (not reentrant), and a Service's selector can
+        # legitimately collide with an already-locked NetworkPolicy selector
+        # (e.g. both scoped to the same single-service label) - nesting would
+        # deadlock the owning thread on its own already-held lock.
+        for svc in ClusterState.get_nodeport_services():
+            if not matching(svc.label_set, pod):
+                continue
+            with self.labelSetLockManager.lock_labelsets({svc.label_set}):
+                node = ClusterState.get_node(pod.node.name) or pod.node
+                self._open_nodeport_for_project(svc, node.project)
 
 
     def handle_new_pods_batch(self, pods: set[Pod]):

@@ -3,6 +3,7 @@ from classes import *
 from is_openstack import is_openstack
 import os
 from openstackfiles.openstack_client import OpenStackClient
+from openstackfiles.create_master_and_workerSG import WORKER_SG_NAME
 from locking.lockmanager import LockManager
 
 
@@ -29,6 +30,16 @@ class ClusterState:
 
     # Mapping of security group names to their corresponding security group objects
     security_groups: dict[str, SecurityGroup] = {}
+
+    # workerSG, keyed by OpenStack project - resolved separately from
+    # security_groups above because workerSG is created PER PROJECT (see
+    # create_master_and_workerSG.py) but always under the same literal name,
+    # so a plain name-keyed dict can only ever hold one project's workerSG.
+    worker_security_groups: dict[str, SecurityGroup] = {}
+
+    # Tracked `type: NodePort` Services, keyed by "<namespace>/<name>" - see
+    # NodePortService and WatchDog.handle_new_service()/handle_removed_service().
+    nodeport_services: dict[str, NodePortService] = {}
 
     # Mapping of namespace name to that namespace's own labels
     namespaces: dict[str, dict[str, str]] = {}
@@ -82,6 +93,8 @@ class ClusterState:
                     ]
                     security_group.remotes = set(rules)
                     ClusterState().security_groups[sg["name"]] = security_group
+                    if sg["name"] == WORKER_SG_NAME:
+                        ClusterState().worker_security_groups[project_key] = security_group
 
 
     @staticmethod
@@ -312,6 +325,26 @@ class ClusterState:
     @staticmethod
     def remove_security_group(sg_name: str):
         ClusterState().security_groups.pop(sg_name)
+
+    @staticmethod
+    def get_worker_sg(project: str) -> SecurityGroup | None:
+        return ClusterState().worker_security_groups.get(project)
+
+    @staticmethod
+    def get_nodeport_services() -> list[NodePortService]:
+        return list(ClusterState().nodeport_services.values())
+
+    @staticmethod
+    def get_nodeport_service(key: str) -> NodePortService | None:
+        return ClusterState().nodeport_services.get(key)
+
+    @staticmethod
+    def add_nodeport_service(svc: NodePortService):
+        ClusterState().nodeport_services[svc.key()] = svc
+
+    @staticmethod
+    def remove_nodeport_service(key: str):
+        ClusterState().nodeport_services.pop(key, None)
 
     def __str__(self):
         result = ["--------------", "Cluster State:"]

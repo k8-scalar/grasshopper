@@ -133,3 +133,27 @@ class Watcher:
     def create_namespace_from_dict(obj: dict) -> tuple[str, dict[str, str]]:
         metadata = obj.get("metadata", {})
         return metadata.get("name"), metadata.get("labels", {})
+
+    @staticmethod
+    def create_service_from_dict(obj: dict) -> NodePortService:
+        """
+        Only meaningful for spec.type == "NodePort" - callers check that
+        before parsing (see main_operator.py). A Service's selector, like a
+        bare podSelector, always implicitly means "in its own namespace" -
+        there is no cross-namespace Service selector in Kubernetes.
+        """
+        metadata = obj.get("metadata", {})
+        spec = obj.get("spec", {})
+
+        name = metadata.get("name")
+        namespace = metadata.get("namespace")
+        selector = spec.get("selector", {}) or {}
+        label_set = Watcher.create_selected(selector, namespace)
+
+        ports = [
+            (p.get("nodePort"), p.get("protocol", "TCP"))
+            for p in (spec.get("ports") or [])
+            if p.get("nodePort")
+        ]
+
+        return NodePortService(namespace, name, label_set, ports)
