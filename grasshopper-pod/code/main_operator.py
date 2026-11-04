@@ -460,6 +460,33 @@ def handle_new_policy(body, **kwargs):
     policy = Watcher.create_policy_from_policy_dict(body)
     watchdog.handle_new_policy(policy)
 
+def _is_nodeport_service(body: dict) -> bool:
+    return body.get("spec", {}).get("type") == "NodePort"
+
+# NodePort Services - see formalization.tex and WatchDog.handle_new_service()/
+# handle_removed_service(). on.resume (not on.create) picks up whatever
+# NodePort Services already exist when Grasshopper itself (re)starts, same
+# reasoning as pods/namespaces/policies elsewhere in this file. Filtered to
+# spec.type == "NodePort" inside the handler body (not via kopf's own
+# server-side filtering) since that's the simplest way to skip every other
+# Service kind without a label-selector dependency.
+@kopf.on.resume('v1', 'services')
+@kopf.on.create('v1', 'services')
+def handle_new_service(body, **kwargs):
+    if not _is_nodeport_service(body):
+        return
+    svc = Watcher.create_service_from_dict(body)
+    print(f"New NodePort service: {svc.key()}, ports={svc.ports}")
+    watchdog.handle_new_service(svc)
+
+@kopf.on.delete('v1', 'services')
+def handle_removed_service(body, **kwargs):
+    if not _is_nodeport_service(body):
+        return
+    svc = Watcher.create_service_from_dict(body)
+    print(f"Removing NodePort service: {svc.key()}")
+    watchdog.handle_removed_service(svc)
+
 @kopf.on.delete('networking.k8s.io', 'v1', 'networkpolicies', retries=5)
 def handle_removed_policy(body, **kwargs):
     global last_run_time
